@@ -25,7 +25,8 @@ else ()
 	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist/lib )
 	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist/lib )
 endif ( MSVC )
-	
+
+file(MAKE_DIRECTORY models textures shaders) 
 file(COPY models textures shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
 

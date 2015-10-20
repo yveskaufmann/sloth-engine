@@ -1,5 +1,8 @@
 #include <iostream>
 #include <unistd.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
 
 #ifdef USE_GLEW
 	#include <GL/glew.h>
@@ -29,22 +32,24 @@ int main() {
 	const char *fragmentShaderSrc =
 		"#version 330 core"
 		"\n"
+		"uniform vec3 in_color;"
 		"out vec4 color;"
 		"\n"
 		"void main() {"
-		"	color = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
+		"	color = vec4(in_color, 1.0f);"
 		"}";
 	
 	GLfloat vertices[] = {
-		  0.5f,  0.5f, 0.0f,
-		  0.5f, -0.5f, 0.0f,
-		 -0.5f, -0.5,  0.0f,
-		 -0.5f,  0.5,  0.0f,
+		  0.0f, -0.5f, 0.0f,
+		 -0.5f, -0.5f, 0.0f,
+		 -0.25f, 0.5,  0.0f,
+		  0.25f, 0.5f, 0.0f,
+		  0.5f, -0.5,  0.0f,
 	};
 	
 	GLuint indices[] = { 
-		0, 1, 3,
-		1, 2, 3
+		0, 1, 2,
+		0, 3, 4
 	};
 	
 	glfwInit();
@@ -122,8 +127,16 @@ int main() {
 	glBindVertexArray(0);
 
 	glViewport(0, 0, width, height);
+	
+	double  previousTime = 0;
 	while (! glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+		double currentTime = glfwGetTime();
+		double diffTime = currentTime - previousTime;
+		previousTime = currentTime;
+			
+		glfwPollEvents();	
+		GLint colorLocation = glGetUniformLocation(shaderProgram, "in_color");
+		glUniform3f(colorLocation, sin(currentTime) * 1.0f, 0.4f * cos(currentTime * 2.0), 0.2f);
 		glUseProgram(shaderProgram);
 		
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
