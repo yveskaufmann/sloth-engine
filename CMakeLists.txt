@@ -5,8 +5,15 @@ enable_language(C)
 enable_language(CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS, 1)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/lib/cmake/Modules/")
-set(SOURCE_FILES 
-	${CMAKE_SOURCE_DIR}/main.cpp
+include_directories(${CMAKE_SOURCE_DIR}/include)
+set(SOURCE_FILES
+	${CMAKE_SOURCE_DIR}/src/main.cpp
+	${CMAKE_SOURCE_DIR}/src/RawModel.cpp
+	${CMAKE_SOURCE_DIR}/src/Display.cpp
+	${CMAKE_SOURCE_DIR}/src/DisplayManager.cpp
+	${CMAKE_SOURCE_DIR}/src/DisplayException.cpp
+	${CMAKE_SOURCE_DIR}/src/ShaderException.cpp
+	${CMAKE_SOURCE_DIR}/src/ShaderProgram.cpp
 )
 
 if (UNIX) 

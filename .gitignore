@@ -33,3 +33,4 @@ relase/
 *.exe
 *.out
 *.app
+*.pyc
