@@ -46,6 +46,7 @@ private:
 	int height;
 	GLFWwindow *window;
 	std::map<int, int> windowHints;
+	bool alreadyCleaned = false;
 };
 
 #endif //GL_TUT_DISPLAYMANAGER_H

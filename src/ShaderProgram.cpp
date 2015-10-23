@@ -4,8 +4,8 @@
 #include <iostream>
 #include "ShaderProgram.h"
 
-ShaderProgram::ShaderProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc) throw (ShaderException) {
-	compileAndLink(vertexShaderSrc, fragmentShaderSrc);
+
+ShaderProgram::ShaderProgram() {
 }
 
 ShaderProgram::~ShaderProgram() {
@@ -45,6 +45,11 @@ GLuint ShaderProgram::compileAndLink(const char *vertexShaderSrc, const char *fr
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	if ( success) {
+		loadAllUniformLocations();
+		bindAllAttributeLocations();
+	}
+
 	return success;
 }
 
@@ -68,11 +73,75 @@ GLuint ShaderProgram::compileShader(GLenum shaderType, const char *shaderSource)
 
 void ShaderProgram::start() {
 	glUseProgram(shaderProgram);
-	GLint colorLocation = glGetUniformLocation(shaderProgram, "in_color");
-	glUniform3f(colorLocation, 0.6f, 0.4f , 0.2f);
 }
 
 void ShaderProgram::stop() {
 	glUseProgram(0);
 }
+
+void ShaderProgram::bindAttributeLocation(const char *attributeName, GLuint location) {
+	glBindAttribLocation(shaderProgram, location, attributeName);
+}
+
+GLuint ShaderProgram::getUniformLocation(const char *name) {
+	GLint location = glGetUniformLocation(shaderProgram, name);
+
+	if (location == -1) {
+		std::string variableName(name);
+		throw new ShaderException("The specified variable name \"" + variableName + "\" doesn't correspond to a valid uniform variable");
+	}
+
+	return location;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, GLfloat value) {
+	glUniform1f(location, value);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, GLdouble value) {
+	glUniform1d(location, value);
+	return  *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, GLint value) {
+	glUniform1i(location, value);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, GLuint value) {
+	glUniform1ui(location, value);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniformCurrentTime(GLuint location) {
+	GLdouble currentTime = glfwGetTime();
+	setUniform(location, currentTime);
+	return  *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, glm::mat4 matrix) {
+	glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, glm::vec2 vector) {
+	glUniform2fv(location, 1, &vector[0]);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, glm::vec3 vector) {
+	glUniform3fv(location, 1, &vector[0]);
+	return *this;
+}
+
+ShaderProgram& ShaderProgram::setUniform(GLuint location, glm::vec4 vector) {
+	glUniform4fv(location, 1, &vector[0]);
+	return *this;
+}
+
+
+
+
+
 

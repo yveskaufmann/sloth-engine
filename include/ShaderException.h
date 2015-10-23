@@ -14,10 +14,13 @@
 class ShaderException : public std::runtime_error {
 public:
 	ShaderException(GLuint shader);
+	ShaderException(std::string message);
+	ShaderException(const ShaderException& ex);
 	~ShaderException();
 	virtual const char* what() const throw();
 private:
 	GLuint shader;
+	std::string message;
 };
 
 

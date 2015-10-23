@@ -2,7 +2,7 @@
 // Created by fxdapokalypse on 21.10.15.
 //
 #include <iostream>
-#include "DisplayManager.h"
+#include <DisplayManager.h>
 
 const int DEFAULT_SCREEN_WIDTH = 1024;
 const int DEFAULT_SCREEN_HEIGHT = 768;
@@ -25,7 +25,9 @@ DisplayManager& DisplayManager::reset() {
 	setWidth(DEFAULT_SCREEN_WIDTH);
 	setHeight(DEFAULT_SCREEN_HEIGHT);
 	setTitle(DEFAULT_TITLE);
-	glfwDefaultWindowHints();
+	if (! alreadyCleaned) {
+		glfwDefaultWindowHints();
+	}
 	return *this;
 }
 
@@ -43,7 +45,7 @@ void DisplayManager::clean() {
 		window = nullptr;
 	}
 
-	windowHints.clear();
+	alreadyCleaned = true;
 }
 
 DisplayManager& DisplayManager::setHeight(int height) {

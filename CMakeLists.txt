@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(GL_TUT)
 
-enable_language(C)
 enable_language(CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS, 1)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/lib/cmake/Modules/")
@@ -14,6 +13,7 @@ set(SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/DisplayException.cpp
 	${CMAKE_SOURCE_DIR}/src/ShaderException.cpp
 	${CMAKE_SOURCE_DIR}/src/ShaderProgram.cpp
+	${CMAKE_SOURCE_DIR}/src/BasicShader.cpp
 )
 
 if (UNIX) 

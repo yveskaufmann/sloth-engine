@@ -4,36 +4,16 @@
 #include <RawModel.h>
 #include <Display.h>
 #include <DisplayManager.h>
-#include <ShaderProgram.h>
+#include <BasicShader.h>
 
 void key_callback(GLFWwindow *window, int key, int scanCode, int action, int mode);
 
 int main() {
 
-	const char *vertexShaderSrc =
-		"#version 330 core"
-		"\n"
-		"layout (location = 0) in vec3 position;"
-		"\n"
-		"void main() {"
-		"	gl_Position = vec4(position, 1.0f);"
-		"}"
-		"\n";
+	if (glfwInit() != GL_TRUE) {
+		throw "GLFW isn't initialized";
+	}
 
-	const char *fragmentShaderSrc =
-		"#version 330 core"
-		"\n"
-		"uniform vec3 in_color;"
-		"out vec4 color;"
-		"\n"
-		"void main() {"
-		"	color = vec4(in_color, 1.0f);"
-		"}";
-
-
-
-
-	glfwInit();
 	DisplayManager displayManager;
 	Display& display = displayManager
 		.setHeight(1024)
@@ -49,19 +29,20 @@ int main() {
 		0.0f, 0.5,  0.0f,
 	};
 	RawModel* trianglesModel = RawModel::loadFromFloatArray(vertices, sizeof(vertices));
-	ShaderProgram defaultShader(vertexShaderSrc, fragmentShaderSrc);
-	
+	BasicShader basicShader;
+	basicShader.init();
 
 	while (! display.shouldClose()) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		defaultShader.start();
+		basicShader.start();
+		basicShader.loadColor(glm::vec3(4.0f, 0.4f, 0.2f));
 		trianglesModel->render();
 		display.update();
 	}
 	
 	delete trianglesModel;
-	
+	displayManager.clean();
 	glfwTerminate();
 	
 	return 0;

@@ -8,21 +8,39 @@
 #include <gl_stuff.h>
 #include <ICleanable.h>
 #include <ShaderException.h>
+#include <glm/glm.hpp>
 
 class ShaderProgram : ICleanable {
 public:
-
-	ShaderProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc) throw(ShaderException);
+	ShaderProgram();
 	~ShaderProgram();
-
+	virtual void init() throw(ShaderException) = 0;
 	void start();
 	void stop();
-
 	void clean();
 
-private:
+protected:
 	GLuint compileAndLink(const char *vertexShaderSrc, const char *fragmentShaderSrc) throw(ShaderException);
-	GLuint compileShader(GLenum shaderType, const char* shaderSource) throw(ShaderException) ;
+	void bindAttributeLocation(const char *attributeName, GLuint location);
+	GLuint getUniformLocation(const char *name);
+
+
+	virtual void bindAllAttributeLocations() = 0;
+	virtual void loadAllUniformLocations() = 0;
+
+	ShaderProgram& setUniform(GLuint location, GLfloat value);
+	ShaderProgram& setUniform(GLuint location, GLdouble value);
+	ShaderProgram& setUniform(GLuint location, GLint value);
+	ShaderProgram& setUniform(GLuint location, GLuint value);
+
+	ShaderProgram& setUniform(GLuint location, glm::vec2 vector);
+	ShaderProgram& setUniform(GLuint location, glm::vec3 vector);
+	ShaderProgram& setUniform(GLuint location, glm::vec4 vector);
+	ShaderProgram& setUniform(GLuint location, glm::mat4 matrix);
+	ShaderProgram& setUniformCurrentTime(GLuint location);
+
+private:
+	GLuint compileShader(GLenum shaderType, const char* shaderSource) throw(ShaderException);
 
 	GLuint shaderProgram;
 	GLuint vertexShader;
