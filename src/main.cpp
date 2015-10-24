@@ -30,13 +30,13 @@ int main() {
 	};
 	RawModel* trianglesModel = RawModel::loadFromFloatArray(vertices, sizeof(vertices));
 	BasicShader basicShader;
-	basicShader.init();
 
 	while (! display.shouldClose()) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		basicShader.start();
 		basicShader.loadColor(glm::vec3(4.0f, 0.4f, 0.2f));
+		basicShader.updateTimer();
 		trianglesModel->render();
 		display.update();
 	}

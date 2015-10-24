@@ -11,6 +11,7 @@ class BasicShader : public ShaderProgram {
 public:
 	BasicShader();
 	void loadColor(glm::vec3 color);
+	void updateTimer();
 	void init() throw(ShaderException) override;
 
 protected:
@@ -18,6 +19,7 @@ protected:
 	void loadAllUniformLocations() override;
 private:
 	GLuint colorUniformLocation;
+	GLuint timeUniformLocation;
 };
 
 #endif //GL_TUT_BASICSHADER_H

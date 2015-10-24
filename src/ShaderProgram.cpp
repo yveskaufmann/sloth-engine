@@ -5,7 +5,8 @@
 #include "ShaderProgram.h"
 
 
-ShaderProgram::ShaderProgram() {
+ShaderProgram::ShaderProgram()
+	: alreadyInitialized(false) {
 }
 
 ShaderProgram::~ShaderProgram() {
@@ -14,6 +15,7 @@ ShaderProgram::~ShaderProgram() {
 
 void ShaderProgram::clean() {
 	glDeleteProgram(shaderProgram);
+	alreadyInitialized = false;
 }
 
 GLuint ShaderProgram::compileAndLink(const char *vertexShaderSrc, const char *fragmentShaderSrc) throw (ShaderException) {
@@ -72,6 +74,10 @@ GLuint ShaderProgram::compileShader(GLenum shaderType, const char *shaderSource)
 }
 
 void ShaderProgram::start() {
+	if (! alreadyInitialized) {
+		init();
+		alreadyInitialized = true;
+	}
 	glUseProgram(shaderProgram);
 }
 
@@ -115,7 +121,7 @@ ShaderProgram& ShaderProgram::setUniform(GLuint location, GLuint value) {
 }
 
 ShaderProgram& ShaderProgram::setUniformCurrentTime(GLuint location) {
-	GLdouble currentTime = glfwGetTime();
+	GLfloat currentTime = (GLfloat) glfwGetTime();
 	setUniform(location, currentTime);
 	return  *this;
 }

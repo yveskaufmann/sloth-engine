@@ -45,6 +45,7 @@ private:
 	GLuint shaderProgram;
 	GLuint vertexShader;
 	GLuint fragmentShader;
+	bool alreadyInitialized;
 };
 
 
