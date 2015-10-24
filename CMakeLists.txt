@@ -14,6 +14,7 @@ set(SOURCE_FILES
 	${CMAKE_SOURCE_DIR}/src/ShaderException.cpp
 	${CMAKE_SOURCE_DIR}/src/ShaderProgram.cpp
 	${CMAKE_SOURCE_DIR}/src/BasicShader.cpp
+	${CMAKE_SOURCE_DIR}/src/ObjectLoader.cpp
 )
 
 if (UNIX) 

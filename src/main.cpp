@@ -28,11 +28,16 @@ int main() {
 		0.5f, -0.5f, 0.0f,
 		0.0f, 0.5,  0.0f,
 	};
-	RawModel* trianglesModel = RawModel::loadFromFloatArray(vertices, sizeof(vertices));
+	RawModel* trianglesModel = RawModel::loadFromFloatArray(vertices, sizeof(vertices) / 3.0);
+	// RawModel* trianglesModel = RawModel::loadFromFile("models/teapot.obj");
 	BasicShader basicShader;
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	while (! display.shouldClose()) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glEnable(GL_DEPTH);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		basicShader.start();
 		basicShader.loadColor(glm::vec3(4.0f, 0.4f, 0.2f));

@@ -31,8 +31,14 @@ const char *vertexShaderSrc =
 	  	"   	vec4(0.0, 0.0, 0.0, 0.0),"
 	  	"   	vec4(0.0, 0.0, 0.0, 1.0)"
 	  	"   );"
-		"   mat4 m =  view * rotate * transform;"
-		"	gl_Position = vec4(m * vec4(position, 1.0));"
+		"mat4 scale = mat4("
+	  	"   	vec4(1.0/1000, 0.0, 0.0, 0.0),"
+	  	"   	vec4(0.0, 1.0/1000, 0.0, 0.0),"
+	  	"   	vec4(0.0, 0.0, 1.0/1000.0, 0.0),"
+	  	"   	vec4(0.0, 0.0, 0.0, 1.0)"
+	  	"   );"
+		"   mat4 m =  view * rotate;"
+		"	gl_Position = vec4( m * vec4(position, 1.0));"
 		"}"
 		"\n";
 

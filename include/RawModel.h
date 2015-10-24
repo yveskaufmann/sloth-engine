@@ -6,10 +6,12 @@
 #define GL_TUT_RAWMODEL_H
 
 #include <gl_stuff.h>
+#include <string>
 
 class RawModel {
 public:
 
+	static RawModel *loadFromFile(std::string filename);
 	static RawModel *loadFromFloatArray(float* vertices, unsigned long length);
 
 	RawModel(GLuint vaoId, unsigned long countOfVertices);
