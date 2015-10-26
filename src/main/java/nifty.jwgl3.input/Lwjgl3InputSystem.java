@@ -1,6 +1,7 @@
 package nifty.jwgl3.input;
 
 import de.lessvoid.nifty.NiftyInputConsumer;
+import de.lessvoid.nifty.input.keyboard.KeyboardInputEvent;
 import de.lessvoid.nifty.spi.input.InputSystem;
 import de.lessvoid.nifty.tools.resourceloader.NiftyResourceLoader;
 import org.lwjgl.glfw.GLFW;
@@ -16,7 +17,6 @@ public class Lwjgl3InputSystem implements InputSystem {
 
 
 	public void startup() {
-
 	}
 
 	public void shutdown() {

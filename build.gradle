@@ -7,10 +7,10 @@ apply plugin: 'idea'
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
 	maven {
 		url 'http://nifty-gui.sourceforge.net/nifty-maven-repo'
 	}
+	mavenCentral()
 }
 
 idea {
@@ -28,7 +28,6 @@ dependencies {
 	compile 'org.lwjgl:lwjgl-platform:3.0.0a:natives-osx'
 
 	compile group: 'lessvoid', name:'nifty', version:'1.4.1'
-	compile group: 'lessvoid', name:'nitfy-default-controls', version:'1.4.1'
 	compile group: 'lessvoid', name:'nifty-lwjgl-renderer', version:'1.4.1'
 	compile group: 'lessvoid', name:'nifty-openal-soundsystem', version:'1.4.1'
 	compile group: 'lessvoid', name:'nifty-pauls-soundsystem', version:'1.4.1'

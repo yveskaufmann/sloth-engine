@@ -4,7 +4,6 @@ package sandbox;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.NiftyEventSubscriber;
 import de.lessvoid.nifty.builder.*;
-import de.lessvoid.nifty.render.batch.BatchRenderDevice;
 import de.lessvoid.nifty.screen.DefaultScreenController;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
@@ -12,9 +11,10 @@ import de.lessvoid.nifty.sound.openal.OpenALSoundDevice;
 import de.lessvoid.nifty.spi.time.impl.AccurateTimeProvider;
 import de.lessvoid.nifty.tools.Color;
 import de.lessvoid.nifty.tools.SizeValue;
+import de.lessvoid.nifty.tools.resourceloader.ClasspathLocation;
+import nifty.jwgl3.input.GLFWKeyCallbackDispatcher;
 import nifty.jwgl3.input.Lwjgl3InputSystem;
-import nifty.jwgl3.renderer.Lwjgl3BatchRenderBackendFactory;
-import org.lwjgl.glfw.GLFWKeyCallback;
+import nifty.jwgl3.renderer.Lwjgl3RenderDeviceFactory;
 import util.NativeLibraryLoader;
 import window.Window;
 import window.WindowManager;
@@ -70,7 +70,7 @@ public class Sandbox {
 		NativeLibraryLoader.load();
 	}
 
-	private GLFWKeyCallback keyCallback;
+	private GLFWKeyCallbackDispatcher keyCallback;
 
 	public void run() throws Exception {
 
@@ -79,28 +79,32 @@ public class Sandbox {
 			.setTitle("Window the first")
 			.setSize(1024, 768)
 			.setResizeable(true)
+			.setGLContextVersion(3, 0)
 			.build()
 			.enable();
 
 		Nifty nifty = new Nifty(
-			new BatchRenderDevice(Lwjgl3BatchRenderBackendFactory.create(window.getWindowId())),
+			Lwjgl3RenderDeviceFactory.create(window.getWindowId()),
 			new OpenALSoundDevice(),
 			new Lwjgl3InputSystem(window.getWindowId()),
 			new AccurateTimeProvider());
 
 
 		createIntroScreen(nifty, new MyScreenController());
-		nifty.registerMouseCursor("test", "./nitfy-cursor.png", 5, 4);
+		nifty.registerMouseCursor("test", "nitfy-cursor.tga", 0, 0);
+		nifty.getNiftyMouse().enableMouseCursor("test");
 		nifty.gotoScreen("start");
 
-		glfwSetKeyCallback(window.getWindowId(), keyCallback = new GLFWKeyCallback() {
-			@Override
-			public void invoke(long window, int key, int scancode, int action, int mods) {
-				if (key == GLFW_KEY_ESCAPE) {
-					glfwSetWindowShouldClose(window, GL_TRUE);
-				}
+
+		glfwSetKeyCallback(window.getWindowId(), keyCallback = new GLFWKeyCallbackDispatcher());
+
+		keyCallback.add((_window, key, scancode, action, mods) -> {
+			if (key == GLFW_KEY_ESCAPE) {
+				glfwSetWindowShouldClose(_window, GL_TRUE);
 			}
 		});
+
+
 		boolean done = false;
 		while ( !window.shouldClose() && !done) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
