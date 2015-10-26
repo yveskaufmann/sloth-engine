@@ -79,7 +79,7 @@ public class Window implements Cleanable {
 		return GLFW.glfwWindowShouldClose(windowId) == GL11.GL_TRUE;
 	}
 
-	public void enable() {
+	public Window enable() {
 
 		if (state != State.DISABLED) {
 			throw new IllegalStateException("This window was already enabled");
@@ -97,20 +97,25 @@ public class Window implements Cleanable {
 		});
 		GLFW.glfwShowWindow(windowId);
 		updateViewportSize();
+
+		return this;
 	}
 
-	public void disable() {
+	public Window disable() {
 		if (state == State.DISABLED) {
 			throw new IllegalStateException("This window was already disabled");
 		}
 
 		GLFW.glfwSetWindowSizeCallback(windowId, null);
 		GLFW.glfwMakeContextCurrent(0L);
+
+		return this;
 	}
 
-	public void update() {
+	public Window update() {
 		GLFW.glfwSwapBuffers(windowId);
 		GLFW.glfwPollEvents();
+		return this;
 	}
 
 	@Override
