@@ -1,6 +1,6 @@
 package util;
 
-import util.Enumerations;
+import org.lwjgl.LWJGLUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -34,31 +34,18 @@ public class NativeLibraryLoader {
 	}
 
 	private static URL getURLtoLWJGLPlatformJar() {
-		final String os = detectOS();
+		final String os = LWJGLUtil.getPlatformName();
+
+		if (os == null) {
+			throw new IllegalStateException("Unsupported operating system detected: " + System.getProperty("os.name"));
+		}
+
 		ClassLoader cl = ClassLoader.getSystemClassLoader();
 		URL[] urls =  ((URLClassLoader) cl).getURLs();
 		return Stream.of(urls)
 			.filter((url) -> url.toString().endsWith("-natives-" + os + ".jar"))
 			.findFirst()
 			.orElseThrow(()-> new IllegalStateException("Required lwjgl-platform jars are not provided by the classpath"));
-	}
-
-	private static String detectOS() {
-		String os = System.getProperty("os.name").toLowerCase();
-
-		if (os.contains("win")) {
-			return "windows";
-		}
-
-		if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
-			return "linux";
-		}
-
-		if (os.contains("nix")) {
-			return "windows";
-		}
-
-		throw new IllegalStateException("Unsupported operating system detected: " + os);
 	}
 
 	private static void extractJarToLibFolder(URL url) {
