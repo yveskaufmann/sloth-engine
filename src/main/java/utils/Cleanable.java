@@ -1,4 +1,4 @@
-package util;
+package utils;
 
 /**
  * A class which have to clean up it's

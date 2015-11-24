@@ -34,8 +34,8 @@ else ()
 	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist/lib )
 endif ( MSVC )
 
-file(MAKE_DIRECTORY models textures shaders) 
-file(COPY models textures shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist)
+file(MAKE_DIRECTORY geometry textures shaders)
+file(COPY geometry textures shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/glfw )

@@ -3,9 +3,9 @@ package window;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
-import util.Cleanable;
+import utils.Cleanable;
 
 import java.nio.IntBuffer;
 
@@ -76,7 +76,7 @@ public class Window implements Cleanable {
 	}
 
 	public boolean shouldClose() {
-		return GLFW.glfwWindowShouldClose(windowId) == GL11.GL_TRUE;
+		return GLFW.glfwWindowShouldClose(windowId) == GLFW.GLFW_TRUE;
 	}
 
 	public Window enable() {
@@ -88,7 +88,7 @@ public class Window implements Cleanable {
 		state = State.ENABLED;
 
 		GLFW.glfwMakeContextCurrent(windowId);
-		GLContext.createFromCurrent();
+		GL.createCapabilities();
 		GLFW.glfwSetWindowSizeCallback(windowId, sizeCallback = new GLFWWindowSizeCallback() {
 			@Override
 			public void invoke(long window, int width, int height) {

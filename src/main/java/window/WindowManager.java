@@ -6,7 +6,7 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.system.MemoryUtil.*;
-import util.Cleanable;
+import utils.Cleanable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class WindowManager implements Cleanable {
 	}
 
 	private Map<Integer, Integer> windowHints = null;
-	private List<Window> buildedWindows = null;
+	private List<Window> windows = null;
 	private int height;
 	private int width;
 	private String title;
@@ -39,7 +39,7 @@ public class WindowManager implements Cleanable {
 			throw new IllegalStateException("The glfw init failed");
 		}
 		windowHints = new HashMap<>();
-		buildedWindows = new ArrayList<>();
+		windows = new ArrayList<>();
 		setWidth(DEFAULT_WIDTH);
 		setHeight(DEFAULT_HEIGHT);
 		setTitle(DEFAULT_TITLE);
@@ -57,7 +57,7 @@ public class WindowManager implements Cleanable {
 	@Override
 	public void clean() {
 		reset();
-		for (Window window : buildedWindows) {
+		for (Window window : windows) {
 			window.clean();
 		}
 		glfwTerminate();
@@ -126,7 +126,7 @@ public class WindowManager implements Cleanable {
 		}
 
 		Window window = new Window(windowId, title);
-		buildedWindows.add(window);
+		windows.add(window);
 		reset();
 
 		return window;
