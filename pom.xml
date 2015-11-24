@@ -10,15 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lwjgl.version>3.0.0b</lwjgl.version>
-        <nifty.version>1.4.1</nifty.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>nifty-maven-repo.sourceforge.net</id>
-            <url>http://nifty-gui.sourceforge.net/nifty-maven-repo</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -52,9 +44,9 @@
         </dependency>
 
         <dependency>
-            <groupId>lessvoid</groupId>
-            <artifactId>nifty</artifactId>
-            <version>${nifty.version}</version>
+            <groupId>com.hackoeur</groupId>
+            <artifactId>jglm</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

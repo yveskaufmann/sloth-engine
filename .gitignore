@@ -3,7 +3,5 @@
 *.iml
 *.log
 .idea/
-.gradle/
-build/
-lib/
+target/
 
