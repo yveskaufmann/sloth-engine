@@ -40,9 +40,8 @@ public abstract class HardwareObject {
 	 */
 	private Class<?> type;
 
-	protected HardwareObject(Object object, Class<?> type) {
+	protected HardwareObject(Class<?> type) {
 		this.id = UNSET_ID;
-		this.objectRef = object;
 		this.type = type;
 		enableUpdateRequired();
 	}

@@ -5,16 +5,24 @@ import org.lwjgl.BufferUtils;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class VertexBuffer {
-	public enum Usage {
+
+	public static enum Type {
+		Vertex,
+		Normal,
+		TextCoords,
+		TextCoords02,
+		TextCoords03,
+		TextCoords04,
+		TextCoords05,
+		TextCoords06,
+		Color,
+		Index,
+	}
+
+	public static enum Usage {
 		/**
 		 * The data store contents will be modified once and used at most a few times as source for GL drawing.
 		 *
@@ -83,41 +91,31 @@ public class VertexBuffer {
 		}
 	}
 
-
+	public enum Format {
+		Float,
+		Double,
+		Byte,
+		Unsingned_Byte,
+		Short,
+		Unsined_Short,
+		Int,
+		Unsined_Int
+	}
 
 	private Usage usage;
 	private int id;
 	private int vertexCount;
 	private Buffer buffer;
 
-
-
-	public void loadFrom(float[] vertices) {
-		this.id = glGenVertexArrays();
-		glBindVertexArray(this.id);
-		FloatBuffer vertexBuffer = createFloatBufferFrom(vertices);
-		storeInFloatAttributeList(0, vertexBuffer);
-		glBindVertexArray(0);
-	}
-
-	protected void storeInFloatAttributeList(int index, FloatBuffer vertexBuffer) {
-		storeInFloatAttributeList(index, vertexBuffer, Usage.STATIC_DRAW);
-	}
-
-	protected void storeInFloatAttributeList(int index, FloatBuffer vertexBuffer, Usage usage) {
-		int vboID = glGenBuffers();
-		glBindBuffer(GL_ARRAY_BUFFER, vboID);
-		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, usage.value());
-		glVertexAttribPointer(index, 3, GL_FLOAT, false, 0, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	}
-
 	private  FloatBuffer createFloatBufferFrom(float[] vertices) {
 		FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.length);
 		vertexBuffer.put(vertices);
 		vertexBuffer.flip();
 		return vertexBuffer;
+	}
+
+	public void setData(Usage usage, Format format, int components, Buffer buffer) {
+
 	}
 
 	/**
@@ -130,5 +128,6 @@ public class VertexBuffer {
 	public int getVertexCount() {
 		return vertexCount;
 	}
+
 
 }

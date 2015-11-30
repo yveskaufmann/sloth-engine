@@ -1,18 +1,68 @@
 package geometry;
 
-import com.sun.prism.impl.VertexBuffer;
+
 import renderer.Renderer;
 import utils.HardwareObject;
+
+import java.nio.FloatBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class Mesh extends HardwareObject {
 
-	private Mode mode;
-	private VertexBuffer buffer;
+	private Mode mode = Mode.TRIANGLES;
+	private Map<VertexBuffer.Type, VertexBuffer> buffers = new HashMap<>();
 
-	protected Mesh(Object object, Class<?> type) {
-		super(object, type);
+	private float lineSize = 1.0f;
+	private float pointSize = 1.0f;
+	private int vertexCount = 0;
+
+
+	protected Mesh() {
+		super(Mesh.class);
+	}
+
+	public VertexBuffer getBuffer(VertexBuffer.Type type) {
+		return buffers.get(type);
+	}
+
+	public void setBuffer(VertexBuffer.Type type, FloatBuffer buffer, int components) {
+		VertexBuffer vertexBuffer = buffers.get(type);
+		if (vertexBuffer == null) {
+			vertexBuffer = new VertexBuffer();
+			vertexBuffer.setData(VertexBuffer.Usage.STATIC_READ, VertexBuffer.Format.Float, components, buffer);
+		}
+
+	}
+
+	public Mode getMode() {
+		return mode;
+	}
+
+	public void setMode(Mode mode) {
+		this.mode = mode;
+	}
+
+	public float getLineSize() {
+		return lineSize;
+	}
+
+	public void setLineSize(float lineSize) {
+		this.lineSize = lineSize;
+	}
+
+	public float getPointSize() {
+		return pointSize;
+	}
+
+	public void setPointSize(float pointSize) {
+		this.pointSize = pointSize;
+	}
+
+	public int getVertexCount() {
+		return vertexCount;
 	}
 
 	@Override
@@ -23,10 +73,6 @@ public class Mesh extends HardwareObject {
 	@Override
 	public void resetObject() {
 
-	}
-
-	public int getVertexCount() {
-		return 0;
 	}
 
 	/**
