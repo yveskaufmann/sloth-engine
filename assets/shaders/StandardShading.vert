@@ -20,6 +20,8 @@ uniform mat4 M;
 uniform vec3 LightPosition_worldspace;
 uniform vec3 P;
 
+uniform int time;
+
 void main() {
 
 	// Output position of the vertex, in clip space : MVP * position
@@ -41,6 +43,6 @@ void main() {
 	Normal_cameraspace = ( V * M * vec4(vertexNormal_modelspace,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
 	
 	// UV of the vertex. No special space for this one.
-	UV = vertexUV;
+	UV = vertexUV * time;
 }
 

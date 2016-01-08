@@ -45,4 +45,23 @@ public class BufferUtils {
 		return (ByteBuffer) createByteBuffer(buffer.length).put(buffer).flip();
 	}
 
+	/**
+	 * Creates a FloatBuffer with a specified capacity.
+	 *
+	 * @param capacity the capacity of the new created buffer.
+	 * @return the new created float buffer.
+     */
+	public static FloatBuffer createFloatBuffer(int capacity) {
+		return org.lwjgl.BufferUtils.createFloatBuffer(capacity);
+	}
+
+	/**
+	 * Creates a FloatBuffer with a specified capacity.
+	 *
+	 * @param capacity the capacity of the new created buffer.
+	 * @return the new created float buffer.
+	 */
+	public static IntBuffer createIntBuffer(int capacity) {
+		return org.lwjgl.BufferUtils.createIntBuffer(capacity);
+	}
 }

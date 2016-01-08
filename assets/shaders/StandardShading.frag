@@ -12,6 +12,8 @@ uniform sampler2D myTextureSampler;
 uniform mat4 MV;
 uniform vec3 LightPosition_worldspace;
 
+uniform int time;
+
 out vec4 fragColor;
 
 void main(){

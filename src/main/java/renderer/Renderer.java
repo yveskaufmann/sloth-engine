@@ -16,7 +16,15 @@ import java.io.IOException;
  */
 public interface Renderer {
 
-	void setRenderState(RenderState state);
+	/**
+	 *
+	 * @param state
+     */
+	void applyRenderState(RenderState state);
+
+	/**
+	 * Forces to reset the state of
+	 */
 	void invalidateState();
 
 	/**

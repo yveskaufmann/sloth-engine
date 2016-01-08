@@ -12,6 +12,7 @@ public class Shader extends HardwareObject {
 	private Map<String, Uniform> uniforms = null;
 	private Map<Integer, Attribute> attributes = null;
 
+
 	public Shader() {
 		super(Shader.class);
 		shaderSources = new ArrayList<>();
@@ -34,19 +35,23 @@ public class Shader extends HardwareObject {
 	}
 
 	public Uniform getUniform(String name) {
-		Uniform uniform = uniforms.getOrDefault (uniforms, new Uniform(this));
-		return uniform;
-	}
+		Uniform uniform = uniforms.get(name);
 
-	public Uniform removeUniform(String name) {
-		Uniform uniform = uniforms.get(uniforms);
-
-		if (uniform != null) {
-			uniforms.remove(name);
-			enableUpdateRequired();
+		if (uniform == null) {
+			uniform = new Uniform();
+			uniform.setName(name);
+			uniforms.put(name, uniform);
 		}
 
 		return uniform;
+	}
+
+	public Iterator<Uniform> getUniformIterator() {
+		return uniforms.values().iterator();
+	}
+
+	public Uniform removeUniform(String name) {
+		return uniforms.remove(name);
 	}
 
 	@Override

@@ -4,9 +4,11 @@ import geometry.Mesh;
 import math.Color;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+import org.omg.CORBA.UNKNOWN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shader.Shader;
+import shader.Uniform;
 import shader.source.ShaderSource;
 import shader.ShaderType;
 import texture.Image;
@@ -15,13 +17,13 @@ import geometry.VertexBuffer;
 import utils.HardwareObject;
 
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.*;
 import static org.lwjgl.opengl.GL43.*;
 
@@ -32,20 +34,18 @@ public class Lwjgl3Renderer implements Renderer {
 
 
 	private IntBuffer intBuffer = IntBuffer.allocate(1);
+	private RenderContext ctx;
 
 	private int viewPortX;
 	private int viewportY;
 	private int viewPortWidth;
 	private int viewPortHeight;
-	private boolean isScissorTestEnabled;
 	private int scissorX;
 	private int scissorY;
 	private int scissorWidth;
 	private int scissorHeight;
 	private GLCapabilities caps;
 
-	private Map<Integer, Shader> shaders;
-	private int activeShaderId;
 	private boolean validationRequired;
 
 	public Lwjgl3Renderer() {
@@ -58,10 +58,8 @@ public class Lwjgl3Renderer implements Renderer {
 		viewportY = 0;
 		viewPortWidth = -1;
 		viewPortHeight = -1;
-		shaders = new HashMap<>();
-		activeShaderId = HardwareObject.UNSET_ID;
 		caps =  GL.getCapabilities();
-
+		ctx = new RenderContext();
 	}
 
 	@Override
@@ -113,8 +111,8 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void setClipRect(int x, int y, int width, int height) {
-		if ( !isScissorTestEnabled ) {
-			isScissorTestEnabled = true;
+		if ( !ctx.scissorTest ) {
+			ctx.scissorTest = true;
 			glEnable(GL_SCISSOR_TEST);
 		}
 
@@ -129,8 +127,8 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void clearClipRect() {
-		if (isScissorTestEnabled) {
-			isScissorTestEnabled = false;
+		if (ctx.scissorTest) {
+			ctx.scissorTest = false;
 			glDisable(GL_SCISSOR_TEST);
 
 			scissorX = 0;
@@ -149,7 +147,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		updateShaderUniforms(shader);
-		useShader(shader);
+		bindShaderProgram(shader);
 	}
 
 
@@ -184,11 +182,13 @@ public class Lwjgl3Renderer implements Renderer {
 		if (linkSuccess) {
 			Log.info("Shader link success");
 			shader.disableUpdateRequired();
+			resetUniformLocation(shader);
 		} else {
 			Log.error("Failed to link shader program {}\n{}", shader, infoLog);
 		}
 
 	}
+
 
 	private void updateShaderSource(ShaderSource source) {
 		boolean newShader = false;
@@ -216,9 +216,107 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void updateShaderUniforms(Shader shader) {
+		Iterator<Uniform> it = shader.getUniformIterator();
+		while(it.hasNext()) {
+			Uniform uniform = it.next();
+			if (uniform.isUpdateRequired()) {
+				updateShaderUniform(shader, uniform);
+			}
+		}
 	}
 
-	private void useShader(Shader shader) {
+	private void resetUniformLocation(Shader shader) {
+		Iterator<Uniform> it = shader.getUniformIterator();
+		while(it.hasNext()) {
+			Uniform uniform = it.next();
+			uniform.reset();
+		}
+	}
+
+
+	private void updateShaderUniform(Shader shader, Uniform uniform) {
+		int shaderId = shader.getId();
+		int location = uniform.getLocation();
+		Uniform.VariableType type = uniform.getType();
+
+		// bindShaderProgram() required ?
+		if (location == Uniform.LOCATION_NOT_FOUND) return;
+		if (location == Uniform.LOCATION_UNKNOWN) {
+			updateUniformLocation(shader, uniform);
+			if (uniform.getLocation() == Uniform.LOCATION_NOT_FOUND) {
+				uniform.disableUpdateRequired();
+				return;
+			}
+			location = uniform.getLocation();
+		}
+
+		if (type == null) return;
+
+		Object value = uniform.getValue();
+		FloatBuffer fb;
+		switch (type) {
+			case Float:
+				float f1 = (float) value;
+				glUniform1f(location, f1);
+				break;
+			case Float2:
+				float[] fv2 = (float[]) value;
+				glUniform2f(location, fv2[0], fv2[1]);
+				break;
+			case Float3:
+				float[] fv3 = (float[]) value;
+				glUniform3f(location, fv3[0], fv3[1], fv3[2]);
+				break;
+			case Float4:
+				float[] fv4 = (float[]) value;
+				glUniform4f(location, fv4[0], fv4[1], fv4[2], fv4[3]);
+				break;
+
+			case Int:
+				int int1 = (int) value;
+				glUniform1f(location, int1);
+				break;
+			case Int2:
+				int[] int2 = (int[]) value;
+				glUniform2f(location, int2[0], int2[1]);
+				break;
+			case Int3:
+				float[] int3 = (float[]) value;
+				glUniform3f(location, int3[0], int3[1], int3[2]);
+				break;
+			case Int4:
+				float[] int4 = (float[]) value;
+				glUniform4f(location, int4[0], int4[1], int4[2], int4[3]);
+				break;
+
+			case Matrix3x3:
+				fb = (FloatBuffer) value;
+				glUniformMatrix3fv(location, false, fb);
+				break;
+			case Matrix4x4:
+				fb = (FloatBuffer) value;
+				glUniformMatrix4fv(location, false, fb);
+				break;
+		}
+
+		uniform.disableUpdateRequired();
+	}
+
+	private void updateUniformLocation(Shader shader, Uniform uniform) {
+		String name = uniform.getName();
+		int location = glGetUniformLocation(shader.getId(), name);
+		if (location == Uniform.LOCATION_NOT_FOUND) {
+			Log.warn("Could not find the uniform variable {} in the shader {}", name, shader);
+		}
+		uniform.setLocation(location);
+	}
+
+	private void bindShaderProgram(Shader shader) {
+		int shaderId = shader.getId();
+		if (ctx.boundShader == null || ctx.boundShader.getId() != shaderId) {
+			glUseProgram(shaderId);
+			ctx.boundShader = shader;
+		}
 	}
 
 	private int toShaderTypeConstant(ShaderType type) {
@@ -232,18 +330,37 @@ public class Lwjgl3Renderer implements Renderer {
 			case COMPUTE:
 				return GL_COMPUTE_SHADER;
 		}
-
 		throw new IllegalArgumentException("Invalid Shader type specified");
 	}
 
 	@Override
 	public void deleteShader(Shader shader) {
+		if (shader.getId() == HardwareObject.UNSET_ID) {
+			Log.warn("Shader Program is not uploaded to GPU, cannot be deleted");
+			return;
+		}
 
+		for (ShaderSource source : shader.getShaderSources()) {
+			if (source.getId() != HardwareObject.UNSET_ID) {
+				glDetachShader(shader.getId(), source.getId());
+				deleteShaderSource(source);
+			}
+		}
+
+		glDeleteProgram(shader.getId());
+		shader.resetObject();
 	}
 
 	@Override
 	public void deleteShaderSource(ShaderSource source) {
+		if (source.getId() == HardwareObject.UNSET_ID) {
+			Log.warn("Shader is not uploaded to GPU, cannot be deleted");
+			return;
+		}
 
+		glDeleteShader(source.getId());
+		source.enableUpdateRequired();
+		source.resetObject();
 	}
 
 	@Override
@@ -263,38 +380,23 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void drawMesh(Mesh mesh, int lod, int count) {
-
-		if (mesh.getId() == Mesh.UNSET_ID) {
-			mesh.setId(glGenVertexArrays());
-			glBindVertexArray(mesh.getId());
-			// storeInFloatAttributeList(0, null);
-			glBindVertexArray(0);
-
+		/*
+		if (state.getLineWidth() != ctx.lineWith) {
+			if (state.getLineWidth() <= .0f) throw new RendererExpception("Line width must be greater than zero");
+			glLineWidth(state.getLineWidth());
+			ctx.lineWith = state.getLineWidth();
 		}
 
-		glBindVertexArray(mesh.getId());
-		glEnableVertexAttribArray(0);
-		glDrawArrays(mesh.getId(), 0, mesh.getVertexCount());
-		glDisableVertexAttribArray(0);
-		glBindVertexArray(0);
 
-
+		if (state.getPointSize() != ctx.pointSize) {
+			if (state.getLineWidth() <= .0f) throw new RendererExpception("Line width must be greater than zero");
+			glPointSize(state.getPointSize());
+			ctx.pointSize = state.getPointSize();
+		}
+		*/
 	}
 
-/*
-	protected void storeInFloatAttributeList(int index, FloatBuffer vertexBuffer) {
-		storeInFloatAttributeList(index, vertexBuffer, com.sun.prism.impl.VertexBuffer.STATIC_DRAW);
-	}
 
-	protected void storeInFloatAttributeList(int index, FloatBuffer vertexBuffer) {
-		int vboID = glGenBuffers();
-		glBindBuffer(GL_ARRAY_BUFFER, vboID);
-		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, mesh.getUsage().value());
-		glVertexAttribPointer(index, 3, GL_FLOAT, false, 0, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	}
-*/
 	@Override
 	public void updateBuffer(VertexBuffer buffer) {
 
@@ -306,27 +408,84 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	@Override
-	public void cleanUp() {
-
-	}
-
-	@Override
-	public void resetGLObjects() {
-
-	}
-
-	@Override
 	public void onNewFrame() {
 
 	}
 
 	@Override
-	public void setRenderState(RenderState state) {
+	public void applyRenderState(RenderState state) {
 
+		if (state.isWireframe() && !ctx.wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			ctx.wireframe = true;
+		} else if (!state.isWireframe() && ctx.wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			ctx.wireframe = false;
+		}
+
+		if (state.getDepthTestMode() != ctx.depthTestMode) {
+			if (toggleEnable(GL_DEPTH_TEST, state.getDepthTestMode() != RenderContext.TestFunc.Off)) {
+				glDepthFunc(toTestFunction(state.getDepthTestMode()));
+			}
+		}
+
+		if (state.getCullFaceMode() != ctx.cullFaceMode) {
+			if (toggleEnable(GL_CULL_FACE, state.getCullFaceMode() != RenderContext.CullFaceMode.Off)) {
+				glCullFace(toCullFaceMode(state.getCullFaceMode()));
+			}
+			ctx.cullFaceMode = state.getCullFaceMode();
+		}
+
+	}
+
+
+
+	private boolean toggleEnable(int cap, boolean enable) {
+		if (enable) {
+			glEnable(cap);
+		} else {
+			glDisable(cap);
+		}
+		return enable;
+	}
+
+	private int toTestFunction(RenderContext.TestFunc testFunc) {
+		switch (testFunc) {
+			case Always: return GL_ALWAYS;
+			case Equal: return GL_EQUAL;
+			case Greater: return GL_GREATER;
+			case GreaterOrEqual: return GL_GEQUAL;
+			case Less: return GL_LESS;
+			case LessOrEqual: return GL_LEQUAL;
+			case Never: return GL_NEVER;
+			case NotEqual: return GL_NOTEQUAL;
+			default : throw new IllegalArgumentException("Unsupported test function specified");
+		}
+	}
+
+	private int toCullFaceMode(RenderContext.CullFaceMode cullFaceMode) {
+		switch (cullFaceMode) {
+			case Back: return GL_BACK;
+			case Front: return GL_FRONT;
+			case FrontAndBack: return GL_FRONT_AND_BACK;
+			case Off: throw new IllegalArgumentException("Unsupported cull face mode specified");
+		}
+		return 0;
 	}
 
 	@Override
 	public void invalidateState() {
+		ctx.reset();
+	}
+
+	@Override
+	public void cleanUp() {
+		invalidateState();
+	}
+
+	@Override
+	public void resetGLObjects() {
+
 
 	}
 
