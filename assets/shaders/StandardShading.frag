@@ -23,7 +23,7 @@ void main(){
 	// vec3 LightColor = vec3(1.0f,1.0f,1.0f); Uebung 15
 	// vec3 LightColor = vec3(0.2,0.3,0.4); Uebung 15
 
-	float LightPower = 1.0f;
+	float LightPower = 4.0f;
 	// float LightPower = 50.0f; Uebung 15
 	// float LightPower = 5.0f; Uebung 15
 

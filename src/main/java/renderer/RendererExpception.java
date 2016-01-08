@@ -1,4 +1,12 @@
 package renderer;
 
-public class RendererExpception {
+public class RendererExpception extends RuntimeException {
+	public RendererExpception(String message) {
+		super(message);
+	}
+
+	public RendererExpception(String message, Object ... args) {
+		super(String.format(message, args));
+	}
+
 }

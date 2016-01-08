@@ -2,9 +2,11 @@ package geometry;
 
 
 import renderer.Renderer;
+import utils.BufferUtils;
 import utils.HardwareObject;
+import geometry.VertexBuffer.*;
 
-import java.nio.FloatBuffer;
+import java.nio.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +21,6 @@ public class Mesh extends HardwareObject {
 	private float pointSize = 1.0f;
 	private int vertexCount = 0;
 
-
 	protected Mesh() {
 		super(Mesh.class);
 	}
@@ -28,13 +29,45 @@ public class Mesh extends HardwareObject {
 		return buffers.get(type);
 	}
 
-	public void setBuffer(VertexBuffer.Type type, FloatBuffer buffer, int components) {
+	public void setBuffer(Type type, int components, FloatBuffer buffer) {
+		setBuffer(type, VertexBuffer.Format.Float, components, buffer);
+	}
+
+	public void setBuffer(Type type, int components, float[] buffer) {
+		setBuffer(type, components, BufferUtils.createBuffer(buffer));
+	}
+
+	public void setBuffer(Type type, int components, IntBuffer buffer) {
+		setBuffer(type, Format.Unsigned_Int, components, buffer);
+	}
+
+	public void setBuffer(Type type, int components, int[] buffer) {
+		setBuffer(type, components, BufferUtils.createBuffer(buffer));
+	}
+
+	public void setBuffer(Type type, int components, ShortBuffer buffer) {
+		setBuffer(type, Format.Unsigned_Short, components, buffer);
+	}
+
+	public void setBuffer(Type type, int components, short[] buffer) {
+		setBuffer(type, components, BufferUtils.createBuffer(buffer));
+	}
+
+	public void setBuffer(Type type, int components, ByteBuffer buffer) {
+		setBuffer(type, Format.Unsingned_Byte, components, buffer);
+	}
+
+	public void setBuffer(Type type, int components, byte[] buffer) {
+		setBuffer(type, components, BufferUtils.createBuffer(buffer));
+	}
+
+	public void setBuffer(VertexBuffer.Type type, VertexBuffer.Format format, int components, Buffer buffer) {
 		VertexBuffer vertexBuffer = buffers.get(type);
 		if (vertexBuffer == null) {
 			vertexBuffer = new VertexBuffer();
-			vertexBuffer.setData(VertexBuffer.Usage.STATIC_READ, VertexBuffer.Format.Float, components, buffer);
+			buffers.put(type, vertexBuffer);
 		}
-
+		vertexBuffer.setupData(Usage.STATIC_READ, format, components, buffer);
 	}
 
 	public Mode getMode() {
@@ -79,7 +112,7 @@ public class Mesh extends HardwareObject {
 	 * Specifies the kinds of primitives which could be used to render
 	 * a raw model.
 	 */
-	public enum Mode {
+	public static enum Mode {
 		/**
 		 * <p>
 		 * This mode will cause the renderer to interpret each individual<br>
@@ -176,7 +209,12 @@ public class Mesh extends HardwareObject {
 
 		protected int mode;
 
-		Mode(int mode) { this.mode = mode; }
-		public int value() {return this.mode;}
+		Mode(int mode) {
+			this.mode = mode;
+		}
+
+		public int value() {
+			return this.mode;
+		}
 	}
 }

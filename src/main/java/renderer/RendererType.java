@@ -1,4 +1,6 @@
 package renderer;
 
-public class RendererType {
+public enum RendererType {
+	Lwjgl3,
+	None
 }

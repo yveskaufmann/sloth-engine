@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import renderer.RendererManager;
 import utils.Cleanable;
 
 import java.nio.IntBuffer;
@@ -86,7 +87,6 @@ public class Window implements Cleanable {
 		}
 
 		state = State.ENABLED;
-
 		GLFW.glfwMakeContextCurrent(windowId);
 		GL.createCapabilities();
 		GLFW.glfwSetWindowSizeCallback(windowId, sizeCallback = new GLFWWindowSizeCallback() {
@@ -133,7 +133,7 @@ public class Window implements Cleanable {
 	}
 
 	private void updateViewportSize() {
-		GL11.glViewport(0, 0, getWidth(), getHeight());
+		RendererManager.getRenderer().setViewport(0, 0, getWidth(), getHeight());
 	}
 
 

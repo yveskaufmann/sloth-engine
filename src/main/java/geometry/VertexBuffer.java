@@ -1,13 +1,14 @@
 package geometry;
 
-import org.lwjgl.BufferUtils;
+import renderer.Renderer;
+import utils.HardwareObject;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL15.*;
 
-public class VertexBuffer {
+public class VertexBuffer extends HardwareObject {
 
 	public static enum Type {
 		Vertex,
@@ -19,7 +20,7 @@ public class VertexBuffer {
 		TextCoords05,
 		TextCoords06,
 		Color,
-		Index,
+		Index
 	}
 
 	public static enum Usage {
@@ -89,45 +90,98 @@ public class VertexBuffer {
 		public int value() {
 			return this.usage;
 		}
+
 	}
 
-	public enum Format {
+
+	public static enum Format {
 		Float,
 		Double,
 		Byte,
 		Unsingned_Byte,
 		Short,
-		Unsined_Short,
+		Unsigned_Short,
 		Int,
-		Unsined_Int
+		Unsigned_Int;
 	}
-
+	/**
+	 * The usage of this buffer
+	 */
 	private Usage usage;
-	private int id;
-	private int vertexCount;
-	private Buffer buffer;
-
-	private  FloatBuffer createFloatBufferFrom(float[] vertices) {
-		FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.length);
-		vertexBuffer.put(vertices);
-		vertexBuffer.flip();
-		return vertexBuffer;
-	}
-
-	public void setData(Usage usage, Format format, int components, Buffer buffer) {
-
-	}
 
 	/**
-	 * @return the id of the underlying vao object.
+	 * Count of vertices
 	 */
-	public int getId() {
-		return this.id;
+	private int vertexCount;
+
+	/**
+	 * Buffer of twhich holds the data.
+	 */
+	private Buffer buffer;
+
+	/**
+	 * Format of the buffer
+	 */
+	private Format format;
+
+	/**
+	 * Count of components must be between 1-4
+	 */
+	private int components;
+
+	public VertexBuffer() {
+		super(VertexBuffer.class);
+	}
+
+	public void setupData(Usage usage, Format format, int components, Buffer buffer) {
+
+		if (components < 1 || components > 4) {
+			throw new IllegalArgumentException("The components count must be between 1 and 4");
+		}
+
+		if (getId() == UNSET_ID) {
+			this.buffer = buffer;
+			this.usage = usage;
+			this.format = format;
+		}
+
+		enableUpdateRequired();
+	}
+
+	public Buffer getBuffer() {
+		return  buffer;
 	}
 
 	public int getVertexCount() {
 		return vertexCount;
+
 	}
 
+	public int getCountOfIndices() {
+		return  buffer.capacity() / this.components;
+	}
 
+	public int getComponents() {
+		return components;
+	}
+
+	public Format getFormat() {
+		return format;
+	}
+
+	public Usage getUsage() {
+		return usage;
+	}
+
+	@Override
+	public void deleteObject(Renderer renderer) {
+		renderer.deleteBuffer(this);
+		resetObject();
+	}
+
+	@Override
+	public void resetObject() {
+		enableUpdateRequired();
+		this.setId(UNSET_ID);
+	}
 }

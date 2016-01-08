@@ -1,9 +1,10 @@
 #version 130
 
 // Input vertex data, different for all executions of this shader.
-in vec3 vertexPosition_modelspace;
+in vec3 vertexPosition;
 in vec2 vertexUV;
 in vec3 vertexNormal_modelspace;
+in vec3 vertexPosition_modelspace;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
@@ -17,8 +18,9 @@ uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 uniform vec3 LightPosition_worldspace;
+uniform vec3 P;
 
-void main(){
+void main() {
 
 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
