@@ -20,7 +20,7 @@ public class VertexBuffer extends HardwareObject {
 		TextCoords05,
 		TextCoords06,
 		Color,
-		Index
+		Interleaved, Index
 	}
 
 	public static enum Usage {
@@ -104,20 +104,16 @@ public class VertexBuffer extends HardwareObject {
 		Int,
 		Unsigned_Int;
 	}
+
+	/**
+	 * The type of this vertex buffer
+	 */
+	private Type type;
+
 	/**
 	 * The usage of this buffer
 	 */
 	private Usage usage;
-
-	/**
-	 * Count of vertices
-	 */
-	private int vertexCount;
-
-	/**
-	 * Buffer of twhich holds the data.
-	 */
-	private Buffer buffer;
 
 	/**
 	 * Format of the buffer
@@ -125,9 +121,36 @@ public class VertexBuffer extends HardwareObject {
 	private Format format;
 
 	/**
+	 * Buffer of twhich holds the data.
+	 */
+	private Buffer buffer;
+
+
+	/**
+	 * the position of the last element
+	 */
+	private int vertexCount;
+
+	/**
 	 * Count of components must be between 1-4
 	 */
 	private int components;
+
+	/**
+	 * The stride of this buffer
+	 */
+	private int stride = 0;
+
+	/**
+	 * The offset of this buffer
+	 */
+	private int offset = 0;
+
+	/**
+	 * Specifies if the the underlying buffer contains normalized data
+	 */
+	private boolean normalized = false;
+
 
 	public VertexBuffer() {
 		super(VertexBuffer.class);
@@ -169,8 +192,24 @@ public class VertexBuffer extends HardwareObject {
 		return format;
 	}
 
+	public Type getType() {
+		return type;
+	}
+
+	public void setType(Type type) {
+		this.type = type;
+	}
+
 	public Usage getUsage() {
 		return usage;
+	}
+
+	public void setUsage(Usage usage) {
+		this.usage = usage;
+	}
+
+	public void setFormat(Format format) {
+		this.format = format;
 	}
 
 	@Override
@@ -183,5 +222,9 @@ public class VertexBuffer extends HardwareObject {
 	public void resetObject() {
 		enableUpdateRequired();
 		this.setId(UNSET_ID);
+	}
+
+	public boolean hasChanged() {
+		return true;
 	}
 }

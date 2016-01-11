@@ -76,6 +76,8 @@ public class Uniform {
 	}
 
 	public void setValue(VariableType type, Object value) {
+		if (this.value == value) return;
+
 		switch (type) {
 			case Float:
 			case Float2:

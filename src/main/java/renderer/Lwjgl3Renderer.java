@@ -4,7 +4,6 @@ import geometry.Mesh;
 import math.Color;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
-import org.omg.CORBA.UNKNOWN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shader.Shader;
@@ -17,15 +16,16 @@ import geometry.VertexBuffer;
 import utils.HardwareObject;
 
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Iterator;
-import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL32.*;
 import static org.lwjgl.opengl.GL43.*;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 
 public class Lwjgl3Renderer implements Renderer {
@@ -48,6 +48,10 @@ public class Lwjgl3Renderer implements Renderer {
 
 	private boolean validationRequired;
 
+	private double lastTime;
+	private int renderedFrames;
+
+
 	public Lwjgl3Renderer() {
 		initialize();
 	}
@@ -60,6 +64,12 @@ public class Lwjgl3Renderer implements Renderer {
 		viewPortHeight = -1;
 		caps =  GL.getCapabilities();
 		ctx = new RenderContext();
+
+		lastTime = glfwGetTime();
+		renderedFrames = 0;
+
+
+
 	}
 
 	@Override
@@ -380,35 +390,156 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void drawMesh(Mesh mesh, int lod, int count) {
-		/*
-		if (state.getLineWidth() != ctx.lineWith) {
-			if (state.getLineWidth() <= .0f) throw new RendererExpception("Line width must be greater than zero");
-			glLineWidth(state.getLineWidth());
-			ctx.lineWith = state.getLineWidth();
+		if (mesh.getVertexCount() <= 0) {
+			return;
+		}
+
+		if (mesh.getLineWidth() != ctx.lineWith) {
+			if (mesh.getLineWidth() <= .0f) throw new RendererExpception("Line width must be greater than zero");
+			glLineWidth(mesh.getLineWidth());
+			ctx.lineWith = mesh.getLineWidth();
+		}
+
+		if (mesh.getPointSize() != ctx.pointSize) {
+			if (mesh.getPointSize() <= .0f) throw new RendererExpception("Point size must be greater than zero");
+			glPointSize(mesh.getPointSize());
+			ctx.pointSize = mesh.getPointSize();
+		}
+
+		renderMesh(mesh, lod, count);
+	}
+
+	private void renderMesh(Mesh mesh, int lod, int count) {
+		if (ctx.boundShader == null) {
+			throw new RendererExpception("In order to render a mesh a shader must first bound to the renderer");
+		}
+
+		VertexBuffer InterleavedBuffer = mesh.getBuffer(VertexBuffer.Type.Interleaved);
+		if (InterleavedBuffer != null) {
+
+		}
+
+		for(VertexBuffer buffer : mesh) {
+			if (buffer.isUpdateRequired()) {
+				updateBuffer(buffer);
+			}
+
+
+
+
 		}
 
 
-		if (state.getPointSize() != ctx.pointSize) {
-			if (state.getLineWidth() <= .0f) throw new RendererExpception("Line width must be greater than zero");
-			glPointSize(state.getPointSize());
-			ctx.pointSize = state.getPointSize();
-		}
-		*/
 	}
 
 
 	@Override
 	public void updateBuffer(VertexBuffer buffer) {
+		int target;
+		int bufferId = buffer.getId();
+		boolean bufferCreated  = false;
+
+		if (bufferId == HardwareObject.UNSET_ID) {
+			bufferId = glGenBuffers();
+			if (bufferId == GL_INVALID_VALUE) {
+				throw new RendererExpception("Invalid buffer object name returned, creation of buffer object failed");
+			}
+			buffer.setId(bufferId);
+			bufferCreated = true;
+		}
+
+
+		if (buffer.getType() == VertexBuffer.Type.Index) {
+			target = GL_ELEMENT_ARRAY_BUFFER;
+			if (ctx.boundElementArrayVboBuffer != bufferId) {
+				glBindBuffer(target, bufferId);
+				ctx.boundElementArrayVboBuffer = bufferId;
+			}
+		} else {
+			target = GL_ARRAY_BUFFER;
+			if (ctx.boundVboBuffer != bufferId) {
+				glBindBuffer(target, bufferId);
+				ctx.boundVboBuffer = bufferId;
+			}
+		}
+
+		int usage = convertToUsageConstant(buffer.getUsage());
+		if (bufferCreated || buffer.hasChanged()) {
+			switch (buffer.getFormat()) {
+				case Byte:
+				case Unsingned_Byte:
+					glBufferData(target, (ByteBuffer) buffer.getBuffer(), usage);
+					break;
+				case Short:
+				case Unsigned_Short:
+					glBufferData(target, (ShortBuffer) buffer.getBuffer(), usage);
+					break;
+				case Int:
+				case Unsigned_Int:
+					glBufferData(target, (IntBuffer) buffer.getBuffer(), usage);
+					break;
+				case Float:
+					glBufferData(target, (FloatBuffer) buffer.getBuffer(), usage);
+					break;
+				case Double:
+					glBufferData(target, (DoubleBuffer) buffer.getBuffer(), usage);
+					break;
+				default:
+					throw new RendererExpception("Unknown buffer format");
+
+			}
+		} else {
+			switch (buffer.getFormat()) {
+				case Byte:
+				case Unsingned_Byte:
+					glBufferSubData(target, 0,(ByteBuffer) buffer.getBuffer());
+					break;
+				case Short:
+				case Unsigned_Short:
+					glBufferSubData(target, 0,(ShortBuffer) buffer.getBuffer());
+					break;
+				case Int:
+				case Unsigned_Int:
+					glBufferSubData(target, 0, (IntBuffer) buffer.getBuffer());
+					break;
+				case Float:
+					glBufferSubData(target, 0,  (FloatBuffer) buffer.getBuffer());
+					break;
+				case Double:
+					glBufferSubData(target, 0,  (DoubleBuffer) buffer.getBuffer());
+					break;
+				default:
+					throw new RendererExpception("Unknown buffer format");
+
+			}
+		}
+		buffer.disableUpdateRequired();
+	}
+
+	private int convertToUsageConstant(VertexBuffer.Usage usage) {
+		switch (usage) {
+			case DYNAMIC_COPY: return GL_DYNAMIC_COPY;
+			case DYNAMIC_DRAW: return GL_DYNAMIC_DRAW;
+			case DYNMAIC_READ: return GL_DYNAMIC_READ;
+			case STATIC_COPY:  return GL_STATIC_COPY;
+			case STATIC_DRAW:  return GL_STATIC_DRAW;
+			case STATIC_READ:  return GL_STATIC_READ;
+			case STREAM_COPY:  return GL_STREAM_COPY;
+			case STREAM_DRAW:  return GL_STATIC_DRAW;
+			case STREAM_READ:  return GL_STATIC_READ;
+			default:
+				throw new RendererExpception("Unrecognized usage specified.");
+		}
 
 	}
 
 	@Override
 	public void deleteBuffer(VertexBuffer buffer) {
-
-	}
-
-	@Override
-	public void onNewFrame() {
+		int id = buffer.getId();
+		if (id != HardwareObject.UNSET_ID) {
+			glDeleteBuffers(id);
+			buffer.resetObject();
+		}
 
 	}
 
@@ -416,6 +547,7 @@ public class Lwjgl3Renderer implements Renderer {
 	public void applyRenderState(RenderState state) {
 
 		if (state.isWireframe() && !ctx.wireframe) {
+			glPolygonOffset(1.0f, 2.0f);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			ctx.wireframe = true;
 		} else if (!state.isWireframe() && ctx.wireframe) {
@@ -437,8 +569,6 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 	}
-
-
 
 	private boolean toggleEnable(int cap, boolean enable) {
 		if (enable) {
@@ -486,7 +616,18 @@ public class Lwjgl3Renderer implements Renderer {
 	@Override
 	public void resetGLObjects() {
 
-
 	}
 
+	@Override
+	public void onNewFrame() {
+		double currentTime = glfwGetTime();
+		renderedFrames++;
+
+		if (currentTime - lastTime >= 1.0) {
+			Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
+			Log.info("Milli Seconds per Frame :" + renderedFrames);
+			renderedFrames = 0;
+			lastTime += 1.0;
+		}
+	}
 }

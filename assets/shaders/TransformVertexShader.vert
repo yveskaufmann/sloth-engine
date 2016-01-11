@@ -12,12 +12,6 @@ void main() {
 	// Output position of the vertex, in clip space : MVP * position
 	vec4 pos = vec4(vertexPosition , 1.0f);
 
-	if (pos.x < 0.8f) {
-		pos.x += cos(time * 0.005) * -0.5;
-		pos.y += sin(time * 0.005) * -0.2;
-	}
-
-
 	gl_Position =  mvp * pos;
 
 	// The color of each vertex will be interpolated

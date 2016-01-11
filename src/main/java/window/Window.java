@@ -87,6 +87,7 @@ public class Window implements Cleanable {
 		}
 
 		state = State.ENABLED;
+
 		GLFW.glfwMakeContextCurrent(windowId);
 		GL.createCapabilities();
 		GLFW.glfwSetWindowSizeCallback(windowId, sizeCallback = new GLFWWindowSizeCallback() {
@@ -96,6 +97,7 @@ public class Window implements Cleanable {
 			}
 		});
 		GLFW.glfwShowWindow(windowId);
+		// GLFW.glfwSwapInterval(0);
 		updateViewportSize();
 
 		return this;

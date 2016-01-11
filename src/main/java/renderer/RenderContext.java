@@ -4,6 +4,9 @@ import shader.Shader;
 
 public class RenderContext {
 
+
+
+
 	/**
 	 * Specifies how the red, green, blue, and alpha destination blending factors are computed
 	 * if <code>glEnable(GL_BLEND)</code> is enabled. You can choose
@@ -429,7 +432,20 @@ public class RenderContext {
 	 */
 	public float pointSize;
 
+	/**
+	 * The current bounded shader
+	 */
 	public Shader boundShader;
+
+	/**
+	 * The current bounded vertex buffer object.
+	 */
+	public int boundVboBuffer;
+
+	/**
+	 * The current bounded element array buffer vbo object.
+	 */
+	public int boundElementArrayVboBuffer;
 
 	public void reset() {
 		blend = false;
@@ -472,6 +488,8 @@ public class RenderContext {
 		polygonOffsetFactor = 0.0f;
 		polygonOffsetUnits = 0.0f;
 		boundShader = null;
+		boundVboBuffer = 0;
+		boundElementArrayVboBuffer = 0;
 
 	}
 

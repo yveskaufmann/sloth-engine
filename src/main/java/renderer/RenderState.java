@@ -2,8 +2,8 @@ package renderer;
 
 public class RenderState {
 	private boolean wireframe = false;
-	private RenderContext.CullFaceMode cullFaceMode = RenderContext.CullFaceMode.Off;
-	private RenderContext.TestFunc depthTestMode = RenderContext.TestFunc.Off;
+	private RenderContext.CullFaceMode cullFaceMode = RenderContext.CullFaceMode.Back;
+	private RenderContext.TestFunc depthTestMode = RenderContext.TestFunc.Less;
 	private RenderContext.BlendFunc blendMode = RenderContext.BlendFunc.Off;
 	private float lineWidth = 1.0f;
 	private float pointSize = 1.0f;
