@@ -10,10 +10,14 @@ import java.nio.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Mesh extends HardwareObject implements Iterable<VertexBuffer> {
+public class Mesh extends HardwareObject {
+
+
 
 	/**
 	 * Specifies the kinds of primitives which could be used to render
@@ -219,9 +223,8 @@ public class Mesh extends HardwareObject implements Iterable<VertexBuffer> {
 
 	}
 
-	@Override
-	public Iterator<VertexBuffer> iterator() {
-		return buffers.values().iterator();
+	public Stream<VertexBuffer> bufferStream() {
+		return buffers.values().stream();
 	}
 
 	public int getElementCount() {

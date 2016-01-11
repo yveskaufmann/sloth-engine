@@ -1,5 +1,6 @@
 package shader;
 
+import geometry.VertexBuffer;
 import renderer.Renderer;
 import shader.source.ShaderSource;
 import utils.HardwareObject;
@@ -10,8 +11,7 @@ public class Shader extends HardwareObject {
 
 	private List<ShaderSource> shaderSources = null;
 	private Map<String, Uniform> uniforms = null;
-	private Map<Integer, Attribute> attributes = null;
-
+	private Map<VertexBuffer.Type, Attribute> attributes = null;
 
 	public Shader() {
 		super(Shader.class);
@@ -50,8 +50,16 @@ public class Shader extends HardwareObject {
 		return uniforms.values().iterator();
 	}
 
-	public Uniform removeUniform(String name) {
+	public ShaderVariable removeUniform(String name) {
 		return uniforms.remove(name);
+	}
+
+	public Attribute getAttribute(VertexBuffer.Type type) {
+		Attribute attribute = attributes.get(type);
+		if (attribute != null) {
+			attribute = new Attribute();
+		}
+		return attribute;
 	}
 
 	@Override
@@ -64,12 +72,11 @@ public class Shader extends HardwareObject {
 		renderer.deleteShader(this);
 	}
 
+
 	@Override
 	public void resetObject() {
 		shaderSources.forEach(ShaderSource::resetObject);
 		shaderSources.forEach(source -> shaderSources.remove(source));
 		enableUpdateRequired();
 	}
-
-
 }

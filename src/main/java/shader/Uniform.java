@@ -6,33 +6,11 @@ import utils.BufferUtils;
 
 import java.nio.FloatBuffer;
 
-public class Uniform {
-
-	public static final int LOCATION_NOT_FOUND = -1;
-	public static final int LOCATION_UNKNOWN = -2;
+public class Uniform extends ShaderVariable {
 
 
-
-	public enum VariableType {
-		Float,
-		Float2,
-		Float3,
-		Float4,
-
-		Int,
-		Int2,
-		Int3,
-		Int4,
-
-		Matrix3x3,
-		Matrix4x4,
-	}
-
-	protected int location;
-	private VariableType type;
-	private String name;
 	private Object value;
-	private boolean updateRequired = false;
+	private VariableType type;
 
 	public Uniform() {
 		reset();
@@ -114,33 +92,8 @@ public class Uniform {
 		return value;
 	}
 
-	public int getLocation() {
-		return location;
-	}
-
-	public void setLocation(int location) {
-		this.location = location;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public VariableType getType() {
 		return type;
-	}
-
-
-	public boolean isUpdateRequired() {
-		return this.updateRequired;
-	}
-
-	public void disableUpdateRequired() {
-		this.updateRequired = false;
 	}
 
 	public void reset() {

@@ -10,6 +10,26 @@ import static org.lwjgl.opengl.GL15.*;
 
 public class VertexBuffer extends HardwareObject {
 
+	public boolean getNormalized() {
+		return normalized;
+	}
+
+	public boolean isNormalized() {
+		return normalized;
+	}
+
+	public void setNormalized(boolean normalized) {
+		this.normalized = normalized;
+	}
+
+	public int getStride() {
+		return stride;
+	}
+
+	public int getOffset() {
+		return offset;
+	}
+
 	public static enum Type {
 		Vertex,
 		Normal,
@@ -20,7 +40,7 @@ public class VertexBuffer extends HardwareObject {
 		TextCoords05,
 		TextCoords06,
 		Color,
-		Interleaved, Index
+		Interleaved, CpuOnly, Index
 	}
 
 	public static enum Usage {

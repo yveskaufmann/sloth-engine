@@ -2,26 +2,28 @@ package renderer;
 
 import geometry.Mesh;
 import math.Color;
+import org.lwjgl.opengl.ARBVertexAttrib64Bit;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import shader.Shader;
-import shader.Uniform;
+import shader.*;
 import shader.source.ShaderSource;
-import shader.ShaderType;
 import texture.Image;
 import texture.Texture;
 import geometry.VertexBuffer;
 import utils.HardwareObject;
 
+import static geometry.VertexBuffer.Type.*;
 
 import java.nio.*;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL32.*;
 import static org.lwjgl.opengl.GL43.*;
 
@@ -226,7 +228,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void updateShaderUniforms(Shader shader) {
-		Iterator<Uniform> it = shader.getUniformIterator();
+		Iterator<ShaderVariable> it = shader.getUniformIterator();
 		while(it.hasNext()) {
 			Uniform uniform = it.next();
 			if (uniform.isUpdateRequired()) {
@@ -236,7 +238,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void resetUniformLocation(Shader shader) {
-		Iterator<Uniform> it = shader.getUniformIterator();
+		Iterator<ShaderVariable> it = shader.getUniformIterator();
 		while(it.hasNext()) {
 			Uniform uniform = it.next();
 			uniform.reset();
@@ -247,13 +249,13 @@ public class Lwjgl3Renderer implements Renderer {
 	private void updateShaderUniform(Shader shader, Uniform uniform) {
 		int shaderId = shader.getId();
 		int location = uniform.getLocation();
-		Uniform.VariableType type = uniform.getType();
+		ShaderVariable.VariableType type = uniform.getType();
 
 		// bindShaderProgram() required ?
-		if (location == Uniform.LOCATION_NOT_FOUND) return;
-		if (location == Uniform.LOCATION_UNKNOWN) {
+		if (location == ShaderVariable.LOCATION_NOT_FOUND) return;
+		if (location == ShaderVariable.LOCATION_UNKNOWN) {
 			updateUniformLocation(shader, uniform);
-			if (uniform.getLocation() == Uniform.LOCATION_NOT_FOUND) {
+			if (uniform.getLocation() == ShaderVariable.LOCATION_NOT_FOUND) {
 				uniform.disableUpdateRequired();
 				return;
 			}
@@ -312,13 +314,13 @@ public class Lwjgl3Renderer implements Renderer {
 		uniform.disableUpdateRequired();
 	}
 
-	private void updateUniformLocation(Shader shader, Uniform uniform) {
-		String name = uniform.getName();
+	private void updateUniformLocation(Shader shader, ShaderVariable shaderVariable) {
+		String name = shaderVariable.getName();
 		int location = glGetUniformLocation(shader.getId(), name);
-		if (location == Uniform.LOCATION_NOT_FOUND) {
+		if (location == ShaderVariable.LOCATION_NOT_FOUND) {
 			Log.warn("Could not find the uniform variable {} in the shader {}", name, shader);
 		}
-		uniform.setLocation(location);
+		shaderVariable.setLocation(location);
 	}
 
 	private void bindShaderProgram(Shader shader) {
@@ -414,22 +416,107 @@ public class Lwjgl3Renderer implements Renderer {
 			throw new RendererExpception("In order to render a mesh a shader must first bound to the renderer");
 		}
 
-		VertexBuffer InterleavedBuffer = mesh.getBuffer(VertexBuffer.Type.Interleaved);
-		if (InterleavedBuffer != null) {
-
+		VertexBuffer interleavedBuffer = mesh.getBuffer(VertexBuffer.Type.Interleaved);
+		if (interleavedBuffer != null && interleavedBuffer.isUpdateRequired()) {
+			updateBuffer(interleavedBuffer);
 		}
 
-		for(VertexBuffer buffer : mesh) {
-			if (buffer.isUpdateRequired()) {
-				updateBuffer(buffer);
+		mesh.bufferStream()
+			.filter(whenNot(Index))
+			.filter(whenNot(Interleaved))
+			.filter(whenNot(CpuOnly))
+			.forEach(buffer -> setVertexAttributes(buffer, interleavedBuffer));
+
+		VertexBuffer indices = mesh.getBuffer(Index);
+		if (indices != null) {
+			drawTrianglesWithIndices(indices, mesh, count);
+		} else {
+			drawTriangles(mesh, count);
+		}
+
+		clearVertexAttributes();
+	}
+
+
+	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh, int count) {
+		// TODO
+	}
+
+	private void clearVertexAttributes() {
+		// TODO
+	}
+
+
+	private void setVertexAttributes(VertexBuffer buffer, VertexBuffer interleavedBuffer) {
+		assert ctx.boundShader != null;
+
+		Attribute attribute = ctx.boundShader.getAttribute(buffer.getType());
+		int location = attribute.getLocation();
+		if (location == -1) {
+			if (attribute.getName() == null) {
+				throw new RendererExpception("An attribute requires a name, please consider to set a name for each attribute");
 			}
-
-
-
-
+			location = glGetAttribLocation(ctx.boundShader.getId(), attribute.getName());
+			if (location == -1) {
+				Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName());
+				return;
+			}
+			attribute.setLocation(location);
 		}
 
+		if (buffer.isUpdateRequired()) {
+			updateBuffer(buffer);
+		}
 
+		glEnableVertexAttribArray(location);
+		glVertexAttribPointer(
+			location,
+			buffer.getComponents(),
+			convertToFormat(buffer.getFormat()),
+			buffer.getNormalized(),
+			buffer.getStride(),
+			buffer.getOffset());
+
+	}
+
+	private void drawTriangles(Mesh mesh, int count) {
+		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount());
+	}
+
+	private int convertToMode(Mesh.Mode mode) {
+		switch (mode) {
+			case POINTS: return GL_POINT;
+			case LINES: return GL_LINES;
+			case LINE_LOOP: return GL_LINE_LOOP;
+			case LINE_STRIP: return GL_LINE_STRIP;
+			case TRIANGLES: return GL_TRIANGLES;
+			case TRIANGLE_FAN: return GL_TRIANGLE_FAN;
+			case TRIANGLE_STRIP: return GL_TRIANGLE_STRIP;
+			default:
+				throw new IllegalArgumentException(
+					String.format("Unsupported mesh mode specified %s", mode.name())
+				);
+		}
+	}
+
+	private int convertToFormat(VertexBuffer.Format format) {
+		switch (format) {
+			case Byte: return GL_BYTE;
+			case Int: return GL_INT;
+			case Short: return GL_SHORT;
+			case Float: return  GL_FLOAT;
+			case Double: return  GL_DOUBLE;
+			case Unsigned_Int: return GL_UNSIGNED_INT;
+			case Unsigned_Short: return GL_UNSIGNED_SHORT;
+			case Unsingned_Byte: return GL_UNSIGNED_BYTE;
+			default:
+				throw new IllegalArgumentException(String.format("Unsupported format specified %s", format));
+
+		}
+	}
+
+	private Predicate<VertexBuffer> whenNot(VertexBuffer.Type desiredType) {
+		return (buffer) -> buffer.getType() != desiredType;
 	}
 
 
