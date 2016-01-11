@@ -228,7 +228,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void updateShaderUniforms(Shader shader) {
-		Iterator<ShaderVariable> it = shader.getUniformIterator();
+		Iterator<Uniform> it = shader.getUniformIterator();
 		while(it.hasNext()) {
 			Uniform uniform = it.next();
 			if (uniform.isUpdateRequired()) {
@@ -238,7 +238,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void resetUniformLocation(Shader shader) {
-		Iterator<ShaderVariable> it = shader.getUniformIterator();
+		Iterator<Uniform> it = shader.getUniformIterator();
 		while(it.hasNext()) {
 			Uniform uniform = it.next();
 			uniform.reset();
@@ -247,7 +247,6 @@ public class Lwjgl3Renderer implements Renderer {
 
 
 	private void updateShaderUniform(Shader shader, Uniform uniform) {
-		int shaderId = shader.getId();
 		int location = uniform.getLocation();
 		ShaderVariable.VariableType type = uniform.getType();
 
@@ -439,7 +438,25 @@ public class Lwjgl3Renderer implements Renderer {
 
 
 	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh, int count) {
-		// TODO
+		if (indices.getType() != Index) {
+			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
+		}
+
+		VertexBuffer index = mesh.getBuffer(Index);
+		if (index.isUpdateRequired()) {
+			updateBuffer(index);
+		}
+
+		int indexId = index.getId();
+		assert indexId != 1;
+
+		glDrawElements(
+			convertToMode(mesh.getMode()),
+			index.getBuffer().capacity(),
+			convertToFormat(index.getFormat()) ,
+			0
+		);
+
 	}
 
 	private void clearVertexAttributes() {

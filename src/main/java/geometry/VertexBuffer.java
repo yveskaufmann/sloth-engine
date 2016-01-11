@@ -48,68 +48,58 @@ public class VertexBuffer extends HardwareObject {
 		 * The data store contents will be modified once and used at most a few times as source for GL drawing.
 		 *
 		 */
-		STREAM_DRAW(GL_STREAM_DRAW),
+		STREAM_DRAW,
 
 		/**
 		 * The data store contents will be modified once and used at most a few times and
 		 * used to return that data when queried by the application.
 		 *
 		 */
-		STREAM_READ(GL_STREAM_READ),
+		STREAM_READ,
 
 		/**
 		 * The data store contents will be modified once and used at most a few times and
 		 * used as the source for GL drawing and image specification commands.
 		 *
 		 */
-		STREAM_COPY(GL_STREAM_COPY),
+		STREAM_COPY,
 
 
 		/**
 		 *  The data store contents will be modified once and used many times as
 		 *  source for GL drawing.
 		 */
-		STATIC_DRAW(GL_STATIC_DRAW),
+		STATIC_DRAW,
 
 		/**
 		 * The data store contents will be modified once and used many times and
 		 * used to return that data when queried by the application.
 		 */
-		STATIC_READ(GL_STATIC_READ),
+		STATIC_READ,
 
 		/**
 		 * The data store contents will be modified once and used many times and
 		 * used as the source for GL drawing and image specification commands.
 		 */
-		STATIC_COPY(GL_STATIC_COPY),
+		STATIC_COPY,
 
 		/**
 		 *  The data store contents will be modified repeatedly and used many times as
 		 *  source for GL drawing.
 		 */
-		DYNAMIC_DRAW(GL_DYNAMIC_DRAW),
+		DYNAMIC_DRAW,
 
 		/**
 		 * The data store contents will be modified repeatedly and used many times and
 		 * used to return that data when queried by the application.
 		 */
-		DYNMAIC_READ(GL_DYNAMIC_READ),
+		DYNMAIC_READ,
 
 		/**
 		 * The data store contents will be modified repeatedly and used many times and
 		 * used as the source for GL drawing and image specification commands.
 		 */
-		DYNAMIC_COPY(GL_DYNAMIC_COPY);
-
-		protected int usage;
-
-		Usage(int usage) {
-			this.usage = usage;
-		}
-
-		public int value() {
-			return this.usage;
-		}
+		DYNAMIC_COPY;
 
 	}
 

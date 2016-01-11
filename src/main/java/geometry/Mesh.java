@@ -1,21 +1,22 @@
 package geometry;
 
 
+import geometry.VertexBuffer.Format;
+import geometry.VertexBuffer.Type;
+import geometry.VertexBuffer.Usage;
 import renderer.Renderer;
 import utils.BufferUtils;
 import utils.HardwareObject;
-import geometry.VertexBuffer.*;
 
 import java.nio.*;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Spliterator;
 import java.util.stream.Stream;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class Mesh extends HardwareObject {
+
 
 
 
@@ -136,7 +137,7 @@ public class Mesh extends HardwareObject {
 	private int vertexCount = -1;
 	private int elementCount = -1;
 
-	protected Mesh() {
+	public Mesh() {
 		super(Mesh.class);
 	}
 
@@ -185,6 +186,10 @@ public class Mesh extends HardwareObject {
 		vertexBuffer.setupData(Usage.STATIC_READ, format, components, buffer);
 	}
 
+	public void setBuffer(Type index, ByteBuffer indexBuffer, int stride, int offset) {
+
+	}
+
 	public Mode getMode() {
 		return mode;
 	}
@@ -215,12 +220,16 @@ public class Mesh extends HardwareObject {
 
 	@Override
 	public void deleteObject(Renderer renderer) {
-
+		for (VertexBuffer buffer : buffers.values()) {
+			renderer.deleteBuffer(buffer);
+			buffer.resetObject();
+		}
+		resetObject();
 	}
 
 	@Override
 	public void resetObject() {
-
+		// TODO:
 	}
 
 	public Stream<VertexBuffer> bufferStream() {
