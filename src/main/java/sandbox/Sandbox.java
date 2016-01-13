@@ -20,6 +20,7 @@ import window.WindowManager;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -52,77 +53,24 @@ public class Sandbox {
 		Shader diffuseShader = new Shader();
 		diffuseShader.addSource(new FileShaderSource(ShaderType.VERTEX, new File("assets/shaders/TransformVertexShader.vert")));
 		diffuseShader.addSource(new FileShaderSource(ShaderType.FRAGMENT, new File("assets/shaders/ColorShader.frag")));
-
-		/***
-		 *  A---D    A---D      D
-		 *	|  /|    |  /      /|
-		 *	| / | -> | /  +   / |
-		 *	|/  |    |/      /  |
-		 *	B---C    B      B---C
-		 *
-		 *    A'--D'
-		 *   /|  /|
-		 *  A---D |
-		 *	| / | C'
-		 *	|/  |/
-		 *	B---C
-		 *
-		 */
-		FloatBuffer triangleBuffer = BufferUtils.createBuffer(new float[] {
-
-			-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // Front Top Left     = A
-			-1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Front Bottom Left	= B
-			 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // Front Bottom Right = C
-			 1.0f,  1.0f, 1.0f, 1.0f, 1.0f, 0.0f  // Front Top Right 	= D
-
-			-1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // Back Top Left     = A'
-			-1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Back Bottom Left	= B'
-			1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // Back Bottom Right  = C'
-			1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f  // Back Top Right 	= D'
-		});
-
-		final int topLeft = 0;
-		final int bottomLeft = 1;
-		final int bottomRight = 2;
-		final int topRight = 3;
-
-		final int topLeftB = 4;
-		final int bottomLeftB = 5;
-		final int bottomRightB = 6;
-		final int topRightB = 7;
-		ByteBuffer indiceBuffer = BufferUtils.createBuffer(new byte[] {
-			// Front Face
-			topLeft, bottomLeft, topRight,
-			topRight, bottomLeft, bottomRight,
-
-			// Face Right
-			//topRight, bottomRight, bottomRightB,
-			//topRightB, topRight, bottomRight,
-
-
-			// Face Bottom
-			//bottomLeftB, bottomLeft, bottomRightB,
-			//bottomRightB, bottomLeft, bottomLeftB
-		});
-
-
-		Mesh cube = new Mesh();
-		cube.setBuffer(VertexBuffer.Type.Interleaved, 3, triangleBuffer);
-		cube.setBuffer(VertexBuffer.Type.Vertex, 3, triangleBuffer);
-		cube.setBuffer(VertexBuffer.Type.Index, 3, indiceBuffer);
-		cube.setBuffer(VertexBuffer.Type.Color, 3, indiceBuffer);
-
-		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setStride(6 * 4);
-		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setOffset(0);
-		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setStride(6 * 4);
-		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setOffset(3 * 4);
-
 		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("vertexPosition");
 		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("vertexColor");
-		diffuseShader.getAttribute(VertexBuffer.Type.Index).setName("index");
+		// diffuseShader.getAttribute(VertexBuffer.Type.Index).setName("index");
+
+		Mesh cube = new Mesh();
+		cube.setMode(Mesh.Mode.TRIANGLES);
+		cube.setBuffer(VertexBuffer.Type.Vertex, 3, new float[] {
+			 0.0f, 1.0f, 0.0f
+			-1.0f, -1.0f, 0.0f,
+			1.0f, -1.0f, 0.0f
+		});
+		cube.setBuffer(VertexBuffer.Type.Color, 3, new float[] {
+			1.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 1.0f,
+		});
 
 
-		triangleBuffer.clear();
 
 		Matrix4f v = new Matrix4f()
 			.lookAt(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -146,7 +94,7 @@ public class Sandbox {
 			float elapsedTime = (float) (currentTime - lastTime);
 			lastTime = currentTime;
 
-			m.identity().rotateY(elapsedTime * 10f);
+			m.rotateY(elapsedTime * 1.4f);
 			mvp.identity().mul(p).mul(v).mul(m);
 
 
@@ -154,6 +102,7 @@ public class Sandbox {
 
 			diffuseShader.getUniform("mvp").setValue(mvp);
 			diffuseShader.getUniform("time").setValue(elapsedTime);
+
 			renderer.setShader(diffuseShader);
 			renderer.drawMesh(cube, 0, 0);
 
@@ -163,6 +112,75 @@ public class Sandbox {
 		renderer.cleanUp();
 		keyCallback.release();
 		WindowManager.get().clean();
+	}
+
+	public Mesh createCubeMesh() {
+		/***
+		 *  A---D    A---D      D
+		 *	|  /|    |  /      /|
+		 *	| / | -> | /  +   / |
+		 *	|/  |    |/      /  |
+		 *	B---C    B      B---C
+		 *
+		 *    A'--D'
+		 *   /|  /|
+		 *  A---D |
+		 *	| / | C'
+		 *	|/  |/
+		 *	B---C
+		 *
+		 */
+		FloatBuffer interleavedBuffer = BufferUtils.createBuffer(new float[] {
+
+			-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // Front Top Left     = A
+			-1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Front Bottom Left	= B
+			 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // Front Bottom Right = C
+			 1.0f,  1.0f, 1.0f, 1.0f, 1.0f, 0.0f  // Front Top Right 	= D
+
+			-1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 1.0f, // Back Top Left     = A'
+			-1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Back Bottom Left	= B'
+			1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // Back Bottom Right  = C'
+			1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f  // Back Top Right 	= D'
+		});
+
+		final int topLeft = 0;
+		final int bottomLeft = 1;
+		final int bottomRight = 2;
+		final int topRight = 3;
+
+		final int topLeftB = 4;
+		final int bottomLeftB = 5;
+		final int bottomRightB = 6;
+		final int topRightB = 7;
+		ShortBuffer indiceBuffer = BufferUtils.createBuffer(new short[] {
+			// Front Face
+			topLeft, bottomLeft, topRight,
+			topRight, bottomLeft, bottomRight,
+
+			// Face Right
+			topRight, bottomRight, bottomRightB,
+			topRightB, topRight, bottomRight,
+
+
+			// Face Bottom
+			bottomLeftB, bottomLeft, bottomRightB,
+			bottomRightB, bottomLeft, bottomLeftB
+		});
+
+
+		Mesh cube = new Mesh();
+		cube.setMode(Mesh.Mode.LINE_LOOP);
+		cube.setBuffer(VertexBuffer.Type.Interleaved, 3, interleavedBuffer);
+		cube.setBuffer(VertexBuffer.Type.Index, 3, indiceBuffer);
+
+		cube.setBuffer(VertexBuffer.Type.Vertex, 3, interleavedBuffer);
+		cube.setBuffer(VertexBuffer.Type.Color, 3, indiceBuffer);
+
+		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setStride(6 * 4);
+		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setOffset(0);
+		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setStride(6 * 4);
+		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setOffset(3 * 4);
+		return cube;
 	}
 
 	public static void main(String[] args) throws Exception {

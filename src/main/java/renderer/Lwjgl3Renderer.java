@@ -445,18 +445,18 @@ public class Lwjgl3Renderer implements Renderer {
 			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
 		}
 
-		VertexBuffer index = mesh.getBuffer(Type.Index);
-		if (index.isUpdateRequired()) {
-			updateBuffer(index);
+
+		if (indices.isUpdateRequired()) {
+			updateBuffer(indices);
 		}
 
-		int indexId = index.getId();
+		int indexId = indices.getId();
 		assert indexId != 1;
 
 		glDrawElements(
 			convertToMode(mesh.getMode()),
-			index.getBuffer().capacity(),
-			convertToFormat(index.getPointer().getFormat()) ,
+			indices.getBuffer().limit(),
+			convertToFormat(indices.getPointer().getFormat()),
 			0
 		);
 
@@ -484,10 +484,12 @@ public class Lwjgl3Renderer implements Renderer {
 			attribute.setLocation(location);
 		}
 
-		if (buffer.isUpdateRequired() && interleavedBuffer == null) {
+
+		if (interleavedBuffer == null) {
 			updateBuffer(buffer);
 		} else {
 			updateBuffer(interleavedBuffer);
+
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, (interleavedBuffer != null) ? interleavedBuffer.getId() : buffer.getId());
@@ -504,7 +506,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void drawTriangles(Mesh mesh, int count) {
-		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount());
+		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount() + 1);
 	}
 
 	private int convertToMode(Mesh.Mode mode) {

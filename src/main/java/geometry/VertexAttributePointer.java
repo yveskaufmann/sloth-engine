@@ -240,5 +240,17 @@ public class VertexAttributePointer {
 			}
 			return false;
 		}
+
+		public Format getUnsignedIfPossible() {
+			switch (this) {
+				case Unsingned_Byte:
+				case Byte: return Unsingned_Byte;
+				case Unsigned_Short:
+				case Short: return Unsigned_Short;
+				case Unsigned_Int:
+				case Int: return Unsigned_Int;
+				default: return this;
+			}
+		}
 	}
 }

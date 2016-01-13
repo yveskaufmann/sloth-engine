@@ -181,6 +181,11 @@ public class Mesh extends HardwareObject {
 		}
 
 		vertexBuffer.getPointer().setComponents(components);
+
+		if (type == Type.Index) {
+			format = format.getUnsignedIfPossible();
+		}
+
 		vertexBuffer.getPointer().setFormat(format);
 		vertexBuffer.setupData(buffer);
 		calculateCounts();
