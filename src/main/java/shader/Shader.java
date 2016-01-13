@@ -57,9 +57,10 @@ public class Shader extends HardwareObject {
 
 	public Attribute getAttribute(VertexBuffer.Type type) {
 		Attribute attribute = attributes.get(type);
-		if (attribute != null) {
+		if (attribute == null) {
 			attribute = new Attribute();
 		}
+		attributes.put(type, attribute);
 		return attribute;
 	}
 

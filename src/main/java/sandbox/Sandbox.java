@@ -70,15 +70,15 @@ public class Sandbox {
 		 */
 		FloatBuffer triangleBuffer = BufferUtils.createBuffer(new float[] {
 
-			-0.5f,  0.5f, 0.5f, 0.0f, 0.5f, 0.0f, // Front Top Left     = A
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, // Front Bottom Left	= B
-			 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.0f, // Front Bottom Right = C
-			 0.5f,  0.5f, 0.5f, 0.5f, 0.0f, 0.0f  // Front Top Right 	= D
+			-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // Front Top Left     = A
+			-1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Front Bottom Left	= B
+			 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // Front Bottom Right = C
+			 1.0f,  1.0f, 1.0f, 1.0f, 1.0f, 0.0f  // Front Top Right 	= D
 
-			-0.5f,  0.5f, -0.5f, 0.0f, 0.5f, 0.0f, // Back Top Left     = A'
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // Back Bottom Left	= B'
-			0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.0f, // Back Bottom Right  = C'
-			0.5f,  0.5f, -0.5f, 0.5f, 0.0f, 0.0f  // Back Top Right 	= D'
+			-1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // Back Top Left     = A'
+			-1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Back Bottom Left	= B'
+			1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // Back Bottom Right  = C'
+			1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f  // Back Top Right 	= D'
 		});
 
 		final int topLeft = 0;
@@ -96,13 +96,13 @@ public class Sandbox {
 			topRight, bottomLeft, bottomRight,
 
 			// Face Right
-			topRight, bottomRight, bottomRightB,
-			topRightB, topRight, bottomRight,
+			//topRight, bottomRight, bottomRightB,
+			//topRightB, topRight, bottomRight,
 
 
 			// Face Bottom
-			bottomLeftB, bottomLeft, bottomRightB,
-			bottomRightB, bottomLeft, bottomLeftB
+			//bottomLeftB, bottomLeft, bottomRightB,
+			//bottomRightB, bottomLeft, bottomLeftB
 		});
 
 
@@ -117,12 +117,15 @@ public class Sandbox {
 		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setStride(6 * 4);
 		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setOffset(3 * 4);
 
-		VertexBuffer index = new VertexBuffer(VertexBuffer.Type.Index);
+		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("vertexPosition");
+		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("vertexColor");
+		diffuseShader.getAttribute(VertexBuffer.Type.Index).setName("index");
+
 
 		triangleBuffer.clear();
 
 		Matrix4f v = new Matrix4f()
-			.lookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+			.lookAt(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 		Matrix4f m = new Matrix4f();
 		Matrix4f p = new Matrix4f()
 			.setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
@@ -131,20 +134,22 @@ public class Sandbox {
 
 		RenderState state = new RenderState();
 		state.setWireframe(false);
+		state.setFpsCounterEnabled(true);
 
 		renderer.setClearColor(Color.Gray);
 		renderer.applyRenderState(state);
 
 		double lastTime = glfwGetTime();
 		while ( !window.shouldClose()) {
+			renderer.onNewFrame();
 			double currentTime = glfwGetTime();
 			float elapsedTime = (float) (currentTime - lastTime);
 			lastTime = currentTime;
 
-			m.identity().rotateY(elapsedTime * 2);
+			m.identity().rotateY(elapsedTime * 10f);
 			mvp.identity().mul(p).mul(v).mul(m);
 
-			renderer.onNewFrame();
+
 			renderer.clearBuffers(true, true, false);
 
 			diffuseShader.getUniform("mvp").setValue(mvp);

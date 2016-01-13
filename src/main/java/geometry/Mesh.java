@@ -180,9 +180,9 @@ public class Mesh extends HardwareObject {
 			buffers.put(type, vertexBuffer);
 		}
 
-		vertexBuffer.setupData(buffer);
 		vertexBuffer.getPointer().setComponents(components);
 		vertexBuffer.getPointer().setFormat(format);
+		vertexBuffer.setupData(buffer);
 		calculateCounts();
 	}
 

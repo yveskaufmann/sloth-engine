@@ -1,4 +1,4 @@
-#version 130
+#version 330
 
 // Interpolated values from the vertex shaders
 in vec2 UV;

@@ -25,7 +25,7 @@ public class VertexAttributePointer {
 	/**
 	 * The offset of this buffer
 	 */
-	private int offset = 0;
+	private long offset = 0;
 
 	/**
 	 * Specifies if the the underlying buffer should be normalized.
@@ -53,7 +53,7 @@ public class VertexAttributePointer {
 	 * @param stride the stride of the buffer
      * @param offset the offset to the first vertex element in the buffer
      */
-	public VertexAttributePointer(int components, Format format, int stride, int offset) {
+	public VertexAttributePointer(int components, Format format, int stride, long offset) {
 		this(components, false, format, stride, offset);
 	}
 
@@ -67,7 +67,7 @@ public class VertexAttributePointer {
 	 * @param stride the stride of the buffer
 	 * @param offset the offset to the first vertex element in the buffer
 	 */
-    public VertexAttributePointer(int components, boolean normalized, Format format, int stride, int offset) {
+    public VertexAttributePointer(int components, boolean normalized, Format format, int stride, long offset) {
         setComponents(components);
         this.format = format;
 		this.normalized =normalized;
@@ -176,7 +176,7 @@ public class VertexAttributePointer {
 	 *
 	 * @return the offset.
 	 */
-	public int getOffset() {
+	public long getOffset() {
 		return offset;
 	}
 

@@ -8,7 +8,7 @@ public class ShaderVariable {
 	public static final int LOCATION_NOT_FOUND = -1;
 	public static final int LOCATION_UNKNOWN = -2;
 
-	protected int location;
+	protected int location = LOCATION_NOT_FOUND;
 
 	protected boolean updateRequired = false;
 	protected String name;

@@ -61,7 +61,7 @@ public class RenderState {
 		return enableFPSCounter;
 	}
 
-	public void enableFpsCounter(boolean enableFPSCounter) {
+	public void setFpsCounterEnabled(boolean enableFPSCounter) {
 		this.enableFPSCounter = enableFPSCounter;
 	}
 }

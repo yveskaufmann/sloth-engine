@@ -1,9 +1,11 @@
+#version 130
+
 // Input vertex data, different for all executions of this shader.
 in vec3 vertexPosition;
 in vec3 vertexColor;
 
 // Output data ; will be interpolated for each fragment.
-varying vec3 fragmentColor;
+out vec3 fragmentColor;
 // Values that stay constant for the whole mesh.
 uniform mat4 mvp;
 uniform float time;

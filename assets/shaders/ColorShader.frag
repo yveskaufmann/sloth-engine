@@ -1,4 +1,6 @@
-varying  vec3 fragmentColor;
+#version 130
+
+in  vec3 fragmentColor;
 uniform float time;
 
 void main(){

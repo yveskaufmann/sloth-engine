@@ -484,13 +484,15 @@ public class Lwjgl3Renderer implements Renderer {
 			attribute.setLocation(location);
 		}
 
-		if (buffer.isUpdateRequired() && interleavedBuffer != null) {
+		if (buffer.isUpdateRequired() && interleavedBuffer == null) {
 			updateBuffer(buffer);
 		} else {
 			updateBuffer(interleavedBuffer);
 		}
 
+		glBindBuffer(GL_ARRAY_BUFFER, (interleavedBuffer != null) ? interleavedBuffer.getId() : buffer.getId());
 		glEnableVertexAttribArray(location);
+
 		glVertexAttribPointer(
 			location,
 			buffer.getPointer().getComponents(),
@@ -573,7 +575,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		int usage = convertToUsageConstant(buffer.getUsage());
-		if (bufferCreated || buffer.isUpdateRequired()) {
+		if (bufferCreated) {
 			switch (buffer.getPointer().getFormat()) {
 				case Byte:
 				case Unsingned_Byte:
@@ -597,7 +599,7 @@ public class Lwjgl3Renderer implements Renderer {
 					throw new RendererExpception("Unknown buffer format");
 
 			}
-		} else {
+		} else if(buffer.isUpdateRequired()) {
 			switch (buffer.getPointer().getFormat()) {
 				case Byte:
 				case Unsingned_Byte:
