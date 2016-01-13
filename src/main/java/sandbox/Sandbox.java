@@ -105,12 +105,21 @@ public class Sandbox {
 			bottomRightB, bottomLeft, bottomLeftB
 		});
 
+
 		Mesh cube = new Mesh();
-
-
+		cube.setBuffer(VertexBuffer.Type.Interleaved, 3, triangleBuffer);
 		cube.setBuffer(VertexBuffer.Type.Vertex, 3, triangleBuffer);
-		triangleBuffer.clear();
+		cube.setBuffer(VertexBuffer.Type.Index, 3, indiceBuffer);
+		cube.setBuffer(VertexBuffer.Type.Color, 3, indiceBuffer);
 
+		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setStride(6 * 4);
+		cube.getBuffer(VertexBuffer.Type.Vertex).getPointer().setOffset(0);
+		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setStride(6 * 4);
+		cube.getBuffer(VertexBuffer.Type.Color).getPointer().setOffset(3 * 4);
+
+		VertexBuffer index = new VertexBuffer(VertexBuffer.Type.Index);
+
+		triangleBuffer.clear();
 
 		Matrix4f v = new Matrix4f()
 			.lookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);

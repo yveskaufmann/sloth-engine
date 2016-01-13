@@ -1,12 +1,11 @@
 package geometry;
 
-
-import geometry.VertexBuffer.Format;
-import geometry.VertexBuffer.Type;
-import geometry.VertexBuffer.Usage;
+import geometry.VertexAttributePointer.Format;
 import renderer.Renderer;
 import utils.BufferUtils;
 import utils.HardwareObject;
+
+import static geometry.VertexBuffer.*;
 
 import java.nio.*;
 import java.util.HashMap;
@@ -17,14 +16,11 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Mesh extends HardwareObject {
 
-
-
-
 	/**
 	 * Specifies the kinds of primitives which could be used to render
 	 * a raw model.
 	 */
-	public static enum Mode {
+	public enum Mode {
 		/**
 		 * <p>
 		 * This mode will cause the renderer to interpret each individual<br>
@@ -130,7 +126,7 @@ public class Mesh extends HardwareObject {
 		}
 	}
 
-	private Map<VertexBuffer.Type, VertexBuffer> buffers = new HashMap<>();
+	private Map<Type, VertexBuffer> buffers = new HashMap<>();
 	private Mode mode = Mode.TRIANGLES;
 	private float lineSize = 1.0f;
 	private float pointSize = 1.0f;
@@ -141,12 +137,12 @@ public class Mesh extends HardwareObject {
 		super(Mesh.class);
 	}
 
-	public VertexBuffer getBuffer(VertexBuffer.Type type) {
+	public VertexBuffer getBuffer(Type type) {
 		return buffers.get(type);
 	}
 
 	public void setBuffer(Type type, int components, FloatBuffer buffer) {
-		setBuffer(type, VertexBuffer.Format.Float, components, buffer);
+		setBuffer(type, buffer, components, VertexAttributePointer.Format.Float);
 	}
 
 	public void setBuffer(Type type, int components, float[] buffer) {
@@ -154,7 +150,7 @@ public class Mesh extends HardwareObject {
 	}
 
 	public void setBuffer(Type type, int components, IntBuffer buffer) {
-		setBuffer(type, Format.Unsigned_Int, components, buffer);
+		setBuffer(type, buffer, components, VertexAttributePointer.Format.Unsigned_Int);
 	}
 
 	public void setBuffer(Type type, int components, int[] buffer) {
@@ -162,7 +158,7 @@ public class Mesh extends HardwareObject {
 	}
 
 	public void setBuffer(Type type, int components, ShortBuffer buffer) {
-		setBuffer(type, Format.Unsigned_Short, components, buffer);
+		setBuffer(type, buffer, components, VertexAttributePointer.Format.Unsigned_Short);
 	}
 
 	public void setBuffer(Type type, int components, short[] buffer) {
@@ -170,25 +166,26 @@ public class Mesh extends HardwareObject {
 	}
 
 	public void setBuffer(Type type, int components, ByteBuffer buffer) {
-		setBuffer(type, Format.Unsingned_Byte, components, buffer);
+		setBuffer(type, buffer, components, VertexAttributePointer.Format.Unsingned_Byte);
 	}
 
 	public void setBuffer(Type type, int components, byte[] buffer) {
 		setBuffer(type, components, BufferUtils.createBuffer(buffer));
 	}
 
-	public void setBuffer(VertexBuffer.Type type, VertexBuffer.Format format, int components, Buffer buffer) {
+	public void setBuffer(Type type, Buffer buffer, int components, Format format) {
 		VertexBuffer vertexBuffer = buffers.get(type);
 		if (vertexBuffer == null) {
-			vertexBuffer = new VertexBuffer();
+			vertexBuffer = new VertexBuffer(type);
 			buffers.put(type, vertexBuffer);
 		}
-		vertexBuffer.setupData(Usage.STATIC_READ, format, components, buffer);
+
+		vertexBuffer.setupData(buffer);
+		vertexBuffer.getPointer().setComponents(components);
+		vertexBuffer.getPointer().setFormat(format);
+		calculateCounts();
 	}
 
-	public void setBuffer(Type index, ByteBuffer indexBuffer, int stride, int offset) {
-
-	}
 
 	public Mode getMode() {
 		return mode;
@@ -218,20 +215,6 @@ public class Mesh extends HardwareObject {
 		return vertexCount;
 	}
 
-	@Override
-	public void deleteObject(Renderer renderer) {
-		for (VertexBuffer buffer : buffers.values()) {
-			renderer.deleteBuffer(buffer);
-			buffer.resetObject();
-		}
-		resetObject();
-	}
-
-	@Override
-	public void resetObject() {
-		// TODO:
-	}
-
 	public Stream<VertexBuffer> bufferStream() {
 		return buffers.values().stream();
 	}
@@ -247,4 +230,50 @@ public class Mesh extends HardwareObject {
 	public float getLineSize() {
 		return lineSize;
 	}
+
+
+	@Override
+	public void deleteObject(Renderer renderer) {
+		for (VertexBuffer buffer : buffers.values()) {
+			renderer.deleteBuffer(buffer);
+			buffer.resetObject();
+		}
+		resetObject();
+	}
+
+	@Override
+	public void resetObject() {
+		enableUpdateRequired();
+	}
+
+	private void calculateCounts() {
+		VertexBuffer positionBuffer = getBuffer(Type.Vertex);
+		VertexBuffer indexBuffer = getBuffer(Type.Index);
+
+		if (positionBuffer != null) {
+			Buffer buffer = positionBuffer.getBuffer();
+			vertexCount = buffer.limit() / positionBuffer.getPointer().getComponents();
+		}
+
+		if (indexBuffer != null) {
+			elementCount = computeNumElements(indexBuffer.getBuffer().limit());
+		} else {
+			elementCount = computeNumElements(vertexCount);
+		}
+	}
+
+	private int computeNumElements(int bufferSize) {
+		switch (mode) {
+			case TRIANGLES:return bufferSize / 3;
+			case TRIANGLE_FAN:
+			case TRIANGLE_STRIP:return bufferSize - 2;
+			case POINTS:return bufferSize;
+			case LINES:return bufferSize / 2;
+			case LINE_LOOP:return bufferSize;
+			case LINE_STRIP:return bufferSize - 1;
+			default:
+				throw new UnsupportedOperationException();
+		}
+	}
+
 }

@@ -3,34 +3,14 @@ package geometry;
 import renderer.Renderer;
 import utils.HardwareObject;
 
-import java.nio.Buffer;
-import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL15.*;
+import java.nio.*;
 
 public class VertexBuffer extends HardwareObject {
 
-	public boolean getNormalized() {
-		return normalized;
-	}
-
-	public boolean isNormalized() {
-		return normalized;
-	}
-
-	public void setNormalized(boolean normalized) {
-		this.normalized = normalized;
-	}
-
-	public int getStride() {
-		return stride;
-	}
-
-	public int getOffset() {
-		return offset;
-	}
-
-	public static enum Type {
+	/**
+	 * The semantic of this vertex buffer
+	 */
+	public enum Type {
 		Vertex,
 		Normal,
 		TextCoords,
@@ -43,31 +23,28 @@ public class VertexBuffer extends HardwareObject {
 		Interleaved, CpuOnly, Index
 	}
 
-	public static enum Usage {
+	public enum Usage {
 		/**
 		 * The data store contents will be modified once and used at most a few times as source for GL drawing.
-		 *
 		 */
 		STREAM_DRAW,
 
 		/**
 		 * The data store contents will be modified once and used at most a few times and
 		 * used to return that data when queried by the application.
-		 *
 		 */
 		STREAM_READ,
 
 		/**
 		 * The data store contents will be modified once and used at most a few times and
 		 * used as the source for GL drawing and image specification commands.
-		 *
 		 */
 		STREAM_COPY,
 
 
 		/**
-		 *  The data store contents will be modified once and used many times as
-		 *  source for GL drawing.
+		 * The data store contents will be modified once and used many times as
+		 * source for GL drawing.
 		 */
 		STATIC_DRAW,
 
@@ -84,8 +61,8 @@ public class VertexBuffer extends HardwareObject {
 		STATIC_COPY,
 
 		/**
-		 *  The data store contents will be modified repeatedly and used many times as
-		 *  source for GL drawing.
+		 * The data store contents will be modified repeatedly and used many times as
+		 * source for GL drawing.
 		 */
 		DYNAMIC_DRAW,
 
@@ -103,18 +80,6 @@ public class VertexBuffer extends HardwareObject {
 
 	}
 
-
-	public static enum Format {
-		Float,
-		Double,
-		Byte,
-		Unsingned_Byte,
-		Short,
-		Unsigned_Short,
-		Int,
-		Unsigned_Int;
-	}
-
 	/**
 	 * The type of this vertex buffer
 	 */
@@ -125,102 +90,122 @@ public class VertexBuffer extends HardwareObject {
 	 */
 	private Usage usage;
 
-	/**
-	 * Format of the buffer
-	 */
-	private Format format;
 
 	/**
-	 * Buffer of twhich holds the data.
+	 * Buffer of which holds the data.
 	 */
 	private Buffer buffer;
 
+	/**
+	 * VertexAttributePointer information
+	 *
+     */
+	private VertexAttributePointer pointer;
+
 
 	/**
-	 * the position of the last element
-	 */
-	private int vertexCount;
+	 * Creates a vertex buffer of the specified type
+	 * and initialize the vertex attribute pointer as
+	 * a 4 components size float pointer.
+	 *
+	 * @param type the type of this buffer.
+     */
+	public VertexBuffer(Type type) {
+		this(type, null, Usage.STATIC_DRAW, new VertexAttributePointer(4, VertexAttributePointer.Format.Float));
+	}
 
-	/**
-	 * Count of components must be between 1-4
-	 */
-	private int components;
-
-	/**
-	 * The stride of this buffer
-	 */
-	private int stride = 0;
-
-	/**
-	 * The offset of this buffer
-	 */
-	private int offset = 0;
-
-	/**
-	 * Specifies if the the underlying buffer contains normalized data
-	 */
-	private boolean normalized = false;
-
-
-	public VertexBuffer() {
+	public VertexBuffer(Type type, Buffer data, Usage usage, VertexAttributePointer vertexAttrPointer) {
 		super(VertexBuffer.class);
+
+		this.type = type;
+		this.usage = usage;
+		this.pointer = vertexAttrPointer;
+
+		if (data != null) {
+			setupData(data);
+		}
+
 	}
 
-	public void setupData(Usage usage, Format format, int components, Buffer buffer) {
+	public VertexBuffer setupData(Buffer data) {
 
-		if (components < 1 || components > 4) {
-			throw new IllegalArgumentException("The components count must be between 1 and 4");
+		// Abort if the buffer is already allocated on the gpu
+		if (getId() != UNSET_ID) return this;
+
+		if (! pointer.getFormat().isCompatible(data)) {
+			throw new IllegalArgumentException(
+				String.format(
+					"The %s format isn't compatible with the buffer of the type %s",
+					pointer.getFormat().name(),
+					buffer.getClass().getSimpleName()
+				)
+			);
 		}
 
-		if (getId() == UNSET_ID) {
-			this.buffer = buffer;
-			this.usage = usage;
-			this.format = format;
-		}
-
+		this.buffer = data;
 		enableUpdateRequired();
+		return this;
 	}
 
-	public Buffer getBuffer() {
-		return  buffer;
-	}
-
-	public int getVertexCount() {
-		return vertexCount;
-
-	}
-
-	public int getCountOfIndices() {
-		return  buffer.capacity() / this.components;
-	}
-
-	public int getComponents() {
-		return components;
-	}
-
-	public Format getFormat() {
-		return format;
-	}
-
+	/**
+	 * Retrieves the type of this vertex buffer.
+	 * The type of a vertex buffer specifies the
+	 * semantic of a vertex buffer, the type <code>Type.Vertex</code>
+	 * means that the buffer contains the positions of vertices and so on.
+	 *
+	 * @return the type of this buffer.
+     */
 	public Type getType() {
 		return type;
 	}
 
-	public void setType(Type type) {
+	/**
+	 * Specifies the type of this vertex buffer and
+	 * describes the semantic of the underlying buffer data.
+	 *
+	 * @param type the type of this buffer.
+	 * @return this instance in order to support method-chaining.
+     */
+	public VertexBuffer setType(Type type) {
 		this.type = type;
+		return this;
 	}
 
+	/**
+	 * Returns the buffer object which contains
+	 * the data and is stored in the java heap
+	 * and acts as source for a generic vertex buffer object.
+	 *
+	 * @return the underlying buffer object.
+     */
+	public Buffer getBuffer() {
+		return buffer;
+	}
+
+	/**
+	 * Retrieves the expected usage pattern of the underlying data.
+	 *
+	 * @return the usage of this buffer.
+     */
 	public Usage getUsage() {
 		return usage;
 	}
 
-	public void setUsage(Usage usage) {
+	/**
+	 * Retrieves the expected usage pattern of the underlying data.
+	 *
+	 * @param usage the usage pattern of this buffer.
+	 * @return this instance in order to support method-chaining.
+     */
+	public VertexBuffer setUsage(Usage usage) {
 		this.usage = usage;
+		return this;
 	}
 
-	public void setFormat(Format format) {
-		this.format = format;
+	public VertexAttributePointer getPointer() {
+		return pointer;
 	}
+
 
 	@Override
 	public void deleteObject(Renderer renderer) {
@@ -232,9 +217,5 @@ public class VertexBuffer extends HardwareObject {
 	public void resetObject() {
 		enableUpdateRequired();
 		this.setId(UNSET_ID);
-	}
-
-	public boolean hasChanged() {
-		return true;
 	}
 }

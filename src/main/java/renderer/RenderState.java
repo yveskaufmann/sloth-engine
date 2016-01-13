@@ -7,6 +7,7 @@ public class RenderState {
 	private RenderContext.BlendFunc blendMode = RenderContext.BlendFunc.Off;
 	private float lineWidth = 1.0f;
 	private float pointSize = 1.0f;
+	private boolean enableFPSCounter = false;
 
 	public boolean isWireframe() {
 		return wireframe;
@@ -54,5 +55,13 @@ public class RenderState {
 
 	public void setPointSize(float pointSize) {
 		this.pointSize = pointSize;
+	}
+
+	public boolean isFPSCounterEnabled() {
+		return enableFPSCounter;
+	}
+
+	public void enableFpsCounter(boolean enableFPSCounter) {
+		this.enableFPSCounter = enableFPSCounter;
 	}
 }

@@ -6,7 +6,6 @@ public class RenderContext {
 
 
 
-
 	/**
 	 * Specifies how the red, green, blue, and alpha destination blending factors are computed
 	 * if <code>glEnable(GL_BLEND)</code> is enabled. You can choose
@@ -447,6 +446,13 @@ public class RenderContext {
 	 */
 	public int boundElementArrayVboBuffer;
 
+
+	/**
+	 * If the fps counter should be enabled
+	 */
+	public boolean fpsCounterEnabled;
+
+
 	public void reset() {
 		blend = false;
 		clipDistance = false;
@@ -477,7 +483,8 @@ public class RenderContext {
 		textureCubeMapSeamless = false;
 		programPointSize = false;
 		wireframe = false;
-
+		fpsCounterEnabled = true;
+		// fpsCounterEnabled = false;
 		depthTestMode = TestFunc.Less;
 		blendMode = BlendFunc.Zero;
 

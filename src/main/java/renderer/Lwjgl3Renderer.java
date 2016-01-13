@@ -1,8 +1,8 @@
 package renderer;
 
 import geometry.Mesh;
+import geometry.VertexAttributePointer;
 import math.Color;
-import org.lwjgl.opengl.ARBVertexAttrib64Bit;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import texture.Texture;
 import geometry.VertexBuffer;
 import utils.HardwareObject;
 
-import static geometry.VertexBuffer.Type.*;
+import static geometry.VertexBuffer.Type;
 
 import java.nio.*;
 import java.util.Iterator;
@@ -28,6 +28,7 @@ import static org.lwjgl.opengl.GL32.*;
 import static org.lwjgl.opengl.GL43.*;
 
 import static org.lwjgl.glfw.GLFW.*;
+
 
 
 public class Lwjgl3Renderer implements Renderer {
@@ -421,12 +422,14 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		mesh.bufferStream()
-			.filter(whenNot(Index))
-			.filter(whenNot(Interleaved))
-			.filter(whenNot(CpuOnly))
-			.forEach(buffer -> setVertexAttributes(buffer, interleavedBuffer));
+			.filter(whenNot(Type.Index))
+			.filter(whenNot(Type.Interleaved))
+			.filter(whenNot(Type.CpuOnly))
+			.forEach(buffer -> {
+				setVertexAttributes(buffer, interleavedBuffer);
+			});
 
-		VertexBuffer indices = mesh.getBuffer(Index);
+		VertexBuffer indices = mesh.getBuffer(Type.Index);
 		if (indices != null) {
 			drawTrianglesWithIndices(indices, mesh, count);
 		} else {
@@ -438,11 +441,11 @@ public class Lwjgl3Renderer implements Renderer {
 
 
 	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh, int count) {
-		if (indices.getType() != Index) {
+		if (indices.getType() != Type.Index) {
 			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
 		}
 
-		VertexBuffer index = mesh.getBuffer(Index);
+		VertexBuffer index = mesh.getBuffer(Type.Index);
 		if (index.isUpdateRequired()) {
 			updateBuffer(index);
 		}
@@ -453,7 +456,7 @@ public class Lwjgl3Renderer implements Renderer {
 		glDrawElements(
 			convertToMode(mesh.getMode()),
 			index.getBuffer().capacity(),
-			convertToFormat(index.getFormat()) ,
+			convertToFormat(index.getPointer().getFormat()) ,
 			0
 		);
 
@@ -481,18 +484,20 @@ public class Lwjgl3Renderer implements Renderer {
 			attribute.setLocation(location);
 		}
 
-		if (buffer.isUpdateRequired()) {
+		if (buffer.isUpdateRequired() && interleavedBuffer != null) {
 			updateBuffer(buffer);
+		} else {
+			updateBuffer(interleavedBuffer);
 		}
 
 		glEnableVertexAttribArray(location);
 		glVertexAttribPointer(
 			location,
-			buffer.getComponents(),
-			convertToFormat(buffer.getFormat()),
-			buffer.getNormalized(),
-			buffer.getStride(),
-			buffer.getOffset());
+			buffer.getPointer().getComponents(),
+			convertToFormat(buffer.getPointer().getFormat()),
+			buffer.getPointer().getNormalized(),
+			buffer.getPointer().getStride(),
+			buffer.getPointer().getOffset());
 
 	}
 
@@ -516,7 +521,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 	}
 
-	private int convertToFormat(VertexBuffer.Format format) {
+	private int convertToFormat(VertexAttributePointer.Format format) {
 		switch (format) {
 			case Byte: return GL_BYTE;
 			case Int: return GL_INT;
@@ -532,7 +537,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 	}
 
-	private Predicate<VertexBuffer> whenNot(VertexBuffer.Type desiredType) {
+	private Predicate<VertexBuffer> whenNot(Type desiredType) {
 		return (buffer) -> buffer.getType() != desiredType;
 	}
 
@@ -553,7 +558,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 
-		if (buffer.getType() == VertexBuffer.Type.Index) {
+		if (buffer.getType() == Type.Index) {
 			target = GL_ELEMENT_ARRAY_BUFFER;
 			if (ctx.boundElementArrayVboBuffer != bufferId) {
 				glBindBuffer(target, bufferId);
@@ -568,8 +573,8 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		int usage = convertToUsageConstant(buffer.getUsage());
-		if (bufferCreated || buffer.hasChanged()) {
-			switch (buffer.getFormat()) {
+		if (bufferCreated || buffer.isUpdateRequired()) {
+			switch (buffer.getPointer().getFormat()) {
 				case Byte:
 				case Unsingned_Byte:
 					glBufferData(target, (ByteBuffer) buffer.getBuffer(), usage);
@@ -593,7 +598,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 			}
 		} else {
-			switch (buffer.getFormat()) {
+			switch (buffer.getPointer().getFormat()) {
 				case Byte:
 				case Unsingned_Byte:
 					glBufferSubData(target, 0,(ByteBuffer) buffer.getBuffer());
@@ -672,6 +677,8 @@ public class Lwjgl3Renderer implements Renderer {
 			ctx.cullFaceMode = state.getCullFaceMode();
 		}
 
+		ctx.fpsCounterEnabled = state.isFPSCounterEnabled();
+
 	}
 
 	private boolean toggleEnable(int cap, boolean enable) {
@@ -724,14 +731,20 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void onNewFrame() {
+		if (ctx.fpsCounterEnabled) {
+			fpsCounter();
+		}
+	}
+
+	public void fpsCounter() {
 		double currentTime = glfwGetTime();
 		renderedFrames++;
 
 		if (currentTime - lastTime >= 1.0) {
-			Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
-			Log.info("Milli Seconds per Frame :" + renderedFrames);
-			renderedFrames = 0;
-			lastTime += 1.0;
-		}
+            Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
+            Log.info("Milli Seconds per Frame :" + renderedFrames);
+            renderedFrames = 0;
+            lastTime += 1.0;
+        }
 	}
 }

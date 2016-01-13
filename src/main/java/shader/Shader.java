@@ -1,5 +1,6 @@
 package shader;
 
+import geometry.VertexAttributePointer;
 import geometry.VertexBuffer;
 import renderer.Renderer;
 import shader.source.ShaderSource;
