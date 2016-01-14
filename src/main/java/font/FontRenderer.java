@@ -1,24 +1,47 @@
 package font;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import renderer.RendererExpception;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL15.*;
 
 import javax.swing.ImageIcon;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FontRenderer {
 
-	class GridInfo {
+
+
+	private class GridInfo {
 		public int rows;
 		public int cols;
 		public int cellWidth;
 		public int cellHeight;
 	}
+
+	private class GridPos {
+		public GridPos(int x, int y, int width) {
+			this.x = x;
+			this.y = y;
+			this.offset = y * width + x;
+		}
+		public int x;
+		public int y;
+		public int offset;
+	}
+
+	/**
+	 * Logger for this class
+	 */
+	Logger Log = LoggerFactory.getLogger(FontRenderer.class);
 
 	/**
 	 * This BufferedImage is only used in order to obtain
@@ -29,7 +52,12 @@ public class FontRenderer {
 	/**
 	 * The list of chars which should be supported by this renderer.
 	 */
-	private final char[] SUPPORTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789öäü.:,;-_#'\"*+?ß=<>".toCharArray();
+	private final char[] SUPPORTED_CHARS ="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789öäü.:,;-_#'\"*+?ß=<> ".toCharArray();
+
+	/**
+	 * Contains the position in side the font sheet texture of each character.
+	 */
+	private Map<Character, GridPos> gridPosMap;
 
 	/**
 	 * The font which should be used for this renderer
@@ -61,13 +89,12 @@ public class FontRenderer {
 		this.font = font;
 		this.metrics = getFontMetrics(font);
 		this.textureId = -1;
-
+		this.gridPosMap = new HashMap<>();
 		prepareLetterBitmap();
 
 	}
 
 	private void prepareLetterBitmap() {
-
 		gridInfo = new GridInfo();
 		/**
 		 * 	Find the size of the widest letters
@@ -86,15 +113,17 @@ public class FontRenderer {
 		gridInfo.cellWidth = widthPerLetter;
 		gridInfo.cellHeight = heightPerLetter;
 
-		// Should be calculate the best suited size
-		int width = 256;
-		int height = 256;
+		// Calculates the required size for char set texture.
+		int width = 32;
+		int height = 32;
+		do {
+			width = height = width * 2;
+			gridInfo.cols = width / widthPerLetter;
+			gridInfo.rows = (int)Math.ceil(SUPPORTED_CHARS.length / gridInfo.cols) + 1;
 
-		int gridCols = width / widthPerLetter;
-		int gridRows = (int)Math.ceil(SUPPORTED_CHARS.length / gridCols) + 1;
+		} while(gridInfo.rows * heightPerLetter > height);
 
-		gridInfo.cols = gridCols;
-		gridInfo.rows = gridRows;
+
 
 		charsetImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D) charsetImage.getGraphics();
@@ -104,12 +133,16 @@ public class FontRenderer {
 			char chr = SUPPORTED_CHARS[i];
 			BufferedImage charImage = writeLetterAsImage(chr);
 
-			int row = (int) Math.floor(i / gridCols);
-			int col = i - row * gridCols;
+			int row = (int) Math.floor(i / gridInfo.cols);
+			int col = i - row * gridInfo.cols;
+			int x = col * widthPerLetter;
+			int y = row * heightPerLetter;
+			gridPosMap.put(chr, new GridPos(x, y, width));
 
-			g.drawImage(charImage, col * widthPerLetter, row * heightPerLetter, charImage.getWidth(), charImage.getHeight(), null);
+			g.drawImage(charImage, x, y, charImage.getWidth(), charImage.getHeight(), null);
 		}
 
+		Log.info("Created font {} texture sheet with the size ({},{}).",font.toString().replaceAll("java.awt.Font", "") , width, height);
 	}
 
 	/**
@@ -157,7 +190,7 @@ public class FontRenderer {
 	private int createTexture(BufferedImage image) {
 		int id = glGenTextures();
 		if (id < 0) {
-			throw new RendererExpception("The creation of a texture object failed. Error Code:" + GL11.glGetError());
+			throw new RendererExpception("The creation of a texture object failed. Error Code:" + glGetError());
 		}
 
 		glBindTexture(GL_TEXTURE_2D, id);
@@ -165,8 +198,8 @@ public class FontRenderer {
 		 * Defines what should happen if the texture coordinates exceed the size of this
 		 * texture. In this case the texture should be clamped to the edge.
 		 */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -186,10 +219,33 @@ public class FontRenderer {
 	}
 
 	public void drawString(String text, int x, int y) {
-		// TODO implement me please :)
 
+		bindFontTexture();
+
+		for(int i = 0; i < text.length(); i++) {
+			char chr = text.charAt(i);
+			GridPos pos = gridPosMap.get(chr);
+			if (pos == null) {
+				pos = gridPosMap.get('?');
+			}
+		}
 	}
 
+	private void bindFontTexture() {
+
+		if (this.textureId < 0) {
+			this.textureId = createTexture(this.charsetImage);
+		}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+	}
+
+	/**
+	 * Retrieves the created char set image which contains
+	 * the font as image.
+	 *
+	 * @return the created char set image.
+     */
 	public BufferedImage getCharsetImage() {
 		return charsetImage;
 	}
@@ -218,6 +274,7 @@ public class FontRenderer {
 		frame.add(imageView);
 
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
 		frame.setSize(image.getWidth(), image.getHeight());
 		frame.setVisible(true);
 		frame.repaint();
