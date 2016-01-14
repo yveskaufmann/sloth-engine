@@ -5,7 +5,7 @@ in vec3 vertexPosition;
 in vec3 vertexColor;
 
 // Output data ; will be interpolated for each fragment.
-out vec3 fragmentColor;
+smooth out vec3 fragmentColor;
 // Values that stay constant for the whole mesh.
 uniform mat4 mvp;
 uniform float time;

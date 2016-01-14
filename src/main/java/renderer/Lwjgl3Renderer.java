@@ -485,15 +485,14 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 
+		glEnableVertexAttribArray(location);
+
 		if (interleavedBuffer == null) {
 			updateBuffer(buffer);
 		} else {
 			updateBuffer(interleavedBuffer);
 
 		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, (interleavedBuffer != null) ? interleavedBuffer.getId() : buffer.getId());
-		glEnableVertexAttribArray(location);
 
 		glVertexAttribPointer(
 			location,
@@ -506,7 +505,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void drawTriangles(Mesh mesh, int count) {
-		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount() + 1);
+		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount());
 	}
 
 	private int convertToMode(Mesh.Mode mode) {

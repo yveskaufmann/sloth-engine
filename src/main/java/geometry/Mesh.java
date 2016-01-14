@@ -257,7 +257,7 @@ public class Mesh extends HardwareObject {
 
 		if (positionBuffer != null) {
 			Buffer buffer = positionBuffer.getBuffer();
-			vertexCount = buffer.limit() / positionBuffer.getPointer().getComponents();
+			vertexCount = (int) Math.ceil(buffer.limit() / positionBuffer.getPointer().getComponents());
 		}
 
 		if (indexBuffer != null) {

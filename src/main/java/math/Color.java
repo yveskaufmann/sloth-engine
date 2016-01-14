@@ -18,7 +18,7 @@ public class Color implements Cloneable {
 	/**
 	 * Color LightGrey
 	 */
-	public final static Color LightGrey = new Color(0.2f, 0.2f, 0.2f);
+	public final static Color LightGrey = new Color(0.7f, 0.7f, 0.7f);
 
 	/**
 	 * Color Medium Gray
@@ -34,6 +34,7 @@ public class Color implements Cloneable {
 	 * Color Blue
 	 */
 	 public final static Color Blue = new Color(0.0f, 0.0f, 1.0f);
+
 
 	/**
 	 * Color Green

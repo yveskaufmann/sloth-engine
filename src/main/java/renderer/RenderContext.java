@@ -390,12 +390,12 @@ public class RenderContext {
 	/**
 	 * Specifies which cull face mode should be use if <code>cullface</code> is enabled.
 	 */
-	public CullFaceMode cullFaceMode = CullFaceMode.Back;
+	public CullFaceMode cullFaceMode = CullFaceMode.Off;
 
 	/**
 	 * Specifies which depth function should be used if <code>depthTesting is enabled.</code>
 	 */
-	public TestFunc depthTestMode = TestFunc.Less;
+	public TestFunc depthTestMode = TestFunc.Off;
 
 	/**
 	 * Specifies the width of rasterized lines.
@@ -485,11 +485,11 @@ public class RenderContext {
 		wireframe = false;
 		fpsCounterEnabled = true;
 		// fpsCounterEnabled = false;
-		depthTestMode = TestFunc.Less;
+		depthTestMode = TestFunc.Off;
 		blendMode = BlendFunc.Zero;
 
 		logicOperation = LogicalPixelOperation.Copy;
-		cullFaceMode = CullFaceMode.Back;
+		cullFaceMode = CullFaceMode.Off;
 
 		lineWith = 1.0f;
 		polygonOffsetFactor = 0.0f;
