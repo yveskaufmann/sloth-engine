@@ -35,7 +35,7 @@ public class FileShaderSource extends ShaderSource {
 
 	@Override
 	public boolean isUpdateRequired() {
-		return lastModified < file.lastModified();
+		return super.isUpdateRequired() || lastModified < file.lastModified();
 	}
 
 	@Override
@@ -71,5 +71,6 @@ public class FileShaderSource extends ShaderSource {
 
 	@Override
 	public void resetObject() {
+		enableUpdateRequired();
 	}
 }

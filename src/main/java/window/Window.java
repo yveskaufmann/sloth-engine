@@ -5,7 +5,10 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import renderer.RendererManager;
+import sandbox.EngineContext;
 import utils.Cleanable;
 
 import java.nio.IntBuffer;
@@ -15,11 +18,15 @@ import java.nio.IntBuffer;
  * window which is used to show the rendering result.
  */
 public class Window implements Cleanable {
+
+	private static final Logger Log = LoggerFactory.getLogger(Window.class);
+
 	private long windowId;
 	private String title;
 	private GLFWWindowSizeCallback sizeCallback;
 
 	private State state;
+
 	private enum State {
 		ENABLED,
 		DISABLED,
@@ -87,7 +94,6 @@ public class Window implements Cleanable {
 		}
 
 		state = State.ENABLED;
-
 		GLFW.glfwMakeContextCurrent(windowId);
 		GL.createCapabilities();
 		GLFW.glfwSetWindowSizeCallback(windowId, sizeCallback = new GLFWWindowSizeCallback() {
@@ -97,8 +103,8 @@ public class Window implements Cleanable {
 			}
 		});
 		GLFW.glfwShowWindow(windowId);
-		// GLFW.glfwSwapInterval(0);
 		updateViewportSize();
+		Log.info("Enabled and show window {} and make it to the current OpenGL context.", windowId);
 
 		return this;
 	}
@@ -135,7 +141,9 @@ public class Window implements Cleanable {
 	}
 
 	private void updateViewportSize() {
-		RendererManager.getRenderer().setViewport(0, 0, getWidth(), getHeight());
+		EngineContext
+			.getCurrentRenderer()
+			.setViewport(0, 0, getWidth(), getHeight());
 	}
 
 

@@ -117,6 +117,11 @@ public class WindowManager implements Cleanable {
 		return this;
 	}
 
+	public Window getLastActiveWindow() {
+		if (windows.size() == 0) return null;
+		return windows.get(windows.size() - 1);
+	}
+
 	public Window build() {
 		windowHints.forEach(GLFW::glfwWindowHint);
 

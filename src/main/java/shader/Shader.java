@@ -1,11 +1,11 @@
 package shader;
 
-import geometry.VertexAttributePointer;
 import geometry.VertexBuffer;
 import renderer.Renderer;
 import shader.source.ShaderSource;
 import utils.HardwareObject;
 
+import javax.swing.text.html.HTMLDocument;
 import java.util.*;
 
 public class Shader extends HardwareObject {
@@ -13,12 +13,14 @@ public class Shader extends HardwareObject {
 	private List<ShaderSource> shaderSources = null;
 	private Map<String, Uniform> uniforms = null;
 	private Map<VertexBuffer.Type, Attribute> attributes = null;
+	private String shaderName = null;
 
-	public Shader() {
+	public Shader(String name) {
 		super(Shader.class);
 		shaderSources = new ArrayList<>();
 		uniforms = new HashMap<>();
 		attributes = new HashMap<>();
+		this.shaderName = name;
 	}
 
 	public void addSource(ShaderSource source) {
@@ -47,8 +49,12 @@ public class Shader extends HardwareObject {
 		return uniform;
 	}
 
-	public Iterator<Uniform> getUniformIterator() {
-		return uniforms.values().iterator();
+	public Iterable<Uniform> getUniforms() {
+		return uniforms.values();
+	}
+
+	public Iterable<Attribute> getAttributes() {
+		return attributes.values();
 	}
 
 	public ShaderVariable removeUniform(String name) {
@@ -59,9 +65,17 @@ public class Shader extends HardwareObject {
 		Attribute attribute = attributes.get(type);
 		if (attribute == null) {
 			attribute = new Attribute();
+			attributes.put(type, attribute);
 		}
-		attributes.put(type, attribute);
 		return attribute;
+	}
+
+	public Attribute removeAttribute(VertexBuffer.Type type) {
+		return attributes.remove(type);
+	}
+
+	public String getShaderName() {
+		return this.shaderName;
 	}
 
 	@Override
@@ -74,11 +88,15 @@ public class Shader extends HardwareObject {
 		renderer.deleteShader(this);
 	}
 
-
 	@Override
 	public void resetObject() {
 		shaderSources.forEach(ShaderSource::resetObject);
-		shaderSources.forEach(source -> shaderSources.remove(source));
 		enableUpdateRequired();
 	}
+
+	@Override
+	public String toString() {
+		return String.format("Shader-" + shaderName);
+	}
 }
+

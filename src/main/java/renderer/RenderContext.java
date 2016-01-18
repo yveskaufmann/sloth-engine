@@ -1,163 +1,11 @@
 package renderer;
 
+import static renderer.RenderState.*;
+import shader.Attribute;
 import shader.Shader;
 
 public class RenderContext {
 
-
-
-	/**
-	 * Specifies how the red, green, blue, and alpha destination blending factors are computed
-	 * if <code>glEnable(GL_BLEND)</code> is enabled. You can choose
-	 * on of these blend function by using the function <code>glBlendFunci</code>.*
-	 */
-	public enum BlendFunc {
-		Off,
-		Zero,
- 		one,
-		SourceColor,
-		OneMinusSourceColor,
-		DestinationColor,
-	 	OneMinusDestinationColor,
-	 	SourceAlpha,
-	 	OneMinusSourceAlpha,
-	 	DestinationAlpha,
-	 	OneMinusDestinationAlpha,
-		ConstantColor,
- 		OneMinusConstantColor,
- 		Constant_Alpha,
-  		OneMinusConstantAlpha
-	}
-
-	/**
-	 * Logical pixel operations <a href="https://www.opengl.org/sdk/docs/man/html/glLogicOp.xhtml">See glLogicOp</a>
-	 */
-	public enum LogicalPixelOperation {
-		Off,
-		Clear,
-		Set,
-		Copy,
-		CopyInverted,
-		Noop,
-		Invert,
-		And,
-		Nand,
-		Or,
-		Nor,
-		Xor,
-		Equiv,
-		AndReverse,
-		AndInverted,
-		OrReverse,
-  		OrInverted
-	}
-
-	/**
-	 * Cull face modes which can be used when
-	 * <code>cullFace</code> is enabled. The initial
-	 * value is <code>Back</code>.
-	 */
-	public enum CullFaceMode {
-		Off,
-		Front,
-		Back,
-		FrontAndBack
-	}
-
-	/**
-	 *  The test functions which could used for <code>depthTesting</code>, <code>stencilTesting</code> and so.
-	 */
-	public enum TestFunc {
-
-		/**
-		 * Testing is not enabled
-		 */
-		Off,
-
-		/**
-		 * Never passes.
-		 */
-		Never,
-
-		/**
-		 * Passes if the incoming depth value is less than the stored depth value.
-		 */
-		Less,
-
-		/**
-		 * Passes if the incoming depth value is equal to the stored depth value.
-		 */
-		Equal,
-
-		/**
-		 * Passes if the incoming depth value is less than or equal to the stored depth value.*/
-		LessOrEqual,
-
-		/**
-		 * Passes if the incoming depth value is greater than the stored depth value.
-		 */
-		Greater,
-
-		/**
-		 * Passes if the incoming depth value is not equal to the stored depth value.
-		 */
-		NotEqual,
-
-		/**
-		 * Passes if the incoming depth value is greater than or equal to the stored depth value.
-		 */
-		GreaterOrEqual,
-
-		/**
-		 * Always passes.
-		 */
-		Always
-	}
-
-	public enum StencilOperation {
-		Off,
-
-		/**
-		 * Keeps the current value.
-		 */
-		Keep,
-
-		/**
-		 * Sets the stencil buffer value to 0.
-		 */
-		Zero,
-
-		/**
- 		* Sets the stencil buffer value to ref, as specified by glStencilFunc.
- 		*/
-		Replace,
-
-		/**
-		 * Increments the current stencil buffer value. Clamps to the maximum representable unsigned value.
-		 */
-		Increments,
-
-		/**
-		 * Increments the current stencil buffer value.
-		 * Wraps stencil buffer value to zero when incrementing the maximum representable unsigned value.
-		 */
-		Increments_Wrap,
-
-		/**
-		 * Decrements the current stencil buffer value. Clamps to 0.
-		 */
-		Decrement,
-
-		/**
-		* Decrements the current stencil buffer value. Wraps stencil buffer value to the maximum representable unsigned value when decrementing a stencil buffer value of zero.
-		*/
-		Decrement_Wrap,
-
-		/**
- 		* Bitwise inverts the current stencil buffer value.
- 		*/
-		Invert
-	}
 
 	RenderContext() {
 		reset();
@@ -380,22 +228,22 @@ public class RenderContext {
 	 * The current enabled blend function which should be used
 	 * if <code>GL_BLEND</code> is enabled.
 	 */
-	public BlendFunc blendMode = BlendFunc.Zero;
+	public BlendFunc blendMode;
 
 	/**
 	 * Logical Pixel operation which should be used if <code>COLOR_LOGIC_OP</code> is enabled.
 	 */
-	public LogicalPixelOperation logicOperation = LogicalPixelOperation.Copy;
+	public LogicalPixelOperation logicOperation;
 
 	/**
 	 * Specifies which cull face mode should be use if <code>cullface</code> is enabled.
 	 */
-	public CullFaceMode cullFaceMode = CullFaceMode.Off;
+	public CullFaceMode cullFaceMode;
 
 	/**
 	 * Specifies which depth function should be used if <code>depthTesting is enabled.</code>
 	 */
-	public TestFunc depthTestMode = TestFunc.Off;
+	public TestFunc depthTestMode;
 
 	/**
 	 * Specifies the width of rasterized lines.
@@ -408,7 +256,7 @@ public class RenderContext {
 	 * Specifies a scale factor that is used to create a variable depth offset for each polygon.
 	 * The initial value is 0.
 	 */
-	public float polygonOffsetFactor = 0.0f;
+	public float polygonOffsetFactor;
 
 	/**
 	 * glPolygonOffset — unit
@@ -416,7 +264,7 @@ public class RenderContext {
 	 * Is multiplied by an implementation-specific value to create a constant
 	 * depth offset. The initial value is 0.
 	 */
-	public float polygonOffsetUnits = 0.0f;
+	public float polygonOffsetUnits ;
 
 	/**
 	 * Specifies the test function for stencil testing.
@@ -452,6 +300,30 @@ public class RenderContext {
 	 */
 	public boolean fpsCounterEnabled;
 
+	/**
+	 * Viewport start x coordinate
+	 */
+	public int viewPortX;
+
+	/**
+	 * Viewport start y coordinate
+	 */
+	public int viewportY;
+
+	/**
+	 * Viewport width
+	 */
+	public int viewPortWidth;
+
+	/**
+	 * Viewport height
+	 */
+	public int viewPortHeight;
+	public int scissorX;
+	public int scissorY;
+	public int scissorWidth;
+	public int scissorHeight;
+
 
 	public void reset() {
 		blend = false;
@@ -483,21 +355,21 @@ public class RenderContext {
 		textureCubeMapSeamless = false;
 		programPointSize = false;
 		wireframe = false;
-		fpsCounterEnabled = true;
-		// fpsCounterEnabled = false;
+		fpsCounterEnabled = false;
 		depthTestMode = TestFunc.Off;
-		blendMode = BlendFunc.Zero;
-
+		blendMode = BlendFunc.Off;
 		logicOperation = LogicalPixelOperation.Copy;
 		cullFaceMode = CullFaceMode.Off;
-
 		lineWith = 1.0f;
 		polygonOffsetFactor = 0.0f;
 		polygonOffsetUnits = 0.0f;
 		boundShader = null;
 		boundVboBuffer = 0;
 		boundElementArrayVboBuffer = 0;
-
+		viewPortX = 0;
+		viewportY = 0;
+		viewPortWidth = -1;
+		viewPortHeight = -1;
 	}
 
 

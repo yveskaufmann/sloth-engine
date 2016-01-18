@@ -6,8 +6,21 @@ import utils.Singleton;
 
 public class RendererManager {
 
+	/**
+	 * Thy currently supported types of renderer types.
+	 */
+	public enum RendererType {
+		Lwjgl3,
+		None
+	}
+
 	private static RendererType currentRenderType = RendererType.Lwjgl3;
 	private static final Logger Log = LoggerFactory.getLogger(RendererManager.class);
+
+	private RenderState currentState = new RenderState();
+
+	private RendererManager() {
+	}
 
 	/**
 	 * Returns the render instance by a specified render type.
@@ -16,7 +29,7 @@ public class RendererManager {
 	 * @return the instance of the desired render type.
 	 * @throws RendererExpception if the specified render type is unsupported or unknown.
      */
-	public static Renderer getRenderer(RendererType type) {
+	public Renderer getRenderer(RendererType type) {
 		assert type != null;
 		switch (type) {
 			case Lwjgl3:
@@ -34,7 +47,7 @@ public class RendererManager {
 	 *
 	 * @return the singleton instance of the current used renderer
      */
-	public static Renderer getRenderer() {
+	public  Renderer getRenderer() {
 		if (currentRenderType != null) {
 			return getRenderer(currentRenderType);
 		} else {
@@ -42,5 +55,12 @@ public class RendererManager {
 		}
 	}
 
-
+	/**
+	 * Get the render state of the active renderer.
+	 *
+	 * @return the state of the current active renderer.
+     */
+	public RenderState getRenderState() {
+		return currentState;
+	}
 }

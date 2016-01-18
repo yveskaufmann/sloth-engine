@@ -2,77 +2,48 @@ package renderer;
 
 import geometry.Mesh;
 import geometry.VertexAttributePointer;
+import geometry.VertexBuffer;
 import math.Color;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GLCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shader.*;
 import shader.source.ShaderSource;
 import texture.Image;
 import texture.Texture;
-import geometry.VertexBuffer;
 import utils.HardwareObject;
+import utils.HardwareObjectManager;
 
-import static geometry.VertexBuffer.Type;
+import static renderer.RenderState.*;
 
 import java.nio.*;
-import java.util.Iterator;
-import java.util.function.Predicate;
 
+import static geometry.VertexBuffer.Type;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL32.*;
-import static org.lwjgl.opengl.GL43.*;
-
-import static org.lwjgl.glfw.GLFW.*;
-
-
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
+import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 
 public class Lwjgl3Renderer implements Renderer {
 
 	private static final Logger Log = LoggerFactory.getLogger(Lwjgl3Renderer.class);
 
 
-	private IntBuffer intBuffer = IntBuffer.allocate(1);
+	private HardwareObjectManager objectManager;
 	private RenderContext ctx;
-
-	private int viewPortX;
-	private int viewportY;
-	private int viewPortWidth;
-	private int viewPortHeight;
-	private int scissorX;
-	private int scissorY;
-	private int scissorWidth;
-	private int scissorHeight;
-	private GLCapabilities caps;
-
-	private boolean validationRequired;
-
 	private double lastTime;
 	private int renderedFrames;
-
 
 	public Lwjgl3Renderer() {
 		initialize();
 	}
 
 	private void initialize() {
-		validationRequired = true;
-		viewPortX = 0;
-		viewportY = 0;
-		viewPortWidth = -1;
-		viewPortHeight = -1;
-		caps =  GL.getCapabilities();
+		objectManager = new HardwareObjectManager();
 		ctx = new RenderContext();
-
 		lastTime = glfwGetTime();
 		renderedFrames = 0;
-
-
-
 	}
 
 	@Override
@@ -107,11 +78,11 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void setViewport(int x, int y, int width, int height) {
-		if (x != viewPortX || y != viewportY || width != viewPortWidth || height != viewPortHeight)  {
-			viewPortX = x;
-			viewportY = y;
-			viewPortWidth = width;
-			viewPortHeight = height;
+		if (x != ctx.viewPortX || y != ctx.viewportY || width != ctx.viewPortWidth || height != ctx.viewPortHeight)  {
+			ctx.viewPortX = x;
+			ctx.viewportY = y;
+			ctx.viewPortWidth = width;
+			ctx.viewPortHeight = height;
 			glViewport(x, y, width, height);
 		}
 
@@ -129,11 +100,11 @@ public class Lwjgl3Renderer implements Renderer {
 			glEnable(GL_SCISSOR_TEST);
 		}
 
-		if (x != scissorX || y != scissorY|| width != scissorWidth || height != scissorHeight ) {
-			scissorX = x;
-			scissorY = y;
-			scissorWidth = width;
-			scissorHeight = height;
+		if (x != ctx.scissorX || y != ctx.scissorY|| width != ctx.scissorWidth || height != ctx.scissorHeight ) {
+			ctx.scissorX = x;
+			ctx.scissorY = y;
+			ctx.scissorWidth = width;
+			ctx.scissorHeight = height;
 			glScissor(x, y, width, height);
 		}
 	}
@@ -144,12 +115,13 @@ public class Lwjgl3Renderer implements Renderer {
 			ctx.scissorTest = false;
 			glDisable(GL_SCISSOR_TEST);
 
-			scissorX = 0;
-			scissorY = 0;
-			scissorWidth = 0;
-			scissorHeight = 0;
+			ctx.scissorX = 0;
+			ctx.scissorY = 0;
+			ctx.scissorWidth = 0;
+			ctx.scissorHeight = 0;
 		}
 	}
+
 
 	@Override
 	public void setShader(Shader shader) {
@@ -175,6 +147,7 @@ public class Lwjgl3Renderer implements Renderer {
 				);
 			}
 			shader.setId(id);
+			objectManager.register(shader);
 		}
 
 		for (ShaderSource source : shader.getShaderSources()) {
@@ -184,9 +157,8 @@ public class Lwjgl3Renderer implements Renderer {
 			glAttachShader(id, source.getId());
 		}
 
-		boolean linkSuccess = false;
-		boolean validateSuccess = true;
-		String infoLog = null;
+		boolean linkSuccess;
+		String infoLog;
 
 		glLinkProgram(id);
 		linkSuccess = glGetProgrami(id, GL_LINK_STATUS) == GL_TRUE;
@@ -204,15 +176,14 @@ public class Lwjgl3Renderer implements Renderer {
 
 
 	private void updateShaderSource(ShaderSource source) {
-		boolean newShader = false;
 		int id = source.getId();
 		if (id == HardwareObject.UNSET_ID) {
 			id = glCreateShader(toShaderTypeConstant(source.getType()));
-			newShader = true;
 			if (id == 0) {
 				throw new RendererExpception("Failed to created shader invalid id received: %d", id);
 			}
 			source.setId(id);
+			objectManager.register(source);
 		}
 
 		glShaderSource(id, source.getSource());
@@ -225,13 +196,12 @@ public class Lwjgl3Renderer implements Renderer {
 		} else {
 			Log.info("Success to compile shader {}", source.toString());
 		}
+		source.disableUpdateRequired();
 
 	}
 
 	private void updateShaderUniforms(Shader shader) {
-		Iterator<Uniform> it = shader.getUniformIterator();
-		while(it.hasNext()) {
-			Uniform uniform = it.next();
+		for (Uniform uniform : shader.getUniforms()) {
 			if (uniform.isUpdateRequired()) {
 				updateShaderUniform(shader, uniform);
 			}
@@ -239,9 +209,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void resetUniformLocation(Shader shader) {
-		Iterator<Uniform> it = shader.getUniformIterator();
-		while(it.hasNext()) {
-			Uniform uniform = it.next();
+		for (Uniform uniform : shader.getUniforms()) {
 			uniform.reset();
 		}
 	}
@@ -421,13 +389,15 @@ public class Lwjgl3Renderer implements Renderer {
 			updateBuffer(interleavedBuffer);
 		}
 
-		mesh.bufferStream()
-			.filter(whenNot(Type.Index))
-			.filter(whenNot(Type.Interleaved))
-			.filter(whenNot(Type.CpuOnly))
-			.forEach(buffer -> {
-				setVertexAttributes(buffer, interleavedBuffer);
-			});
+		for (VertexBuffer buffer : mesh.getBuffers()) {
+			Type type = buffer.getType();
+			if (Type.Index.equals(type) ||
+				Type.Interleaved.equals(type) ||
+				Type.CpuOnly.equals(type)) continue;
+
+			setVertexAttributes(buffer, interleavedBuffer);
+		}
+
 
 		VertexBuffer indices = mesh.getBuffer(Type.Index);
 		if (indices != null) {
@@ -440,18 +410,17 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 
+
+
 	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh, int count) {
 		if (indices.getType() != Type.Index) {
 			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
 		}
 
 
-		if (indices.isUpdateRequired()) {
+		if (true || indices.isUpdateRequired()) {
 			updateBuffer(indices);
 		}
-
-		int indexId = indices.getId();
-		assert indexId != 1;
 
 		glDrawElements(
 			convertToMode(mesh.getMode()),
@@ -463,7 +432,11 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void clearVertexAttributes() {
-		// TODO
+		if (ctx.boundShader != null) {
+			for(Attribute attribute : ctx.boundShader.getAttributes()) {
+				glDisableVertexAttribArray(attribute.getLocation());
+			}
+		}
 	}
 
 
@@ -478,22 +451,21 @@ public class Lwjgl3Renderer implements Renderer {
 			}
 			location = glGetAttribLocation(ctx.boundShader.getId(), attribute.getName());
 			if (location == -1) {
-				Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName());
+				// Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName());
 				return;
 			}
 			attribute.setLocation(location);
 		}
 
 
-		glEnableVertexAttribArray(location);
 
 		if (interleavedBuffer == null) {
 			updateBuffer(buffer);
 		} else {
 			updateBuffer(interleavedBuffer);
-
 		}
 
+		glEnableVertexAttribArray(location);
 		glVertexAttribPointer(
 			location,
 			buffer.getPointer().getComponents(),
@@ -505,7 +477,12 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	private void drawTriangles(Mesh mesh, int count) {
-		glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount());
+
+		if (mesh.getBuffer(Type.Vertex) != null) {
+			count = mesh.getVertexCount();
+		}
+
+		glDrawArrays(convertToMode(mesh.getMode()), 0, count);
 	}
 
 	private int convertToMode(Mesh.Mode mode) {
@@ -540,9 +517,6 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 	}
 
-	private Predicate<VertexBuffer> whenNot(Type desiredType) {
-		return (buffer) -> buffer.getType() != desiredType;
-	}
 
 
 	@Override
@@ -558,6 +532,7 @@ public class Lwjgl3Renderer implements Renderer {
 			}
 			buffer.setId(bufferId);
 			bufferCreated = true;
+			objectManager.register(buffer);
 		}
 
 
@@ -659,7 +634,6 @@ public class Lwjgl3Renderer implements Renderer {
 	public void applyRenderState(RenderState state) {
 
 		if (state.isWireframe() && !ctx.wireframe) {
-			glPolygonOffset(1.0f, 2.0f);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			ctx.wireframe = true;
 		} else if (!state.isWireframe() && ctx.wireframe) {
@@ -668,13 +642,13 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		if (state.getDepthTestMode() != ctx.depthTestMode) {
-			if (toggleEnable(GL_DEPTH_TEST, state.getDepthTestMode() != RenderContext.TestFunc.Off)) {
+			if (toggleEnable(GL_DEPTH_TEST, state.getDepthTestMode() != TestFunc.Off)) {
 				glDepthFunc(toTestFunction(state.getDepthTestMode()));
 			}
 		}
 
 		if (state.getCullFaceMode() != ctx.cullFaceMode) {
-			if (toggleEnable(GL_CULL_FACE, state.getCullFaceMode() != RenderContext.CullFaceMode.Off)) {
+			if (toggleEnable(GL_CULL_FACE, state.getCullFaceMode() != CullFaceMode.Off)) {
 				glCullFace(toCullFaceMode(state.getCullFaceMode()));
 			}
 			ctx.cullFaceMode = state.getCullFaceMode();
@@ -682,6 +656,44 @@ public class Lwjgl3Renderer implements Renderer {
 
 		ctx.fpsCounterEnabled = state.isFPSCounterEnabled();
 
+		if (state.getBlendMode() != ctx.blendMode) {
+			switch (state.getBlendMode()) {
+				case Off:
+					glDisable(GL_BLEND);
+					break;
+				case Default:
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_ONE, GL_ZERO);
+					break;
+				case Additive:
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_ONE, GL_ONE);
+					break;
+				case Alpha:
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					break;
+				case Color:
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+
+			}
+			ctx.blendMode = state.getBlendMode();
+		}
+
+		if (state.getPointSize() != ctx.pointSize) {
+			glPointSize(state.getPointSize());
+			ctx.pointSize = state.getLineWidth();
+		}
+
+		if (toggleEnable(GL_LINE_SMOOTH, state.isSmoothLinesEnabled() != ctx.lineSmooth)) {
+			ctx.lineSmooth = state.isSmoothLinesEnabled();
+		}
+
+		if (state.getLineWidth() != ctx.lineWith) {
+			glLineWidth(state.getLineWidth());
+			ctx.lineWith = state.getLineWidth();
+		}
 	}
 
 	private boolean toggleEnable(int cap, boolean enable) {
@@ -693,7 +705,7 @@ public class Lwjgl3Renderer implements Renderer {
 		return enable;
 	}
 
-	private int toTestFunction(RenderContext.TestFunc testFunc) {
+	private int toTestFunction(TestFunc testFunc) {
 		switch (testFunc) {
 			case Always: return GL_ALWAYS;
 			case Equal: return GL_EQUAL;
@@ -707,7 +719,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 	}
 
-	private int toCullFaceMode(RenderContext.CullFaceMode cullFaceMode) {
+	private int toCullFaceMode(CullFaceMode cullFaceMode) {
 		switch (cullFaceMode) {
 			case Back: return GL_BACK;
 			case Front: return GL_FRONT;
@@ -725,11 +737,13 @@ public class Lwjgl3Renderer implements Renderer {
 	@Override
 	public void cleanUp() {
 		invalidateState();
+		objectManager.deleteAllObjects();
+		Log.info("Clean up all renderer resources");
 	}
 
 	@Override
 	public void resetGLObjects() {
-
+		objectManager.resetAllObjects();
 	}
 
 	@Override
@@ -737,17 +751,20 @@ public class Lwjgl3Renderer implements Renderer {
 		if (ctx.fpsCounterEnabled) {
 			fpsCounter();
 		}
+		objectManager.deleteAllUnused();
+
 	}
 
 	public void fpsCounter() {
 		double currentTime = glfwGetTime();
 		renderedFrames++;
-
 		if (currentTime - lastTime >= 1.0) {
-            Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
-            Log.info("Milli Seconds per Frame :" + renderedFrames);
-            renderedFrames = 0;
-            lastTime += 1.0;
-        }
+			Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
+			Log.info("Milli Seconds per Frame :" + renderedFrames);
+			renderedFrames = 0;
+			lastTime += 1.0;
+		}
 	}
+
+
 }

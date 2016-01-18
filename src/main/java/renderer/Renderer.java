@@ -85,4 +85,5 @@ public interface Renderer {
 	void resetGLObjects();
 
 	void onNewFrame();
+
 }

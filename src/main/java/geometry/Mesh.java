@@ -224,6 +224,10 @@ public class Mesh extends HardwareObject {
 		return buffers.values().stream();
 	}
 
+	public Iterable<VertexBuffer> getBuffers() {
+		return buffers.values();
+	}
+
 	public int getElementCount() {
 		return elementCount;
 	}
