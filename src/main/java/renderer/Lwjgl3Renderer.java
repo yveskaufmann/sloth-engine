@@ -13,8 +13,6 @@ import texture.Texture;
 import utils.HardwareObject;
 import utils.HardwareObjectManager;
 
-import static renderer.RenderState.*;
-
 import java.nio.*;
 
 import static geometry.VertexBuffer.Type;
@@ -24,6 +22,8 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
+import static renderer.RenderState.CullFaceMode;
+import static renderer.RenderState.TestFunc;
 
 public class Lwjgl3Renderer implements Renderer {
 
@@ -131,8 +131,8 @@ public class Lwjgl3Renderer implements Renderer {
 			updateShaderData(shader);
 		}
 
-		updateShaderUniforms(shader);
 		bindShaderProgram(shader);
+		updateShaderUniforms(shader);
 	}
 
 
@@ -219,18 +219,21 @@ public class Lwjgl3Renderer implements Renderer {
 		int location = uniform.getLocation();
 		ShaderVariable.VariableType type = uniform.getType();
 
-		// bindShaderProgram() required ?
-		if (location == ShaderVariable.LOCATION_NOT_FOUND) return;
 		if (location == ShaderVariable.LOCATION_UNKNOWN) {
 			updateUniformLocation(shader, uniform);
 			if (uniform.getLocation() == ShaderVariable.LOCATION_NOT_FOUND) {
+				// Ensures that and not found uniform variable is handled only once
 				uniform.disableUpdateRequired();
 				return;
 			}
 			location = uniform.getLocation();
 		}
 
-		if (type == null) return;
+		if (type == null) {
+			Log.error("The {} of the shader {} must have a assigned type.", uniform, shader);
+			uniform.disableUpdateRequired();
+			return;
+		}
 
 		Object value = uniform.getValue();
 		FloatBuffer fb;
@@ -418,7 +421,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 
-		if (true || indices.isUpdateRequired()) {
+		if (indices.isUpdateRequired()) {
 			updateBuffer(indices);
 		}
 
@@ -445,19 +448,18 @@ public class Lwjgl3Renderer implements Renderer {
 
 		Attribute attribute = ctx.boundShader.getAttribute(buffer.getType());
 		int location = attribute.getLocation();
-		if (location == -1) {
+		if (location == Attribute.LOCATION_UNKNOWN) {
 			if (attribute.getName() == null) {
 				throw new RendererExpception("An attribute requires a name, please consider to set a name for each attribute");
 			}
 			location = glGetAttribLocation(ctx.boundShader.getId(), attribute.getName());
-			if (location == -1) {
-				// Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName());
+			if (location == Attribute.LOCATION_NOT_FOUND) {
+				Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName());
+				attribute.disableUpdateRequired();
 				return;
 			}
 			attribute.setLocation(location);
 		}
-
-
 
 		if (interleavedBuffer == null) {
 			updateBuffer(buffer);

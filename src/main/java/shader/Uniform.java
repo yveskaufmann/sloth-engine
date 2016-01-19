@@ -12,10 +12,6 @@ public class Uniform extends ShaderVariable {
 	private Object value;
 	private VariableType type;
 
-	public Uniform() {
-		reset();
-	}
-
 	public void setValue(float value) {
 		setValue(VariableType.Float, value);
 	}
@@ -85,7 +81,7 @@ public class Uniform extends ShaderVariable {
 		}
 
 		this.type = type;
-		this.updateRequired = true;
+		enableUpdateRequired();
 	}
 
 	public Object getValue() {
@@ -96,9 +92,8 @@ public class Uniform extends ShaderVariable {
 		return type;
 	}
 
-	public void reset() {
-		location = LOCATION_UNKNOWN;
-		updateRequired = true;
+	@Override
+	public String toString() {
+		return "Uniform variable \"" + super.toString() +"\"";
 	}
-
 }
