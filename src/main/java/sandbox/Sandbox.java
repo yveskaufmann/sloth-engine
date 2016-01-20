@@ -61,6 +61,7 @@ public class Sandbox {
 
 	private Mesh cube;
 	private Vector3f cubePos;
+	float zoomLevel;
 
 	private void init() {
 		windowManager = EngineContext.windowManager();
@@ -89,13 +90,16 @@ public class Sandbox {
 		cubePos = new Vector3f(0f, 0f, 0f);
 		renderer.setClearColor(Color.LightGrey);
 		rendererManager.getRenderState().enableFPSCounter().apply();
+		zoomLevel = 1.0f;
 	}
 
 	public void update(float elapsedTime) {
 		modelMatrix.identity().translate(cubePos);
 		camera.setPosition(0f, 5f, 10f);
 		camera.setTarget(cubePos);
+		camera.zoom(zoomLevel);
 		camera.update(elapsedTime);
+
 		viewMatrix.set(camera.getViewMatrix());
 		projectionMatrix.identity().setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
 		modelViewProjMatrix.identity().mul(projectionMatrix).mul(viewMatrix).mul(modelMatrix);
@@ -216,14 +220,17 @@ public class Sandbox {
 					cubePos.add(0.2f, 0.0f, 0.0f);
 				}
 
-				if (key == GLFW_KEY_UP && action == GLFW_REPEAT && mods == GLFW_MOD_ALT) {
-					cubePos.add(0.0f, 0.0f, -0.2f);
+
+				if (key == GLFW_KEY_Q && action == GLFW_REPEAT) {
+
+					zoomLevel -= 0.1;
+					System.out.println("Q pressed " + zoomLevel);
 				}
 
-				if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT && mods == GLFW_MOD_ALT) {
-					cubePos.add(0.0f, 0.0f, 0.2f);
+				if (key == GLFW_KEY_A && action == GLFW_REPEAT) {
+					zoomLevel += 0.1;
+					System.out.println("A Pressed " + zoomLevel);
 				}
-
 
 			}
 		});
