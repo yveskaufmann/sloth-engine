@@ -35,6 +35,7 @@ public abstract class BaseCamera {
 		aspect = 4f / 3f;
 		near = 0.1f;
 		far = 1000.f;
+		setupProjection(fov, aspect, near, far);
 		yaw = pitch = roll = 0f;
 	}
 
