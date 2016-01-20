@@ -7,26 +7,24 @@ import math.Color;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import renderer.*;
+import renderer.RenderState;
+import renderer.Renderer;
+import renderer.RendererManager;
 import renderer.font.FontRenderer;
+import scene.TargetCamera;
 import shader.Shader;
 import shader.ShaderRepository;
-import utils.BufferUtils;
 import window.Window;
 import window.WindowManager;
 
-import static renderer.RenderState.*;
-
-import java.awt.*;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.logging.LogManager;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static renderer.RenderState.*;
 
 public class Sandbox {
 
@@ -59,14 +57,16 @@ public class Sandbox {
 	private Matrix4f projectionMatrix = new Matrix4f();
 	private Matrix4f modelViewProjMatrix = new Matrix4f();
 	private FontRenderer fontRenderer;
+	private TargetCamera camera;
 
 	private Mesh cube;
-	private Vector3f cameraPos;
+	private Vector3f cubePos;
 
 	private void init() {
 		windowManager = EngineContext.windowManager();
 		rendererManager = EngineContext.renderManager();
 		shaderRepository = EngineContext.shaderRepository();
+		camera = new TargetCamera();
 
 		window = EngineContext.windowManager()
 			.setTitle("Window the first")
@@ -76,7 +76,7 @@ public class Sandbox {
 			.build()
 			.enable();
 
-		fontRenderer = new FontRenderer(new Font(Font.SANS_SERIF, Font.PLAIN, 64));
+
 		renderer = rendererManager.getRenderer();
 		rendererManager.getRenderState().apply();
 	}
@@ -86,21 +86,24 @@ public class Sandbox {
 		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("vertexPosition");
 		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("vertexColor");
 		cube = new Cube();
-		cameraPos = new Vector3f(0f, 0f, 0f);
+		cubePos = new Vector3f(0f, 0f, 0f);
 		renderer.setClearColor(Color.LightGrey);
+		rendererManager.getRenderState().enableFPSCounter().apply();
 	}
 
 	public void update(float elapsedTime) {
-		modelMatrix.identity().translate(cameraPos);
-		viewMatrix.identity().lookAt(0.0f, 5.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		modelMatrix.identity().translate(cubePos);
+		camera.setPosition(0f, 5f, 10f);
+		camera.setTarget(cubePos);
+		camera.update(elapsedTime);
+		viewMatrix.set(camera.getViewMatrix());
 		projectionMatrix.identity().setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
 		modelViewProjMatrix.identity().mul(projectionMatrix).mul(viewMatrix).mul(modelMatrix);
 	}
 
 	public void render(float elapsedTime) throws IOException {
-		renderer.onNewFrame();
-		renderer.clearBuffers(true, true, false);
 
+		renderer.clearBuffers(true, true, false);
 		Shader diffuseShader = EngineContext.getShader("Default");
 		diffuseShader.getUniform("mvp").setValue(modelViewProjMatrix);
 
@@ -110,11 +113,7 @@ public class Sandbox {
 		renderer.drawMesh(cube, 0, 0);
 
 		// Render the thick wireframe version.
-
-
-
 		rendererManager.getRenderState()
-			.enableWireframe(false)
 			.setBlendMode(BlendFunc.Color)
 			.enableWireframe(true)
 			.enableSmoothLines()
@@ -126,12 +125,12 @@ public class Sandbox {
 		renderer.setShader(diffuseShader);
 		renderer.drawMesh(cube, 0, 0);
 		rendererManager.getRenderState()
-			.reset()
+			.setBlendMode(BlendFunc.Off)
+			.enableWireframe(false)
+			.enableSmoothLines()
+			.setLineWidth(10.0f)
 			.apply();
 		diffuseShader.getUniform("isWireframe").setValue(0);
-
-		fontRenderer.drawString("I'm a nice text!!!\nI'm too ;)", 0, 0);
-
 	}
 
 
@@ -141,6 +140,7 @@ public class Sandbox {
 			addInputHandler();
 			prepare();
 			renderLoop();
+
 		} catch (Exception ex) {
 			Log.error("A exception occurred the application will be terminated abnormally. ", ex);
 		} finally {
@@ -164,12 +164,14 @@ public class Sandbox {
 			update(elapsedTime);
 			render(elapsedTime);
 
+			renderer.onNewFrame();
 			window.update();
 			lastTime = currentTime;
 		}
 	}
 
 	private void handleInputs() {
+
 	}
 
 	private void addInputHandler() {
@@ -199,26 +201,33 @@ public class Sandbox {
 				}
 
 				if (key == GLFW_KEY_UP && action == GLFW_REPEAT) {
-					cameraPos.add(0.0f, 0.2f, 0.0f);
+					cubePos.add(0.0f, 0.2f, 0.0f);
 				}
 
 				if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) {
-					cameraPos.add(0.0f, -0.2f, 0.0f);
+					cubePos.add(0.0f, -0.2f, 0.0f);
 				}
 
 				if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) {
-					cameraPos.add(-0.2f, 0.0f, 0.0f);
+					cubePos.add(-0.2f, 0.0f, 0.0f);
 				}
 
 				if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) {
-					cameraPos.add(0.2f, 0.0f, 0.0f);
+					cubePos.add(0.2f, 0.0f, 0.0f);
 				}
+
+				if (key == GLFW_KEY_UP && action == GLFW_REPEAT && mods == GLFW_MOD_ALT) {
+					cubePos.add(0.0f, 0.0f, -0.2f);
+				}
+
+				if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT && mods == GLFW_MOD_ALT) {
+					cubePos.add(0.0f, 0.0f, 0.2f);
+				}
+
 
 			}
 		});
 	}
-
-
 
 	public static void main(String[] args) throws Exception {
 		Sandbox box = new Sandbox();

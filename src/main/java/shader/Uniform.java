@@ -1,5 +1,6 @@
 package shader;
 
+import math.Color;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import utils.BufferUtils;
@@ -49,6 +50,10 @@ public class Uniform extends ShaderVariable {
 		setValue(VariableType.Matrix4x4, value);
 	}
 
+	public void setValue(Color color) {
+		setValue(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+	}
+
 	public void setValue(VariableType type, Object value) {
 		if (this.value == value) return;
 
@@ -96,4 +101,6 @@ public class Uniform extends ShaderVariable {
 	public String toString() {
 		return "Uniform variable \"" + super.toString() +"\"";
 	}
+
+
 }

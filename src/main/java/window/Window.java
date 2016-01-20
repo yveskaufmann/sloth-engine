@@ -4,10 +4,8 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import renderer.RendererManager;
 import sandbox.EngineContext;
 import utils.Cleanable;
 
@@ -27,12 +25,13 @@ public class Window implements Cleanable {
 
 	private State state;
 
+
+
 	private enum State {
 		ENABLED,
 		DISABLED,
-		CLEANED
+		CLEANED;
 	}
-
 	Window(long windowId, String title) {
 		this.windowId = windowId;
 		this.title = title;
@@ -138,6 +137,10 @@ public class Window implements Cleanable {
 
 		GLFW.glfwDestroyWindow(windowId);
 		state = State.CLEANED;
+	}
+
+	public void requestClose() {
+		GLFW.glfwSetWindowShouldClose(windowId, 1);
 	}
 
 	private void updateViewportSize() {

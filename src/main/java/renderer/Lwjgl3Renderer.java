@@ -6,6 +6,7 @@ import geometry.VertexBuffer;
 import math.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import renderer.font.FontRenderer;
 import shader.*;
 import shader.source.ShaderSource;
 import texture.Image;
@@ -13,6 +14,7 @@ import texture.Texture;
 import utils.HardwareObject;
 import utils.HardwareObjectManager;
 
+import java.awt.*;
 import java.nio.*;
 
 import static geometry.VertexBuffer.Type;
@@ -34,6 +36,8 @@ public class Lwjgl3Renderer implements Renderer {
 	private RenderContext ctx;
 	private double lastTime;
 	private int renderedFrames;
+	private FontRenderer fontRenderer;
+	private int currentFps;
 
 	public Lwjgl3Renderer() {
 		initialize();
@@ -43,6 +47,7 @@ public class Lwjgl3Renderer implements Renderer {
 		objectManager = new HardwareObjectManager();
 		ctx = new RenderContext();
 		lastTime = glfwGetTime();
+		fontRenderer = new FontRenderer(new Font("Courier", Font.PLAIN, 32));
 		renderedFrames = 0;
 	}
 
@@ -761,11 +766,14 @@ public class Lwjgl3Renderer implements Renderer {
 		double currentTime = glfwGetTime();
 		renderedFrames++;
 		if (currentTime - lastTime >= 1.0) {
-			Log.info("Milli Seconds per Frame :" + 1000 / (double) renderedFrames);
-			Log.info("Milli Seconds per Frame :" + renderedFrames);
+			currentFps = renderedFrames;
 			renderedFrames = 0;
 			lastTime += 1.0;
+
 		}
+		fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.0f, Color.Red);
+
+
 	}
 
 

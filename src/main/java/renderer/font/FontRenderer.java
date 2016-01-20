@@ -1,5 +1,6 @@
 package renderer.font;
 
+import math.Color;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
@@ -8,20 +9,19 @@ import renderer.RendererExpception;
 import sandbox.EngineContext;
 import shader.Shader;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
-import static org.lwjgl.opengl.GL13.*;
-import static org.lwjgl.opengl.GL30.*;
-
-import javax.swing.ImageIcon;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL30.*;
 
 /**
  * Class which is responsible to Render
@@ -57,9 +57,7 @@ public class FontRenderer {
 			this.endX = this.x + info.cellWidth;
 			this.endY = this.y + info.cellHeight;
 		}
-
 	}
-
 
 	/**
 	 * Name of the shader which is responsible to
@@ -81,7 +79,7 @@ public class FontRenderer {
 	/**
 	 * The list of chars which should be supported by this renderer.
 	 */
-	private final char[] SUPPORTED_CHARS ="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789öäü!§.$:%,&;-_#''\"*+?ß=<> ".toCharArray();
+	private final char[] SUPPORTED_CHARS ="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789öäü!§.$:%,&;-_#''\"*+?ß=<>(){} ".toCharArray();
 	private static final char NEW_LINE = '\n';
 	private static final char CARRIAGE_RETURN = '\r';
 	private static final char UNKNOWN_CHAR = '?';
@@ -148,6 +146,7 @@ public class FontRenderer {
 		int heightPerLetter = metrics.getHeight();
 		for (char chr : SUPPORTED_CHARS) {
 			int w = metrics.charWidth(chr);
+
 			if (w > widthPerLetter) {
 				widthPerLetter = w;
 			}
@@ -157,13 +156,21 @@ public class FontRenderer {
 		gridInfo.width = 32;
 		gridInfo.height = 32;
 		do {
-			gridInfo.width = gridInfo.height = gridInfo.width * 2;
-			gridInfo.cols = (float) Math.floor(gridInfo.width / widthPerLetter);
+			do {
+				gridInfo.width = gridInfo.height = gridInfo.width * 2;
+				gridInfo.cols = gridInfo.width / widthPerLetter;
+			} while( gridInfo.cols < 1.0f);
+
+			gridInfo.cols = (float) Math.floor(gridInfo.cols);
 			gridInfo.rows = (int)Math.ceil(SUPPORTED_CHARS.length / gridInfo.cols) + 1;
 
-		} while(gridInfo.rows * heightPerLetter > gridInfo.height);
+		} while( gridInfo.rows * heightPerLetter > gridInfo.height);
+
+
+
+
 		gridInfo.cellWidth = widthPerLetter / gridInfo.width;
-		gridInfo.cellHeight = heightPerLetter / gridInfo.width;
+		gridInfo.cellHeight = heightPerLetter / gridInfo.height;
 		Log.debug("Grids size of font sprite image (rows = {}, cols = {})", gridInfo.rows, gridInfo.cols);
 
 		charsetImage = new BufferedImage((int)gridInfo.width, (int)gridInfo.height, BufferedImage.TYPE_INT_ARGB);
@@ -213,7 +220,7 @@ public class FontRenderer {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		g.setColor(Color.white);
+		g.setColor(java.awt.Color.white);
 		g.setFont(font);
 
 		g.drawString(String.valueOf(letter), 0, fontMetrics.getAscent());
@@ -294,65 +301,67 @@ public class FontRenderer {
 			textureId = createTexture(this.charsetImage);
 		}
 		fontShader = EngineContext.getShader(FONT_SHADER);
-		fontShader.getUniform("fontSprite").setValue(0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 	}
 
-	private void prepareFontShader(char letter, float xStartQuad, float yStartQuad, float xEndQuad, float yEndQuad) {
+	private void prepareFontShader(char letter, float xStartQuad, float yStartQuad, float xEndQuad, float yEndQuad, Color color) {
 
 		if (!gridPosMap.containsKey(letter)) {
 			letter = UNKNOWN_CHAR;
 		}
 		GridPos pos = gridPosMap.get(letter);
+
 		// Texture Coords
+		fontShader.getUniform("fontSprite").setValue(0);
 		fontShader.getUniform("xOffset").setValue(pos.x);
 		fontShader.getUniform("yOffset").setValue(pos.y);
-		//fontShader.getUniform("xEnd").setValue(pos.x + gridInfo.cellWidth);
 		fontShader.getUniform("xEnd").setValue(pos.endX);
 		fontShader.getUniform("yEnd").setValue(pos.endY);
-		//fontShader.getUniform("yEnd").setValue(pos.y + gridInfo.cellHeight);
 
 		// Quad Position and Size
 		fontShader.getUniform("xStartQuad").setValue(xStartQuad);
 		fontShader.getUniform("yStartQuad").setValue(yStartQuad);
 		fontShader.getUniform("xEndQuad").setValue(xEndQuad);
 		fontShader.getUniform("yEndQuad").setValue(yEndQuad);
+		fontShader.getUniform("color").setValue(color);
 
 		try {
 			EngineContext.getCurrentRenderer().setShader(fontShader);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.error("Font shader error, ", e);
 		}
+
 	}
 
-	public void drawString(String text, int x, int y) {
-		prepare();
+	public void drawString(String text, int x, int y, float fontSize, Color color) {
 
+		prepare();
 		float windowWidth = EngineContext.getPrimaryWindow().getWidth();
 		float windowHeight = EngineContext.getPrimaryWindow().getHeight();
-		float fontSize = windowWidth / windowHeight;
 
 		float ndc_x_start;
-		float ndc_x = ((float)x / windowWidth);
+		float ndc_x = x / windowWidth;
 		float ndc_y = y / windowHeight;
 		ndc_x = ndc_x_start = (ndc_x * 2.0f) - 1.0f;
 		ndc_y = -(ndc_y * 2.0f) + 1.0f;
 
 		for(int i = 0; i < text.length(); i++) {
 			char letter = text.charAt(i);
-
 			if (letter == CARRIAGE_RETURN) continue;
 			if (letter == NEW_LINE) {
 				ndc_y -= (float ) metrics.getHeight() / windowHeight;
 				ndc_x = ndc_x_start;
+				continue;
 			}
 
 			float fontWidth = (metrics.charWidth(letter) / windowWidth) * fontSize;
-			float fontHeight = metrics.getHeight() / windowHeight * fontSize;
-			prepareFontShader(letter, ndc_x, ndc_y, ndc_x + fontWidth, ndc_y - fontHeight);
+			float fontHeight = (metrics.getHeight() / windowHeight) * fontSize;
+
+			prepareFontShader(letter, ndc_x, ndc_y, ndc_x + fontWidth, ndc_y - fontHeight, color);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			ndc_x += fontWidth;
+
 		}
 		endRendering();
 	}
@@ -398,12 +407,13 @@ public class FontRenderer {
 
 
 	public static void main(String[] args) {
-		FontRenderer renderer = new FontRenderer(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+
+		FontRenderer renderer = new FontRenderer(new Font("Courier", Font.PLAIN, 64));
 		BufferedImage image = renderer.getCharsetImage();
 
 		JFrame frame = new JFrame();
 		JPanel imageView = new JPanel();
-		imageView.setBackground(Color.BLACK);
+		imageView.setBackground(java.awt.Color.BLACK);
 		imageView.add(new JLabel(new ImageIcon(image)));
 		frame.add(imageView);
 		frame.setTitle("Font Sprite Viewer");

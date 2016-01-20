@@ -1,16 +1,16 @@
 #version 130
 
 uniform sampler2D fontSprite;
+uniform vec4 color;
 
 in vec2 uv;
-out vec4 color;
+out vec4 fragColor;
 
 void main() {
-    vec2 uv_ndc = vec2(uv.x, uv.y);
+    float alpha = texture(fontSprite, uv).a;
+	if (alpha <= 0.0f) discard;
 
-	color = texture(fontSprite, uv_ndc).rgba;
-    color =  vec4(1.0, 0.0, 0.0, color.a);
-
+    fragColor =  vec4(color.rgb, alpha);
 }
 
 
