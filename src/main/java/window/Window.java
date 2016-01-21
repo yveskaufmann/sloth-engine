@@ -22,6 +22,7 @@ public class Window implements Cleanable {
 	private long windowId;
 	private String title;
 	private GLFWWindowSizeCallback sizeCallback;
+	private boolean vsync = true;
 
 	private State state;
 
@@ -36,6 +37,8 @@ public class Window implements Cleanable {
 		this.windowId = windowId;
 		this.title = title;
 		this.state = State.DISABLED;
+		this.vsync = false;
+		enableVsync();
 	}
 
 	public Window setTitle(String title) {
@@ -101,6 +104,7 @@ public class Window implements Cleanable {
 				updateViewportSize();
 			}
 		});
+
 		GLFW.glfwShowWindow(windowId);
 		updateViewportSize();
 		Log.info("Enabled and show window {} and make it to the current OpenGL context.", windowId);
@@ -125,6 +129,20 @@ public class Window implements Cleanable {
 		return this;
 	}
 
+	public void enableVsync() {
+		if (!vsync) {
+			GLFW.glfwSwapInterval(1);
+			vsync = true;
+		}
+	}
+
+	public void disableVsync() {
+		if (vsync) {
+			GLFW.glfwSwapInterval(0);
+			vsync = false;
+		}
+	}
+
 	@Override
 	public void clean() {
 		if (state == State.CLEANED) {
@@ -147,6 +165,7 @@ public class Window implements Cleanable {
 		EngineContext
 			.getCurrentRenderer()
 			.setViewport(0, 0, getWidth(), getHeight());
+
 	}
 
 

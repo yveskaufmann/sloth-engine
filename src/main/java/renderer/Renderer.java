@@ -6,7 +6,7 @@ import math.Color;
 import org.lwjgl.opengl.GL41;
 import shader.Shader;
 import shader.source.ShaderSource;
-import texture.Image;
+import texture.image.Image;
 import texture.Texture;
 
 import java.io.IOException;

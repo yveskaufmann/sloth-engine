@@ -1,15 +1,17 @@
 package scene;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public abstract class BaseCamera {
 
-	protected Vector3f position;
-	protected Vector3f up;
-	protected Vector3f direction;
-	protected Vector3f directionUp;
-	protected Vector3f right;
+	private final Quaternionf orientation;
+	protected final Vector3f position;
+	protected final Vector3f up;
+	protected final Vector3f direction;
+	protected final Vector3f directionUp;
+	protected final Vector3f right;
 
 	protected Matrix4f viewMatrix;
 	protected Matrix4f projectionMatrix;
@@ -24,6 +26,9 @@ public abstract class BaseCamera {
 	protected float roll;
 
 	public BaseCamera() {
+
+		this.orientation = new Quaternionf();
+
 		this.position = new Vector3f();
 		this.direction = new Vector3f();
 		this.directionUp = new Vector3f();

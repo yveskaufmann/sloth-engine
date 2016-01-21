@@ -7,7 +7,7 @@ in vec2 uv;
 out vec4 fragColor;
 
 void main() {
-    float alpha = texture(fontSprite, uv).a;
+    float alpha = texture(fontSprite, uv).r;
 	if (alpha <= 0.0f) discard;
 
     fragColor =  vec4(color.rgb, alpha);

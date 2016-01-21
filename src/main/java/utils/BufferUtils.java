@@ -64,4 +64,24 @@ public class BufferUtils {
 	public static IntBuffer createIntBuffer(int capacity) {
 		return org.lwjgl.BufferUtils.createIntBuffer(capacity);
 	}
+
+	/**
+	 * Creates a DoubleBuffer with a specified capacity.
+	 *
+	 * @param capacity the capacity of the new created buffer.
+	 * @return the new created double buffer.
+	 */
+	public static DoubleBuffer createDoubleBuffer(int capacity) {
+		return org.lwjgl.BufferUtils.createDoubleBuffer(capacity);
+	}
+
+	/**
+	 * Creates a ByteBuffer with a specified capacity.
+	 *
+	 * @param capacity the capacity of the new created buffer.
+	 * @return the new created byte buffer.
+	 */
+	public static ByteBuffer createByteBuffer(int capacity) {
+		return org.lwjgl.BufferUtils.createByteBuffer(capacity);
+	}
 }

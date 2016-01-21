@@ -1,7 +1,14 @@
 package scene;
 
 import math.MathUtils;
-import org.joml.Vector3f;
+import math.MatrixUtils;
+import org.joml.*;
+import org.lwjgl.glfw.GLFW;
+import sandbox.EngineContext;
+import utils.BufferUtils;
+import window.Window;
+
+import java.nio.DoubleBuffer;
 
 public class TargetCamera extends BaseCamera {
 
@@ -21,6 +28,9 @@ public class TargetCamera extends BaseCamera {
 
 	public void update(float time) {
 
+		handleMouse(time);
+		position.mul(new Matrix3f().rotateX(mouseDirection.x).mul(new Matrix3f().rotateY(mouseDirection.y)));
+
 		// Calculate direction vector
 		target.sub(position, direction);
 		direction.normalize();
@@ -36,24 +46,30 @@ public class TargetCamera extends BaseCamera {
 		// Camera zoom position in order to simulate camera zoom
 		Vector3f zoomPosition = this.direction.mul(zoomAmount, new Vector3f()).add(position);
 
-		/**
-		 * Performs the matrix multiplication:
-		 *   r[x,y,z] = Side-Vector
-		 *   u[x,y,z] = Normal Vector of the direction / Upward
-		 *   d[x,y,z] = Direction Vector
-		 *   __             __     __            __
-		 *  |  rx  ry  rz  0  |   |  1  0  0  -px |
-		 *  |  ux  uy  uz  0  |   |  0  1  0  -py |
-		 *  | -dx -dy -dy  0  | X |  0  0  1  -pz |
-		 *  |  0   0   0   1  |   |  0  0  0   1  |
-		 *  |__             __|   |__           __|
-		 */
-		viewMatrix.set(
-			right.x, directionUp.x, -direction.x, 0.0f,
-			right.y, directionUp.y, -direction.y, 0.0f,
-			right.z, directionUp.z, -direction.z, 0.0f,
-			-right.dot(zoomPosition), -directionUp.dot(zoomPosition), direction.dot(zoomPosition), 1.0f
-		);
+		MatrixUtils.from(zoomPosition, right, directionUp, direction, viewMatrix);
+	}
+
+	private DoubleBuffer xBuffer = BufferUtils.createDoubleBuffer(1);
+	private DoubleBuffer yBuffer = BufferUtils.createDoubleBuffer(1);
+	private Vector2f lastMousePos = new Vector2f();
+	private Vector2f mouseDirection = new Vector2f();
+
+	private void handleMouse(float time) {
+		Window window = EngineContext.getPrimaryWindow();
+		xBuffer.clear(); yBuffer.clear();
+		GLFW.glfwGetCursorPos(window.getWindowId(), xBuffer, yBuffer);
+		float xPosMouse = (float) xBuffer.get();
+		float yPosMouse = (float) yBuffer.get();
+
+		if (GLFW.glfwGetMouseButton(window.getWindowId(), GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS) {
+			mouseDirection.set(lastMousePos).sub(xPosMouse, yPosMouse);
+			mouseDirection.normalize();
+			System.out.println(mouseDirection.x + " " + mouseDirection.y);
+
+
+		}
+
+		lastMousePos.set(xPosMouse, yPosMouse);
 	}
 
 	public void zoom(float zoomAmount) {

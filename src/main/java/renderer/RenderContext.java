@@ -1,10 +1,15 @@
 package renderer;
 
 import static renderer.RenderState.*;
+
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
 import shader.Attribute;
 import shader.Shader;
 
 public class RenderContext {
+
+
 
 
 	RenderContext() {
@@ -324,6 +329,21 @@ public class RenderContext {
 	public int scissorWidth;
 	public int scissorHeight;
 
+	/**
+	 * Current active texture unit
+	 */
+	public int activeTextureUnit;
+
+	/**
+	 * The current bounded textures.
+	 * The index specifies to which texture unit the
+	 * texture is bounded.
+	 *
+	 * The count of 80 texture unit comes from the specification
+	 * <a href="https://www.opengl.org/sdk/docs/man/docbook4/xhtml/glActiveTexture.xml">glActiveTexture</a>
+	 * which says that a  opengl driver must at least support 80 texture units.
+	 */
+	public final int[] boundTextures = new int[80];
 
 	public void reset() {
 		blend = false;
@@ -370,6 +390,10 @@ public class RenderContext {
 		viewportY = 0;
 		viewPortWidth = -1;
 		viewPortHeight = -1;
+		activeTextureUnit = -1;
+		for (int i = 0 ; i < boundTextures.length; i++) {
+			boundTextures[i] = -1;
+		}
 	}
 
 

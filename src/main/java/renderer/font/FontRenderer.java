@@ -3,22 +3,27 @@ package renderer.font;
 import math.Color;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import renderer.RendererExpception;
 import sandbox.EngineContext;
 import shader.Shader;
+import texture.image.*;
+import texture.image.Image;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.*;
@@ -258,23 +263,13 @@ public class FontRenderer {
 
 
 		int pixels[] = new int[width * height];
-		// image.getData().getPixels(0, 0, width, height, pixels);
 		image.getRGB(0, 0, width, height, pixels, 0, width);
 
-		ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4); //4 for RGBA, 3 for RGB
-
-		for(int y = 0; y < image.getHeight(); y++) {
-			for(int x = 0; x < image.getWidth(); x++){
-				int pixel = pixels[y * image.getWidth() + x];
-				buffer.put((byte) ((pixel >> 16) & 0xFF));     	// Red component
-				buffer.put((byte) ((pixel >> 8) & 0xFF));      	// Green component
-				buffer.put((byte) (pixel & 0xFF));             	// Blue component
-				buffer.put((byte) ((pixel >> 24) & 0xFF));    	// Alpha component. Only for RGBA
-			}
-		}
-
+		IntBuffer buffer = utils.BufferUtils.createBuffer(pixels);
 		buffer.flip();
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+		// We need only the alpha channel of the font  sprite
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -406,7 +401,7 @@ public class FontRenderer {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		FontRenderer renderer = new FontRenderer(new Font("Courier", Font.PLAIN, 64));
 		BufferedImage image = renderer.getCharsetImage();

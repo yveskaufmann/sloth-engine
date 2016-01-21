@@ -4,12 +4,15 @@ import geometry.Mesh;
 import geometry.VertexAttributePointer;
 import geometry.VertexBuffer;
 import math.Color;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import renderer.font.FontRenderer;
 import shader.*;
 import shader.source.ShaderSource;
-import texture.Image;
+import texture.image.Image;
 import texture.Texture;
 import utils.HardwareObject;
 import utils.HardwareObjectManager;
@@ -20,10 +23,11 @@ import java.nio.*;
 import static geometry.VertexBuffer.Type;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
-import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
+import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL43.*;
 import static renderer.RenderState.CullFaceMode;
 import static renderer.RenderState.TestFunc;
 
@@ -38,6 +42,7 @@ public class Lwjgl3Renderer implements Renderer {
 	private int renderedFrames;
 	private FontRenderer fontRenderer;
 	private int currentFps;
+	private GLCapabilities caps;
 
 	public Lwjgl3Renderer() {
 		initialize();
@@ -49,6 +54,7 @@ public class Lwjgl3Renderer implements Renderer {
 		lastTime = glfwGetTime();
 		fontRenderer = new FontRenderer(new Font("Courier", Font.PLAIN, 32));
 		renderedFrames = 0;
+		caps = GL.getCapabilities();
 	}
 
 	@Override
@@ -353,12 +359,103 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void setTexture(int unit, Texture texture) {
+		if (texture.isUpdateRequired()) {
+			updateTextureData(texture, unit);
+		}
+		bindTexture(texture, unit);
+	}
 
+	private void updateTextureData(Texture texture, int unit) {
+		boolean created = false;
+		int id = texture.getId();
+		if (id == HardwareObject.UNSET_ID) {
+			id = glGenTextures();
+			texture.setId(id);
+			objectManager.register(texture);
+			created = true;
+		}
+
+		unit = Math.max(0, unit);
+		if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1) {
+			String description = "Texture unit limit reached";
+			Log.error("{} must be between {} and {}", description, 0, GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+			throw new RendererExpception(description);
+		}
+
+
+		// check gpu caps set settings if required
+		// loadImageData
+		int target = bindTexture(texture, unit);
+		Image image = texture.getImage();
+		if (image != null && image.isUpdateRequired()) {
+			ByteBuffer imageData = image.getReader().getBuffer();
+			if (created) {
+				switch (target) {
+					case GL_TEXTURE_1D:
+						glTexImage1D(target,0, GL_RGBA, image.getWidth() * image.getHeight(),0, GL_RGBA, GL_UNSIGNED_INT, imageData);
+						break;
+					case GL_TEXTURE_2D:
+						glTexImage2D(target, 0, GL_RGBA, image.getWidth(), image.getHeight(),0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+						break;
+				}
+			} else {
+				switch (target) {
+					case GL_TEXTURE_1D:
+						glTexSubImage1D(target, GL_RGBA,0, image.getWidth() * image.getHeight(), GL_RGBA, GL_UNSIGNED_INT, imageData);
+						break;
+					case GL_TEXTURE_2D:
+						glTexSubImage2D(target, 0, 0, 0, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+						break;
+				}
+			}
+		}
+
+		// TODO: implementation must depend on texture
+		// NODE: only for the first time
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (texture.getAnisotropicLevel() >= 1.0) {
+			if (caps.GL_EXT_texture_filter_anisotropic) {
+				glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, texture.getAnisotropicLevel());
+			}
+		}
+
+		texture.disableUpdateRequired();
+	}
+
+	private int bindTexture(Texture texture, int unit) {
+		int id = texture.getId();
+		if(ctx.activeTextureUnit != unit) {
+			glActiveTexture(GL_TEXTURE0 + unit);
+			ctx.activeTextureUnit = unit;
+		}
+
+		int target = convertTypeToTarget(texture.getType());
+		if (ctx.boundTextures[unit] != id) {
+			glBindTexture(target, id);
+			ctx.boundTextures[unit] = id;
+		}
+
+		return target;
+	}
+
+	private int convertTypeToTarget(Texture.Dimension type) {
+		switch (type) {
+			case DIMENSION_1D: return GL_TEXTURE_1D;
+			case DIMENSION_2D: return GL_TEXTURE_2D;
+			default: throw new RendererExpception("Unsupported texture type detected: {}", type.name());
+		}
 	}
 
 	@Override
 	public void deleteTexture(Texture texture) {
-
+		int id = texture.getId();
+		glDeleteTextures(id);
+		texture.resetObject();
+		deleteImage(texture.getImage());
 	}
 
 	@Override
