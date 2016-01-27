@@ -60,7 +60,7 @@ public class ImageManager {
 			Log.error("The specified image file {} could not be found.", imagePath);
 			throw e;
 		} catch (IOException e) {
-			Log.error("Failed to load the image from the specified file.", e);
+			Log.error("Failed to parseFile the image from the specified file.", e);
 			throw e;
 		}
 	}
@@ -79,7 +79,7 @@ public class ImageManager {
 		try {
 			imageData = ImageIO.read(inputStream);
 		} catch (IOException e) {
-			Log.error("Failed to load the image from the the specified file input stream.", e);
+			Log.error("Failed to parseFile the image from the the specified file input stream.", e);
 			throw e;
 		}
 		Image.ImageFormat imageFormat = determineImageFormat(imageData);

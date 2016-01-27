@@ -38,12 +38,6 @@ public class RenderContext {
 	public boolean colorLogicOp;
 
 	/**
-	 * If enabled, cull polygons based on their winding in window coordinates.
-	 * <a href="https://www.opengl.org/sdk/docs/man/html/glCullFace.xhtml">See glCullFace</a>.
-	 */
-	// TODO remove me: public boolean cullface;
-
-	/**
 	 * If enabled, debug messages are produced by a debug context.
 	 * When disabled, the debug message log is silenced.
 	 * Note that in a non-debug context, very few, if any messages might be produced,

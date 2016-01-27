@@ -9,5 +9,5 @@ import java.nio.ByteBuffer;
  */
 public interface ImageReader {
 	ByteBuffer getBuffer();
-	Buffer getBuffer(int x, int y, int xEnd, int yEnd);
+	ByteBuffer getBuffer(int x, int y, int xEnd, int yEnd);
 }

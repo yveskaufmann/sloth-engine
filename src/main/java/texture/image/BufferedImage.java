@@ -39,6 +39,11 @@ public class BufferedImage implements Image {
 		return new BufferedImageReader(this);
 	}
 
+	@Override
+	public boolean isUpdateRequired() {
+		return false;
+	}
+
 	java.awt.image.BufferedImage getData() {
 		return image;
 	}

@@ -23,7 +23,7 @@ public class BufferedImageReader implements ImageReader {
 	}
 
 	@Override
-	public Buffer getBuffer(int x, int y, int xEnd, int yEnd) {
+	public ByteBuffer getBuffer(int x, int y, int xEnd, int yEnd) {
 
 		int width  = xEnd - x;
 		int height = yEnd - y;
@@ -41,6 +41,6 @@ public class BufferedImageReader implements ImageReader {
 		IntBuffer imageBuffer = BufferUtils.createBuffer(pixelBuffer);
 		imageBuffer.flip();
 
-		return imageBuffer;
+		return null;
 	}
 }

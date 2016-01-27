@@ -66,7 +66,21 @@
             <artifactId>slf4j-jdk14</artifactId>
             <version>1.7.13</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.fxmisc.richtext</groupId>
+            <artifactId>richtextfx</artifactId>
+            <version>0.6.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fxmisc.flowless</groupId>
+            <artifactId>flowless</artifactId>
+            <version>0.4.7</version>
+        </dependency>
     </dependencies>
+
+
 
     <build>
         <plugins>

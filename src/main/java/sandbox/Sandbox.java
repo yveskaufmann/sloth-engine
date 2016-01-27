@@ -3,17 +3,23 @@ package sandbox;
 import geometry.Cube;
 import geometry.Mesh;
 import geometry.VertexBuffer;
+import javafx.beans.property.ObjectProperty;
+import javafx.geometry.Rectangle2D;
 import math.Color;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.system.Configuration;
+import org.lwjgl.util.stream.RenderStream;
+import org.lwjgl.util.stream.StreamHandler;
+import org.lwjgl.util.stream.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import renderer.RenderState;
 import renderer.Renderer;
 import renderer.RendererManager;
 import renderer.font.FontRenderer;
+import scene.Geometry;
+import scene.Node;
 import scene.TargetCamera;
 import shader.Shader;
 import shader.ShaderRepository;
@@ -21,6 +27,9 @@ import window.Window;
 import window.WindowManager;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Supplier;
 import java.util.logging.LogManager;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -46,12 +55,26 @@ public class Sandbox {
 	 */
 	private static final Logger Log = LoggerFactory.getLogger(Sandbox.class);
 
+	/**
+	 * Supplier for the ReadHandler which,
+	 * delivers the the rendered picture to an
+	 * external thread.
+	 */
+	private boolean enabledOffscreen = false;
+	private Supplier<StreamHandler> readHandlerSupplier;
+	private ConcurrentLinkedQueue<Runnable> pendingRunnables;
+	private StreamUtil.RenderStreamFactory renderStreamFactory;
+	private RenderStream renderStream;
+	private CountDownLatch runningLatch;
+
 	private WindowManager windowManager;
 	private RendererManager rendererManager;
 	private ShaderRepository shaderRepository;
 	private Renderer renderer;
 	private Window window;
 	private GLFWKeyCallback keyCallback;
+
+	private Node sceneRoot;
 
 	private Matrix4f modelMatrix = new Matrix4f();
 	private Matrix4f viewMatrix = new Matrix4f();
@@ -64,7 +87,11 @@ public class Sandbox {
 	private Vector3f cubePos;
 	float zoomLevel;
 
+	public Sandbox() {
+	}
+
 	private void init() {
+
 		windowManager = EngineContext.windowManager();
 		rendererManager = EngineContext.renderManager();
 		shaderRepository = EngineContext.shaderRepository();
@@ -78,15 +105,25 @@ public class Sandbox {
 			.build()
 			.enable();
 
+		if (enabledOffscreen) {
+			initOffRendering(window);
+			window.hide();
+		}
 
 		renderer = rendererManager.getRenderer();
 		rendererManager.getRenderState().apply();
 	}
 
+
+
 	private void prepare() {
 		Shader diffuseShader = EngineContext.getShader("Default");
 		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("vertexPosition");
 		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("vertexColor");
+
+		sceneRoot = new Node("root");
+		sceneRoot.addChild(new Geometry("cube1", new Cube()));
+
 		cube = new Cube();
 		cubePos = new Vector3f(0f, 0f, 0f);
 		renderer.setClearColor(Color.LightGrey);
@@ -104,6 +141,20 @@ public class Sandbox {
 		viewMatrix.set(camera.getViewMatrix());
 		projectionMatrix.identity().setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
 		modelViewProjMatrix.identity().mul(projectionMatrix).mul(viewMatrix).mul(modelMatrix);
+	}
+
+	private void initOffRendering(Window window) {
+		pendingRunnables = new ConcurrentLinkedQueue<>();
+
+		this.renderStreamFactory = StreamUtil.getRenderStreamImplementation();
+		this.renderStream = renderStreamFactory.create(readHandlerSupplier.get(), 1, 2);
+	}
+
+	private void drainPendingActionsQueue() {
+		Runnable runnable;
+
+		while ( (runnable = pendingRunnables.poll()) != null )
+			runnable.run();
 	}
 
 	public void render(float elapsedTime) throws IOException {
@@ -138,6 +189,12 @@ public class Sandbox {
 		diffuseShader.getUniform("isWireframe").setValue(0);
 	}
 
+	private void runWithOffScreen(CountDownLatch runningLatch, Supplier<StreamHandler> readHandlerSupplier) {
+		enabledOffscreen = true;
+		this.readHandlerSupplier = readHandlerSupplier;
+		this.runningLatch = runningLatch;
+		run();
+	}
 
 	public void run() {
 		try {
@@ -164,14 +221,28 @@ public class Sandbox {
 		while ( !window.shouldClose()) {
 			double currentTime = glfwGetTime();
 			float elapsedTime =  (float) (lastTime - currentTime);
-
 			handleInputs();
 			update(elapsedTime);
+			if ( enabledOffscreen ) {
+				renderStream.bind();
+			}
 			render(elapsedTime);
-
 			renderer.onNewFrame();
 			window.update();
 			lastTime = currentTime;
+
+			if ( enabledOffscreen ) {
+				try {
+					renderStream.swapBuffers();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				drainPendingActionsQueue();
+				if (runningLatch.getCount() <= 0) {
+					window.requestClose();
+				}
+			}
+
 		}
 	}
 
@@ -237,8 +308,39 @@ public class Sandbox {
 		});
 	}
 
+
+	/**
+	 * This method must be started from a external thread in order
+	 * to activate the renderer with offscreen support.
+	 *  @param runningLatch
+	 * 				- the latch is used to determine if the external thread is running alive.
+	 * @param readHandlerSupplier
+	 * @param viewPortProperty
+	 */
+	public void start(CountDownLatch runningLatch, Supplier<StreamHandler> readHandlerSupplier, ObjectProperty<Rectangle2D> viewPortProperty) {
+		viewPortProperty.addListener((observable, oldValue, newValue) -> {
+			window.setWidth((int) newValue.getWidth());
+			window.setHeight((int) newValue.getHeight());
+			// Don't trigger the update Window size from a external thread
+			// It's really silly =)
+			window.updateViewportSize();
+			projectionMatrix.identity().setPerspective(45.0f, window.getAspectRatio() ,0.01f, 100.0f);
+		});
+		runWithOffScreen(runningLatch, readHandlerSupplier);
+
+	}
+
+	/**
+	 * Run the renderer without offscreen support, exists only for
+	 * development and debugging purposes.
+	 *
+	 * @param args
+	 * @throws Exception
+     */
 	public static void main(String[] args) throws Exception {
 		Sandbox box = new Sandbox();
 		box.run();
 	}
+
+
 }

@@ -1,5 +1,6 @@
 package window;
 
+import javafx.beans.value.ChangeListener;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
@@ -23,10 +24,9 @@ public class Window implements Cleanable {
 	private String title;
 	private GLFWWindowSizeCallback sizeCallback;
 	private boolean vsync = true;
-
 	private State state;
-
-
+	private boolean isVisible = false;
+	private float aspectRatio = 0.0f;
 
 	private enum State {
 		ENABLED,
@@ -105,10 +105,9 @@ public class Window implements Cleanable {
 			}
 		});
 
-		GLFW.glfwShowWindow(windowId);
+		show();
 		updateViewportSize();
 		Log.info("Enabled and show window {} and make it to the current OpenGL context.", windowId);
-
 		return this;
 	}
 
@@ -143,6 +142,22 @@ public class Window implements Cleanable {
 		}
 	}
 
+	public void hide() {
+		if (isVisible) {
+			GLFW.glfwHideWindow(windowId);
+			isVisible = false;
+			Log.debug("Hide the window {}.", windowId);
+		}
+	}
+
+	public void show() {
+		if (!isVisible) {
+			GLFW.glfwShowWindow(windowId);
+			isVisible = true;
+			Log.debug("Show the window {}.", windowId);
+		}
+	}
+
 	@Override
 	public void clean() {
 		if (state == State.CLEANED) {
@@ -161,13 +176,27 @@ public class Window implements Cleanable {
 		GLFW.glfwSetWindowShouldClose(windowId, 1);
 	}
 
-	private void updateViewportSize() {
+	/**
+	 * Update the Viewport and hand it to
+	 * the default renderer.
+	 */
+	public void updateViewportSize() {
+		int w =  getWidth();
+		int h =  getHeight();
+
+		aspectRatio = ((float)w / (float)h);
 		EngineContext
 			.getCurrentRenderer()
-			.setViewport(0, 0, getWidth(), getHeight());
+			.setViewport(0, 0, w, h);
 
 	}
 
-
-
+	/**
+	 * Retrieves the current aspect ratio.
+	 *
+	 * @return the current aspect ratio.
+     */
+	public float getAspectRatio() {
+		return aspectRatio;
+	}
 }
