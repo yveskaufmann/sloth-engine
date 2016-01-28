@@ -2,7 +2,6 @@ package shader.source;
 
 import renderer.Renderer;
 import shader.ShaderType;
-import shader.source.ShaderSource;
 
 public class StringShaderSource extends ShaderSource {
 

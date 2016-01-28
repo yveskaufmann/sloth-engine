@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import renderer.Renderer;
 import sandbox.EngineContext;
 
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.LinkedList;

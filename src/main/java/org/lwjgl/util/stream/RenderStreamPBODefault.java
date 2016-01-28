@@ -36,8 +36,9 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.util.stream.StreamUtil.RenderStreamFactory;
 
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL21.*;
-import static org.lwjgl.opengl.GL31.*;
+import static org.lwjgl.opengl.GL21.GL_PIXEL_PACK_BUFFER;
+import static org.lwjgl.opengl.GL31.GL_COPY_WRITE_BUFFER;
+import static org.lwjgl.opengl.GL31.glCopyBufferSubData;
 
 /** Default StreamPBOReader implementation: Asynchronous ReadPixels to PBOs */
 final class RenderStreamPBODefault extends RenderStreamPBO {

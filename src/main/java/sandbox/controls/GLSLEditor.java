@@ -4,7 +4,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.StyleSpans;
 import org.fxmisc.richtext.StyleSpansBuilder;
-import shader.source.ShaderSource;
 
 import java.util.Collection;
 import java.util.Collections;

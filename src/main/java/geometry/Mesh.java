@@ -1,20 +1,25 @@
 package geometry;
 
 import geometry.VertexAttributePointer.Format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import renderer.Renderer;
 import utils.BufferUtils;
 import utils.HardwareObject;
-
-import static geometry.VertexBuffer.*;
+import utils.TypeSize;
 
 import java.nio.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static geometry.VertexBuffer.Type;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Mesh extends HardwareObject {
+
+	private static final Logger Log = LoggerFactory.getLogger(Mesh.class);
+
 
 	/**
 	 * Specifies the kinds of primitives which could be used to render
@@ -137,10 +142,6 @@ public class Mesh extends HardwareObject {
 		super(Mesh.class);
 	}
 
-	public VertexBuffer getBuffer(Type type) {
-		return buffers.get(type);
-	}
-
 	public void setBuffer(Type type, int components, FloatBuffer buffer) {
 		setBuffer(type, buffer, components, VertexAttributePointer.Format.Float);
 	}
@@ -174,20 +175,48 @@ public class Mesh extends HardwareObject {
 	}
 
 	public void setBuffer(Type type, Buffer buffer, int components, Format format) {
-		VertexBuffer vertexBuffer = buffers.get(type);
-		if (vertexBuffer == null) {
-			vertexBuffer = new VertexBuffer(type);
-			buffers.put(type, vertexBuffer);
-		}
+		VertexBuffer vertexBuffer = createVertexBuffer(type);
 
-		vertexBuffer.getPointer().setComponents(components);
 
 		if (type == Type.Index) {
 			format = format.getUnsignedIfPossible();
 		}
 
+		vertexBuffer.getPointer().setComponents(components);
 		vertexBuffer.getPointer().setFormat(format);
 		vertexBuffer.setupData(buffer);
+		calculateCounts();
+	}
+
+	public VertexBuffer getBuffer(Type type) {
+		return buffers.get(type);
+	}
+
+
+	private VertexBuffer createVertexBuffer(Type type) {
+		VertexBuffer vertexBuffer = buffers.get(type);
+		if (vertexBuffer == null) {
+			vertexBuffer = new VertexBuffer(type);
+			buffers.put(type, vertexBuffer);
+		}
+		return vertexBuffer;
+	}
+
+	public void setPointer(Type type, int components, int stride, int offset, Format format) {
+		VertexBuffer interleavedBuffer = buffers.get(Type.Interleaved);
+		if ( interleavedBuffer == null ) {
+			throw new IllegalStateException("Pointers can only be set if a interleaved buffer is present");
+		}
+		// Create vertex buffer object for a pointer in order to simplify the
+		// handling of buffers and pointers.
+		VertexBuffer vertexBuffer = createVertexBuffer(type);
+		VertexAttributePointer pointer = vertexBuffer.getPointer();
+		pointer.setComponents(components);
+		pointer.setFormat(format);
+		pointer.setNormalized(false);
+		pointer.setStride(stride);
+		pointer.setOffset(offset);
+
 		calculateCounts();
 	}
 
@@ -256,22 +285,39 @@ public class Mesh extends HardwareObject {
 	}
 
 	private void calculateCounts() {
-		VertexBuffer positionBuffer = getBuffer(Type.Vertex);
 		VertexBuffer indexBuffer = getBuffer(Type.Index);
-
-		if (positionBuffer != null) {
-			Buffer buffer = positionBuffer.getBuffer();
-			vertexCount = (int) Math.ceil(buffer.limit() / positionBuffer.getPointer().getComponents());
-		}
+		VertexBuffer vertexBuffer = getBuffer(Type.Vertex);
 
 		if (indexBuffer != null) {
-			elementCount = computeNumElements(indexBuffer.getBuffer().limit());
-		} else {
+			vertexCount  = indexBuffer.getBuffer().limit();
+			elementCount = computeNumElements(vertexCount);
+		} else if (vertexBuffer != null) {
+			VertexBuffer interleavedBuffer = getBuffer(Type.Interleaved);
+			VertexAttributePointer pointer = vertexBuffer.getPointer();
+
+			Buffer buffer;
+			int vertexComponents;
+
+			if (interleavedBuffer != null) {
+				buffer = interleavedBuffer.getBuffer();
+				vertexComponents =  pointer.getStride() / TypeSize.FLOAT;
+			} else {
+				buffer = vertexBuffer.getBuffer();
+				vertexComponents = pointer.getComponents();
+			}
+
+			if (vertexComponents == 0) {
+				Log.warn("Stride and Components must be greater than zero");
+				return;
+			}
+
+			vertexCount = (int) Math.ceil(buffer.limit() / vertexComponents);
 			elementCount = computeNumElements(vertexCount);
 		}
 	}
 
 	private int computeNumElements(int bufferSize) {
+		if (bufferSize < 0) return 0;
 		switch (mode) {
 			case TRIANGLES:return bufferSize / 3;
 			case TRIANGLE_FAN:
@@ -284,5 +330,4 @@ public class Mesh extends HardwareObject {
 				throw new UnsupportedOperationException();
 		}
 	}
-
 }

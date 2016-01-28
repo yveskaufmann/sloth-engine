@@ -3,7 +3,7 @@ package geometry;
 import renderer.Renderer;
 import utils.HardwareObject;
 
-import java.nio.*;
+import java.nio.Buffer;
 
 public class VertexBuffer extends HardwareObject {
 

@@ -35,7 +35,7 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.util.stream.StreamUtil.TextureStreamFactory;
 
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL21.*;
+import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 
 /** Implements streaming PBO updates to an OpenGL texture. */
 public class TextureStreamPBODefault extends TextureStreamPBO {

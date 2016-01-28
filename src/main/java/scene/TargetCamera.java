@@ -2,7 +2,9 @@ package scene;
 
 import math.MathUtils;
 import math.MatrixUtils;
-import org.joml.*;
+import org.joml.Matrix3f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import sandbox.EngineContext;
 import utils.BufferUtils;

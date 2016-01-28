@@ -35,9 +35,10 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.util.stream.StreamUtil.TextureStreamFactory;
 
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL21.*;
+import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL32.GL_SYNC_GPU_COMMANDS_COMPLETE;
+import static org.lwjgl.opengl.GL32.glFenceSync;
 
 /** Implements streaming PBO updates to an OpenGL texture. */
 public class TextureStreamPBORange extends TextureStreamPBO {

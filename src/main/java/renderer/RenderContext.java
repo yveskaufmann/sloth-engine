@@ -1,11 +1,8 @@
 package renderer;
 
-import static renderer.RenderState.*;
-
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import shader.Attribute;
 import shader.Shader;
+
+import static renderer.RenderState.*;
 
 public class RenderContext {
 

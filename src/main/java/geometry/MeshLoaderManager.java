@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 //TODO Document and implement
-public class MeshManager {
+public class MeshLoaderManager {
 
 	private static final String MODEL_DIRECTORY = "assets/models";
 	private static final List<MeshLoader> loaders =  new ArrayList<>();

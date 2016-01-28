@@ -40,9 +40,10 @@ import org.lwjgl.util.stream.StreamUtil.RenderStreamFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import static org.lwjgl.opengl.AMDPinnedMemory.*;
+import static org.lwjgl.opengl.AMDPinnedMemory.GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD;
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL32.GL_SYNC_GPU_COMMANDS_COMPLETE;
+import static org.lwjgl.opengl.GL32.glFenceSync;
 
 /** Optimized StreamPBOReader for AMD GPUs: Asynchronous ReadPixels to AMD_pinned_memory buffers. */
 final class RenderStreamPBOAMD extends RenderStreamPBO {

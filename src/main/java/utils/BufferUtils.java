@@ -1,7 +1,8 @@
 package utils;
 
-import static org.lwjgl.BufferUtils.*;
 import java.nio.*;
+
+import static org.lwjgl.BufferUtils.createShortBuffer;
 
 public class BufferUtils {
 
@@ -83,5 +84,61 @@ public class BufferUtils {
 	 */
 	public static ByteBuffer createByteBuffer(int capacity) {
 		return org.lwjgl.BufferUtils.createByteBuffer(capacity);
+	}
+
+	/**
+	 * Creates a string representation of a buffer.
+	 *
+	 * @param buffer the buffer
+	 * @param stride the elements per line
+	 *
+	 * @return the string representation.
+     */
+	public static String toString(Buffer buffer, int stride) {
+		StringBuffer str = new StringBuffer();
+		buffer.rewind();
+
+		for (int i = 0; i < buffer.limit(); i++) {
+			String element = toString(buffer, 4, i);
+			str.append(element);
+
+			if ((i + 1) % stride == 0) {
+				str.append("\n");
+			} else {
+				str.append(" ");
+			}
+		}
+
+		buffer.rewind();
+		return str.toString();
+	}
+
+	private static String toString(Buffer buffer, int width, int index) {
+		Object typeArg;
+		Object element;
+
+		if (FloatBuffer.class.isInstance(buffer)) {
+			typeArg = ".2f";
+			width += 4;
+			element = ((FloatBuffer)buffer).get(index);
+		} else if (DoubleBuffer.class.isInstance(buffer)) {
+			typeArg = ".2f";
+			width += 4;
+			element = ((DoubleBuffer)buffer).get(index);
+		} else if (ByteBuffer.class.isInstance(buffer)) {
+			typeArg = "d";
+			element = ((ByteBuffer)buffer).get(index);
+		} else if (IntBuffer.class.isInstance(buffer)) {
+			typeArg = "d";
+			element = ((IntBuffer)buffer).get(index);
+		} else if (ShortBuffer.class.isInstance(buffer)) {
+			typeArg = "d";
+			element = ((ShortBuffer)buffer).get(index);
+		} else {
+			throw new IllegalArgumentException("The specified buffer type" + buffer.getClass().getName() + " isn't supported");
+		}
+
+		return String.format("%" + width + typeArg, element);
+
 	}
 }

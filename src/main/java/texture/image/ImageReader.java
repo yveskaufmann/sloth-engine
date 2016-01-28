@@ -1,6 +1,5 @@
 package texture.image;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**

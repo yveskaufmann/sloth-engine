@@ -5,8 +5,10 @@ import renderer.Renderer;
 import shader.source.ShaderSource;
 import utils.HardwareObject;
 
-import javax.swing.text.html.HTMLDocument;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Shader extends HardwareObject {
 

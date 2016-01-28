@@ -33,6 +33,7 @@ package org.lwjgl.util.stream;
 
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -40,14 +41,12 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.misc.Unsafe;
-
-import static org.lwjgl.opengl.EXTFramebufferBlit.*;
-import static org.lwjgl.opengl.EXTFramebufferMultisample.*;
+import static org.lwjgl.opengl.EXTFramebufferBlit.glBlitFramebufferEXT;
+import static org.lwjgl.opengl.EXTFramebufferMultisample.glRenderbufferStorageMultisampleEXT;
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glGetInteger;
-import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL12.GL_BGRA;
+import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.*;
 

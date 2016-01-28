@@ -88,17 +88,10 @@ public class Cube extends Mesh {
 			bottomRight, bottomRightBack, topRightBack
 		});
 
-
 		setMode(Mesh.Mode.TRIANGLES);
-		setBuffer(VertexBuffer.Type.Interleaved, 3, interleavedBuffer);
 		setBuffer(VertexBuffer.Type.Index, 3, indicesBuffer);
-
-		setBuffer(VertexBuffer.Type.Vertex, 3, interleavedBuffer);
-		setBuffer(VertexBuffer.Type.Color, 3, interleavedBuffer);
-
-		getBuffer(VertexBuffer.Type.Vertex).getPointer().setStride(6 * 4);
-		getBuffer(VertexBuffer.Type.Vertex).getPointer().setOffset(0);
-		getBuffer(VertexBuffer.Type.Color).getPointer().setStride(6 * 4);
-		getBuffer(VertexBuffer.Type.Color).getPointer().setOffset(3 * 4);
+		setBuffer(VertexBuffer.Type.Interleaved, 3, interleavedBuffer);
+		setPointer(VertexBuffer.Type.Vertex, 3, 6 * 4, 0, VertexAttributePointer.Format.Float);
+		setPointer(VertexBuffer.Type.Color, 3, 6 * 4, 3 * 4, VertexAttributePointer.Format.Float);
 	}
 }

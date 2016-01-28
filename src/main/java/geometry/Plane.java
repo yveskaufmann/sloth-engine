@@ -1,10 +1,5 @@
 package geometry;
 
-import utils.BufferUtils;
-
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
 public class Plane extends Mesh {
 
 	public Plane() {

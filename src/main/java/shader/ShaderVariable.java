@@ -62,7 +62,7 @@ public abstract class ShaderVariable {
 	 */
 	public void reset() {
 		location = LOCATION_UNKNOWN;
-		this.updateRequired = false;
+		this.updateRequired = true;
 	}
 
 	@Override

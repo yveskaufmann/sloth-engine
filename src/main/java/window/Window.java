@@ -1,6 +1,5 @@
 package window;
 
-import javafx.beans.value.ChangeListener;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;

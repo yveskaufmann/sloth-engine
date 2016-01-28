@@ -2,7 +2,6 @@ package texture.image;
 
 import utils.BufferUtils;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 

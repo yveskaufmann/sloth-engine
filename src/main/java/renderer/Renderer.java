@@ -1,13 +1,13 @@
 package renderer;
 
-import geometry.VertexBuffer;
 import geometry.Mesh;
+import geometry.VertexBuffer;
 import math.Color;
 import org.lwjgl.opengl.GL41;
 import shader.Shader;
 import shader.source.ShaderSource;
-import texture.image.Image;
 import texture.Texture;
+import texture.image.Image;
 
 import java.io.IOException;
 
@@ -77,7 +77,7 @@ public interface Renderer {
 	void deleteTexture(Texture texture);
 	void deleteImage(Image image);
 
-	void drawMesh(Mesh mesh, int lod, int count);
+	void drawMesh(Mesh mesh);
 	void updateBuffer(VertexBuffer buffer);
 	void deleteBuffer(VertexBuffer buffer);
 

@@ -2,11 +2,10 @@ package shader;
 
 import shader.source.FileShaderSource;
 import shader.source.ShaderSource;
-import utils.Singleton;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ShaderRepository {
 

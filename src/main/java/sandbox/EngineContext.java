@@ -1,5 +1,7 @@
 package sandbox;
 
+import geometry.Mesh;
+import geometry.MeshRepository;
 import renderer.Renderer;
 import renderer.RendererManager;
 import shader.Shader;
@@ -12,11 +14,14 @@ import window.WindowManager;
 public class EngineContext {
 
 	private ShaderRepository shaderRepository;
+	private MeshRepository meshRepository;
 	private RendererManager renderManager;
 	private WindowManager windowManager;
 
+
 	private EngineContext() {
 		shaderRepository = Singleton.of(ShaderRepository.class);
+		meshRepository = Singleton.of(MeshRepository.class);
 		renderManager = Singleton.of(RendererManager.class);
 		windowManager = Singleton.of(WindowManager.class);
 	}
@@ -50,4 +55,7 @@ public class EngineContext {
 	}
 
 
+	public static Mesh getMesh(String fileName) {
+		return get().meshRepository.getMesh(fileName);
+	}
 }

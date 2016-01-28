@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import renderer.font.FontRenderer;
 import shader.*;
 import shader.source.ShaderSource;
-import texture.image.Image;
 import texture.Texture;
+import texture.image.Image;
 import utils.HardwareObject;
 import utils.HardwareObjectManager;
 
@@ -23,11 +23,12 @@ import java.nio.*;
 import static geometry.VertexBuffer.Type;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL32.*;
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
+import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 import static renderer.RenderState.CullFaceMode;
 import static renderer.RenderState.TestFunc;
 
@@ -464,7 +465,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 	@Override
-	public void drawMesh(Mesh mesh, int lod, int count) {
+	public void drawMesh(Mesh mesh) {
 		if (mesh.getVertexCount() <= 0) {
 			return;
 		}
@@ -481,10 +482,10 @@ public class Lwjgl3Renderer implements Renderer {
 			ctx.pointSize = mesh.getPointSize();
 		}
 
-		renderMesh(mesh, lod, count);
+		renderMesh(mesh);
 	}
 
-	private void renderMesh(Mesh mesh, int lod, int count) {
+	private void renderMesh(Mesh mesh) {
 		if (ctx.boundShader == null) {
 			throw new RendererExpception("In order to render a mesh a shader must first bound to the renderer");
 		}
@@ -506,18 +507,17 @@ public class Lwjgl3Renderer implements Renderer {
 
 		VertexBuffer indices = mesh.getBuffer(Type.Index);
 		if (indices != null) {
-			drawTrianglesWithIndices(indices, mesh, count);
+			drawTrianglesWithIndices(indices, mesh);
 		} else {
-			drawTriangles(mesh, count);
+			glDrawArrays(convertToMode(mesh.getMode()), 0, mesh.getVertexCount());
 		}
-
 		clearVertexAttributes();
 	}
 
 
 
 
-	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh, int count) {
+	private void drawTrianglesWithIndices(VertexBuffer indices, Mesh mesh) {
 		if (indices.getType() != Type.Index) {
 			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
 		}
@@ -550,7 +550,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 		Attribute attribute = ctx.boundShader.getAttribute(buffer.getType());
 		int location = attribute.getLocation();
-		if (location == Attribute.LOCATION_UNKNOWN) {
+		if (location == Attribute.LOCATION_UNKNOWN && attribute.isUpdateRequired()) {
 			if (attribute.getName() == null) {
 				throw new RendererExpception("An attribute requires a name, please consider to set a name for each attribute");
 			}
@@ -580,14 +580,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 	}
 
-	private void drawTriangles(Mesh mesh, int count) {
 
-		if (mesh.getBuffer(Type.Vertex) != null) {
-			count = mesh.getVertexCount();
-		}
-
-		glDrawArrays(convertToMode(mesh.getMode()), 0, count);
-	}
 
 	private int convertToMode(Mesh.Mode mode) {
 		switch (mode) {
@@ -654,6 +647,7 @@ public class Lwjgl3Renderer implements Renderer {
 			}
 		}
 
+		buffer.getBuffer().rewind();
 		int usage = convertToUsageConstant(buffer.getUsage());
 		if (bufferCreated) {
 			switch (buffer.getPointer().getFormat()) {

@@ -1,6 +1,5 @@
 package sandbox;
 
-import geometry.Cube;
 import geometry.Mesh;
 import geometry.VertexBuffer;
 import javafx.beans.property.ObjectProperty;
@@ -18,7 +17,6 @@ import renderer.RenderState;
 import renderer.Renderer;
 import renderer.RendererManager;
 import renderer.font.FontRenderer;
-import scene.Geometry;
 import scene.Node;
 import scene.TargetCamera;
 import shader.Shader;
@@ -34,7 +32,8 @@ import java.util.logging.LogManager;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static renderer.RenderState.*;
+import static renderer.RenderState.BlendFunc;
+import static renderer.RenderState.CullFaceMode;
 
 public class Sandbox {
 
@@ -118,16 +117,16 @@ public class Sandbox {
 
 	private void prepare() {
 		Shader diffuseShader = EngineContext.getShader("Default");
-		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("vertexPosition");
-		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("vertexColor");
+		diffuseShader.getAttribute(VertexBuffer.Type.Vertex).setName("position");
+		diffuseShader.getAttribute(VertexBuffer.Type.Normal).setName("normal");
+		diffuseShader.getAttribute(VertexBuffer.Type.TextCoords).setName("uv");
+		diffuseShader.getAttribute(VertexBuffer.Type.Color).setName("color");
 
-		sceneRoot = new Node("root");
-		sceneRoot.addChild(new Geometry("cube1", new Cube()));
-
-		cube = new Cube();
+		cube = EngineContext.getMesh("cube.obj");
+		// cube = new Cube();
 		cubePos = new Vector3f(0f, 0f, 0f);
 		renderer.setClearColor(Color.LightGrey);
-		rendererManager.getRenderState().enableFPSCounter().apply();
+		rendererManager.getRenderState().enableFPSCounter().setCullFaceMode(CullFaceMode.Off).enableWireframe(true).apply();
 		zoomLevel = 1.0f;
 	}
 
@@ -145,7 +144,6 @@ public class Sandbox {
 
 	private void initOffRendering(Window window) {
 		pendingRunnables = new ConcurrentLinkedQueue<>();
-
 		this.renderStreamFactory = StreamUtil.getRenderStreamImplementation();
 		this.renderStream = renderStreamFactory.create(readHandlerSupplier.get(), 1, 2);
 	}
@@ -164,10 +162,11 @@ public class Sandbox {
 		diffuseShader.getUniform("mvp").setValue(modelViewProjMatrix);
 
 		renderer.setShader(diffuseShader);
-		rendererManager.getRenderState().setDepthTestMode(TestFunc.Off).apply();
+		renderer.drawMesh(cube);
 
-		renderer.drawMesh(cube, 0, 0);
+	}
 
+	private void renderWithWireframe(Shader diffuseShader) throws IOException {
 		// Render the thick wireframe version.
 		rendererManager.getRenderState()
 			.setBlendMode(BlendFunc.Color)
@@ -176,10 +175,10 @@ public class Sandbox {
 			.setLineWidth(10.0f)
 			.apply();
 
-		diffuseShader.getUniform("isWireframe").setValue(1);
 
+		diffuseShader.getUniform("isWireframe").setValue(1);
 		renderer.setShader(diffuseShader);
-		renderer.drawMesh(cube, 0, 0);
+		renderer.drawMesh(cube);
 		rendererManager.getRenderState()
 			.setBlendMode(BlendFunc.Off)
 			.enableWireframe(false)

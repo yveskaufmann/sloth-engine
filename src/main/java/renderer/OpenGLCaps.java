@@ -2,14 +2,16 @@ package renderer;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL30.*;
 import org.lwjgl.opengl.GLCapabilities;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.GL_EXTENSIONS;
+import static org.lwjgl.opengl.GL11.glGetInteger;
+import static org.lwjgl.opengl.GL30.GL_NUM_EXTENSIONS;
+import static org.lwjgl.opengl.GL30.glGetStringi;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class OpenGLCaps {

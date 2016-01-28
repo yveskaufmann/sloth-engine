@@ -1,36 +1,24 @@
 package sandbox.controller;
 
 import javafx.animation.AnimationTimer;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import org.lwjgl.util.stream.StreamHandler;
-import org.lwjgl.util.stream.StreamUtil;
 import sandbox.Sandbox;
-import texture.image.Image;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-import java.util.function.Supplier;
-
-import static org.lwjgl.opengl.GL11.glGetString;
-import static org.lwjgl.opengl.GL11.glStencilOp;
 
 public class ShaderSlothController implements Initializable {
 
