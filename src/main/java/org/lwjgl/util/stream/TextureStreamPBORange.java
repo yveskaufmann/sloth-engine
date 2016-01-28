@@ -40,7 +40,7 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.GL_SYNC_GPU_COMMANDS_COMPLETE;
 import static org.lwjgl.opengl.GL32.glFenceSync;
 
-/** Implements streaming PBO updates to an OpenGL texture. */
+/** Implements streaming PBO updates to an OpenGL core.texture. */
 public class TextureStreamPBORange extends TextureStreamPBO {
 
 	public static final TextureStreamFactory FACTORY = new TextureStreamFactory("ARB_map_buffer_range") {

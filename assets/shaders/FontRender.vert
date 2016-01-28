@@ -1,6 +1,6 @@
 #version 130
 /*
- * Letter coords inside the texture sprite
+ * Letter coords inside the core.texture sprite
  */
 uniform float xOffset;
 uniform float yOffset;

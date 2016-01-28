@@ -9,7 +9,7 @@
         fx:id="wrapper"
         maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
         prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8"
-        xmlns:fx="http://javafx.com/fxml/1" fx:controller="sandbox.controller.ShaderSlothController" >
+        xmlns:fx="http://javafx.com/fxml/1" fx:controller="shadersloth.controller.ShaderSlothController" >
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>

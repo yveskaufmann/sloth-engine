@@ -1,6 +1,6 @@
 #version 130
 
-// Input vertex data, different for all executions of this shader.
+// Input vertex data, different for all executions of this core.shader.
 in vec3 vertexPosition;
 in vec2 vertexUV;
 in vec3 vertexNormal_modelspace;
