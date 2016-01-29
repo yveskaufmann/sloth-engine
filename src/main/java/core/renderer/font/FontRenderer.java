@@ -125,7 +125,6 @@ public class FontRenderer {
 	 */
 	private int vaoId;
 
-
 	public FontRenderer(Font font) {
 		this.font = font;
 		this.metrics = getFontMetrics(font);

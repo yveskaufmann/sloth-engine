@@ -4,7 +4,7 @@ import core.Engine;
 
 public class RenderState {
 
-	private boolean smoothLineEnabled;
+
 
 	/**
 	 * Specifies how the red, green, blue, and alpha destination blending factors are computed
@@ -166,6 +166,7 @@ public class RenderState {
 	private boolean enableFPSCounter;
 	private boolean wireframe;
 	private boolean lineSmooth;
+	private boolean smoothLineEnabled;
 
 	public RenderState() {
 		reset();

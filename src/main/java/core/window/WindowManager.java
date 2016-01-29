@@ -1,5 +1,7 @@
 package core.window;
 
+import core.Engine;
+import core.EngineComponent;
 import org.lwjgl.glfw.GLFW;
 import core.utils.Cleanable;
 
@@ -16,27 +18,23 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 /**
  * Class for creation of Window objects.
  */
-public class WindowManager implements Cleanable {
+public class WindowManager implements EngineComponent {
 
 	public static final int DEFAULT_WIDTH = 1024;
 	public static final int DEFAULT_HEIGHT = 768;
 	public static final String DEFAULT_TITLE = "Untitled";
-
-	private static final WindowManager instance = new WindowManager();
-	public static final WindowManager get() {
-		return instance;
-	}
 
 	private Map<Integer, Integer> windowHints = null;
 	private List<Window> windows = null;
 	private int height;
 	private int width;
 	private String title;
+	private boolean initialized = false;
 
-	private WindowManager() {
-
-		if ( GL_TRUE != glfwInit()) {
-			throw new IllegalStateException("The glfw init failed");
+	@Override
+	public void initialize() {
+		if (initialized) {
+			throw new IllegalStateException("The WindowManager is already initialized");
 		}
 		windowHints = new HashMap<>();
 		windows = new ArrayList<>();
@@ -44,6 +42,19 @@ public class WindowManager implements Cleanable {
 		setHeight(DEFAULT_HEIGHT);
 		setTitle(DEFAULT_TITLE);
 		reset();
+		initialized = true;
+	}
+
+	@Override
+	public void shutdown() {
+		if (!initialized) {
+			throw new IllegalStateException("The WindowManager is already initialized");
+		}
+		reset();
+		for (Window window : windows) {
+			window.clean();
+		}
+		initialized = false;
 	}
 
 	private WindowManager reset() {
@@ -52,15 +63,6 @@ public class WindowManager implements Cleanable {
 		setWidth(DEFAULT_WIDTH).
 		setHeight(DEFAULT_HEIGHT);
 		return this;
-	}
-
-	@Override
-	public void clean() {
-		reset();
-		for (Window window : windows) {
-			window.clean();
-		}
-		glfwTerminate();
 	}
 
 	public WindowManager setSize(int width, int height) {
@@ -136,4 +138,6 @@ public class WindowManager implements Cleanable {
 
 		return window;
 	}
+
+
 }

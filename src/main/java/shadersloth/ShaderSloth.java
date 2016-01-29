@@ -2,10 +2,16 @@ package shadersloth;
 
 import core.Engine;
 import core.geometry.Mesh;
-import core.geometry.VertexBuffer;
+import core.math.Color;
+import core.renderer.RenderState;
+import core.renderer.Renderer;
+import core.renderer.RendererManager;
+import core.scene.TargetCamera;
+import core.shader.Shader;
+import core.window.Window;
+import core.window.WindowManager;
 import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Rectangle2D;
-import core.math.Color;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -14,16 +20,6 @@ import org.lwjgl.util.stream.StreamHandler;
 import org.lwjgl.util.stream.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import core.renderer.RenderState;
-import core.renderer.Renderer;
-import core.renderer.RendererManager;
-import core.renderer.font.FontRenderer;
-import core.scene.Node;
-import core.scene.TargetCamera;
-import core.shader.Shader;
-import core.shader.ShaderRepository;
-import core.window.Window;
-import core.window.WindowManager;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -31,24 +27,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 import java.util.logging.LogManager;
 
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 
+// TODO extract RenderLoop
+// TODO inputManager
+// TODO offscreen rendering support
 public class ShaderSloth {
-
-	/**
-	 * Initialize the logging of this application.
-	 */
-	static {
-		System.setProperty( "java.util.logging.config.file", "logging.properties" );
-		try {
-			LogManager.getLogManager().readConfiguration();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * The logger for logger class
@@ -69,19 +56,23 @@ public class ShaderSloth {
 
 	private WindowManager windowManager;
 	private RendererManager rendererManager;
-	private ShaderRepository shaderRepository;
 	private Renderer renderer;
 	private Window window;
 	private GLFWKeyCallback keyCallback;
 
+	// TODO Encapsulate in scene
 	private Matrix4f modelMatrix = new Matrix4f();
 	private Matrix4f viewMatrix = new Matrix4f();
 	private Matrix4f projectionMatrix = new Matrix4f();
 	private Matrix4f modelViewProjMatrix = new Matrix4f();
 	private TargetCamera camera;
 
+
+	// TODO: should provided by a special node type: Geometry
 	private Mesh cube;
 	private Vector3f cubePos;
+
+	// TODO: InputHandling should be managed by dedicated class
 	float zoomLevel;
 
 	public ShaderSloth() {
@@ -89,12 +80,12 @@ public class ShaderSloth {
 
 	private void init() {
 
+		Engine.start();
 		windowManager = Engine.windowManager();
 		rendererManager = Engine.renderManager();
-		shaderRepository = Engine.shaderRepository();
 		camera = new TargetCamera();
 
-		window = Engine.windowManager()
+		window = windowManager
 			.setTitle("Window the first")
 			.setSize(1024, 768)
 			.setResizeable(true)
@@ -108,7 +99,6 @@ public class ShaderSloth {
 		}
 
 		renderer = rendererManager.getRenderer();
-		rendererManager.getRenderState().apply();
 	}
 
 
@@ -202,9 +192,9 @@ public class ShaderSloth {
 	}
 
 	private void cleanUp() {
-		rendererManager.getRenderer().cleanUp();
+
 		keyCallback.release();
-		windowManager.clean();
+		Engine.shutdown();
 	}
 
 	private void renderLoop() throws Exception {
@@ -312,11 +302,11 @@ public class ShaderSloth {
 		viewPortProperty.addListener((observable, oldValue, newValue) -> {
 			window.setWidth((int) newValue.getWidth());
 			window.setHeight((int) newValue.getHeight());
-			// Don't trigger the update Window size from a external thread
-			// It's really silly =)
+			// TODO: Don't trigger the update Window size from a external thread
 			window.updateViewportSize();
 			projectionMatrix.identity().setPerspective(45.0f, window.getAspectRatio() ,0.01f, 100.0f);
 		});
+		// TODO need implementation which works on lower the ope GL 3.0.
 		runWithOffScreen(runningLatch, readHandlerSupplier);
 
 	}
@@ -327,7 +317,7 @@ public class ShaderSloth {
 	 *
 	 * @param args
 	 * @throws Exception
-     */
+	 */
 	public static void main(String[] args) throws Exception {
 		ShaderSloth box = new ShaderSloth();
 		box.run();

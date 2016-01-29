@@ -8,7 +8,7 @@ public class MeshRepository {
 	private final Map<String, Mesh> meshes = new HashMap<>();
 	private final MeshLoaderManager meshLoader = new MeshLoaderManager();
 
-	private MeshRepository() {
+	public MeshRepository() {
 	}
 
 

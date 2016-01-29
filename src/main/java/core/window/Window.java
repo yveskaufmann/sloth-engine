@@ -184,10 +184,7 @@ public class Window implements Cleanable {
 		int h =  getHeight();
 
 		aspectRatio = ((float)w / (float)h);
-		Engine
-			.getCurrentRenderer()
-			.setViewport(0, 0, w, h);
-
+		Engine.renderManager().updateViewportSize(0, 0, w, h);
 	}
 
 	/**

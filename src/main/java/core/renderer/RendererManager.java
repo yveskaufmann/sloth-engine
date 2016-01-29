@@ -1,25 +1,44 @@
 package core.renderer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import core.utils.Singleton;
 
-public class RendererManager {
+import core.EngineComponent;
+
+public class RendererManager implements EngineComponent {
+
+
 
 	/**
 	 * Thy currently supported types of core.renderer types.
 	 */
 	public enum RendererType {
-		Lwjgl3,
-		None
+		Lwjgl3
 	}
 
-	private static RendererType currentRenderType = RendererType.Lwjgl3;
-	private static final Logger Log = LoggerFactory.getLogger(RendererManager.class);
+	private RendererType currentRenderType = RendererType.Lwjgl3;
+	private RenderState currentState;
+	private Renderer renderer;
+	private boolean initialized = false;
 
-	private RenderState currentState = new RenderState();
+	@Override
+	public void initialize() {
+		if (initialized) {
+			throw new IllegalArgumentException("The RenderManger is already initialized");
+		}
+		this.currentState = new RenderState();
+		initialized = true;
+	}
 
-	private RendererManager() {
+	@Override
+	public void shutdown() {
+		if (!initialized) {
+			throw new IllegalArgumentException("The RenderManager isn't initialized");
+		}
+
+		if (renderer != null) {
+			renderer.cleanUp();
+		}
+
+		initialized = false;
 	}
 
 	/**
@@ -31,28 +50,25 @@ public class RendererManager {
      */
 	public Renderer getRenderer(RendererType type) {
 		assert type != null;
-		switch (type) {
-			case Lwjgl3:
-				currentRenderType = type;
-				return Singleton.of(Lwjgl3Renderer.class);
-			default:
-				throw new RendererExpception("Unsupported core.renderer type specified");
+
+		if (renderer == null) {
+			switch (type) {
+				case Lwjgl3:
+					currentRenderType = type;
+					renderer = new Lwjgl3Renderer();
+					break;
+				default:
+					throw new RendererExpception("Unsupported core.renderer type specified");
+			}
+
+			renderer.applyRenderState(currentState.reset());
 		}
+
+		return renderer;
 	}
 
-	/**
-	 * Get the current singleton core.renderer instance which has the same
-	 * type as the previous call to <code>getRenderer(RendererType type)</code> or
-	 * the defined fallback core.renderer <code>Lwjgl3Renderer</code>.
-	 *
-	 * @return the singleton instance of the current used core.renderer
-     */
 	public  Renderer getRenderer() {
-		if (currentRenderType != null) {
-			return getRenderer(currentRenderType);
-		} else {
-			return getRenderer(RendererType.Lwjgl3);
-		}
+		return getRenderer(RendererType.Lwjgl3);
 	}
 
 	/**
@@ -62,5 +78,11 @@ public class RendererManager {
      */
 	public RenderState getRenderState() {
 		return currentState;
+	}
+
+	public void updateViewportSize(int x, int y, int width, int height) {
+		if (renderer != null) {
+			renderer.setViewport(x, y, width, height);
+		}
 	}
 }

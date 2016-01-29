@@ -9,53 +9,109 @@ import core.shader.ShaderRepository;
 import core.utils.Singleton;
 import core.window.Window;
 import core.window.WindowManager;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL;
+
+import java.io.IOException;
+import java.util.logging.LogManager;
+
+import static org.lwjgl.glfw.GLFW.glfwGetMouseButton;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 
 public class Engine {
 
-	private ShaderRepository shaderRepository;
-	private MeshRepository meshRepository;
-	private RendererManager renderManager;
-	private WindowManager windowManager;
-
-
-	private Engine() {
-		windowManager = Singleton.of(WindowManager.class);
-		renderManager = Singleton.of(RendererManager.class);
-		shaderRepository = Singleton.of(ShaderRepository.class);
-		meshRepository = Singleton.of(MeshRepository.class);
+	static {
+		enableLogging();
 	}
 
-	public static ShaderRepository shaderRepository() {
-		return get().shaderRepository;
-	};
+	private static ShaderRepository shaderRepository;
+	private static MeshRepository meshRepository;
+	private static RendererManager renderManager;
+	private static WindowManager windowManager;
+	private static boolean initialized;
 
-	public static Shader getShader(String name) {
-		return shaderRepository().getShader(name);
+	private Engine() {}
+
+	static
+	public  ShaderRepository shaderRepository() {
+		return shaderRepository;
 	}
 
-	public static WindowManager windowManager() {
-		return get().windowManager;
-	};
-
-	public static RendererManager renderManager() {
-		return get().renderManager;
-	};
-
-	public static Window getPrimaryWindow() {
-		return windowManager().getLastActiveWindow();
+	static
+	public Shader getShader(String name) {
+		return shaderRepository.getShader(name);
 	}
 
-	public static Renderer getCurrentRenderer() {
-		return renderManager().getRenderer();
+	static
+	public  WindowManager windowManager() {
+		return windowManager;
 	}
 
-	private static Engine get() {
-		return Singleton.of(Engine.class);
+	static
+	public RendererManager renderManager() {
+		return renderManager;
 	}
 
+	static
+	public Window getPrimaryWindow() {
+		return windowManager.getLastActiveWindow();
+	}
 
-	public static Mesh getMesh(String fileName) {
-		return get().meshRepository.getMesh(fileName);
+	static
+	public  Renderer getCurrentRenderer() {
+		return renderManager.getRenderer();
+	}
+
+	static
+	public Mesh getMesh(String fileName) {
+		return meshRepository.getMesh(fileName);
+	}
+
+	static
+	public void start() {
+
+		if (initialized) {
+			throw new IllegalArgumentException("The Engine is already initialized");
+		}
+
+		if ( GL_TRUE != glfwInit()) {
+			throw new IllegalStateException("GLFW could not initialized");
+		}
+
+
+		windowManager = new WindowManager();
+		renderManager = new RendererManager();
+		meshRepository = new MeshRepository();
+		shaderRepository = new ShaderRepository();
+
+		windowManager.initialize();
+		renderManager.initialize();
+		shaderRepository.initialize();
+		initialized = true;
+
+	}
+
+	public static void shutdown() {
+		if (!initialized) {
+			throw new IllegalArgumentException("The Engine isn't initialized");
+		}
+
+		shaderRepository.shutdown();
+		renderManager.shutdown();
+		windowManager.shutdown();
+
+		GLFW.glfwTerminate();
+		initialized = false;
+	}
+
+	private static void enableLogging() {
+		System.setProperty( "java.util.logging.config.file", "logging.properties" );
+		try {
+			LogManager.getLogManager().readConfiguration();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

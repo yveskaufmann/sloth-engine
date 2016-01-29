@@ -1,5 +1,7 @@
 package core.shader;
 
+import core.Engine;
+import core.EngineComponent;
 import core.shader.source.FileShaderSource;
 import core.shader.source.ShaderSource;
 
@@ -7,14 +9,10 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ShaderRepository {
+public class ShaderRepository implements EngineComponent {
 
-	private final String ASSET_PATH = "assets/shaders/";
-
+	public final String ASSET_PATH = "assets/shaders/";
 	private Map<String, Shader> shaderMap;
-	private ShaderRepository() {
-		shaderMap = new HashMap<>();
-	}
 
 	public Shader getShader(String shader) {
 		return getShader(shader, shader);
@@ -43,4 +41,16 @@ public class ShaderRepository {
 	}
 
 
+	@Override
+	public void initialize() {
+		if (shaderMap != null) {
+			shutdown();
+		}
+		shaderMap = new HashMap<>();
+	}
+
+	@Override
+	public void shutdown() {
+		// Already performed from the render clean up
+	}
 }
