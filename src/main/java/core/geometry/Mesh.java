@@ -40,7 +40,7 @@ public class Mesh extends HardwareObject {
 		 * </ul>
 		 * </p>
 		 */
-		POINTS(GL_POINTS),
+		POINTS,
 
 		/**
 		 * <p>
@@ -55,7 +55,7 @@ public class Mesh extends HardwareObject {
 		 * The width of the line can be specified by using glLineWidth(float width).
 		 * </p>
 		 */
-		LINES(GL_LINES),
+		LINES,
 
 		/**
 		 * <p>
@@ -68,7 +68,7 @@ public class Mesh extends HardwareObject {
 		 * </p>
 		 *
 		 */
-		LINE_STRIP(GL_LINE_STRIP),
+		LINE_STRIP,
 
 		/**
 		 * <p>
@@ -79,7 +79,7 @@ public class Mesh extends HardwareObject {
 		 * </p>
 		 *
 		 */
-		LINE_LOOP(GL_LINE_LOOP),
+		LINE_LOOP,
 
 
 		/**
@@ -94,7 +94,7 @@ public class Mesh extends HardwareObject {
 		 * be ignored.N Vertices leads to N/3 triangles.
 		 * </p>
 		 */
-		TRIANGLES(GL_TRIANGLES),
+		TRIANGLES,
 
 		/**
 		 * <p>
@@ -107,7 +107,7 @@ public class Mesh extends HardwareObject {
 		 * be ignored. N Vertices leads to N - 2 triangles.
 		 * </p>
 		 */
-		TRIANGLE_STRIP(GL_TRIANGLE_STRIP),
+		TRIANGLE_STRIP,
 
 		/**
 		 * <p>
@@ -118,17 +118,12 @@ public class Mesh extends HardwareObject {
 		 * like so: (0, 1, 2) (0, 2, 3), (0, 3, 4), etc. A vertex stream of n length will generate n-2 triangles.<br>
 		 * </p>
 		 */
-		TRIANGLE_FAN(GL_TRIANGLE_FAN);
+		TRIANGLE_FAN,
 
-		protected int mode;
+		QUADS,
+	    QUAD_STRIP;
 
-		Mode(int mode) {
-			this.mode = mode;
-		}
 
-		public int value() {
-			return this.mode;
-		}
 	}
 
 	private Map<Type, VertexBuffer> buffers = new HashMap<>();
@@ -326,6 +321,8 @@ public class Mesh extends HardwareObject {
 			case LINES:return bufferSize / 2;
 			case LINE_LOOP:return bufferSize;
 			case LINE_STRIP:return bufferSize - 1;
+			case QUADS: return bufferSize / 4;
+			case QUAD_STRIP: return bufferSize / 4;
 			default:
 				throw new UnsupportedOperationException();
 		}

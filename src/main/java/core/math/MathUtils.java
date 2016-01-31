@@ -2,6 +2,9 @@ package core.math;
 
 public class MathUtils {
 
+	public static final float PI = (float)Math.PI;
+	public static final float PI_2 = PI / 2.0f;
+
 	/**
 	 * Take a float number and clamp it between min
 	 * and max.

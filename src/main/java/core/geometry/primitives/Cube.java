@@ -4,6 +4,7 @@ import core.geometry.Mesh;
 import core.geometry.VertexAttributePointer;
 import core.geometry.VertexBuffer;
 import core.utils.BufferUtils;
+import core.utils.TypeSize;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -31,70 +32,77 @@ public class Cube extends Mesh {
 		 *
 		 */
 		FloatBuffer interleavedBuffer = BufferUtils.createBuffer(new float[] {
-
-			-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // Front Top Left     = A
-			-1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Front Bottom Left	= B
-			1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // Front Bottom Right = C
-			1.0f,  1.0f, 1.0f, 1.0f, 1.0f, 0.0f,  // Front Top Right 	= D
-
-			-1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // Back Top Left     = A'
-			-1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Back Bottom Left	= B'
-			1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // Back Bottom Right  = C'
-			1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f  // Back Top Right 	= D'
+			//    Positions	       Normals           UVs
+			-1.0f,-1.0f,-1.0f, 0.0f,-1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,-1.0f,-1.0f, 0.0f,-1.0f, 0.0f, 1.0f, 0.0f,
+			-1.0f,-1.0f, 1.0f, 0.0f,-1.0f, 0.0f, 0.0f, 1.0f,
+			 1.0f,-1.0f, 1.0f, 0.0f,-1.0f, 0.0f, 1.0f, 1.0f,
+			-1.0f, 1.0f,-1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+			-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+			 1.0f, 1.0f,-1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+			-1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+			 1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			-1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+			 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+			-1.0f,-1.0f,-1.0f, 0.0f, 0.0f,-1.0f, 0.0f, 0.0f,
+			-1.0f, 1.0f,-1.0f, 0.0f, 0.0f,-1.0f, 0.0f, 1.0f,
+			 1.0f,-1.0f,-1.0f, 0.0f, 0.0f,-1.0f, 1.0f, 0.0f,
+			 1.0f, 1.0f,-1.0f, 0.0f, 0.0f,-1.0f, 1.0f, 1.0f,
+			-1.0f,-1.0f, 1.0f,-1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, 1.0f,-1.0f,-1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			-1.0f,-1.0f,-1.0f,-1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			-1.0f, 1.0f, 1.0f,-1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f,-1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f,-1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			 1.0f, 1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
 		});
 
-		final int topLeft = 0;
-		final int bottomLeft = 1;
-		final int bottomRight = 2;
-		final int topRight = 3;
-		final int topLeftBack = 4;
-		final int bottomLeftBack = 5;
-		final int bottomRightBack = 6;
-		final int topRightBack = 7;
 
 		IntBuffer indicesBuffer = BufferUtils.createBuffer(new int[] {
-			/**
-			 * Front Face
-			*/
-			topRight, topLeft, bottomLeft,
-			bottomLeft, bottomRight, topRight,
+			// Bottom
+			0, 1, 2,
+			1, 3, 2,
 
-			/**
-			 * Back Face
-			*/
-			bottomLeftBack, topLeftBack, topRightBack,
-			topRightBack, bottomRightBack, bottomLeftBack,
+			// Top
+			4, 5, 6,
+			6, 5, 7,
 
-			/**
-			 * Top Face
-			*/
-			topRightBack, topLeftBack, topLeft,
-			topLeft, topRight, topRightBack,
+			// Front
+			8, 9, 10,
+			9, 11, 10,
 
-			/**
-			 * Bottom Face
-			*/
+			// Back
+			12, 13, 14,
+			14, 13, 15,
 
-			bottomLeft, bottomLeftBack, bottomRightBack,
-			bottomRightBack, bottomRight, bottomLeft,
+			// Left
+			16, 17, 18,
+			16, 19, 17,
 
-			/**
-			 * Left Face
-			*/
-			bottomLeft, topLeft, topLeftBack,
-			topLeftBack, bottomLeftBack, bottomLeft,
-
-			/**
-			 * Right Face
-			*/
-			topRightBack, topRight, bottomRight,
-			bottomRight, bottomRightBack, topRightBack
+			// Right
+			20, 21, 22,
+			20, 22, 23
 		});
+
+		/**
+		 * Interleaved buffer layout:
+		 *
+		 * V1 V2 V3 N1 N2 N3 UV1 UV2
+		 */
+		int offsetVertex = 0;
+		int offsetNormal = 3 * TypeSize.FLOAT;
+		int offsetUVs =  2 * offsetNormal;
+		int stride = offsetUVs + 2 * TypeSize.FLOAT;
 
 		setMode(Mesh.Mode.TRIANGLES);
 		setBuffer(VertexBuffer.Type.Index, 3, indicesBuffer);
 		setBuffer(VertexBuffer.Type.Interleaved, 3, interleavedBuffer);
-		setPointer(VertexBuffer.Type.Vertex, 3, 6 * 4, 0, VertexAttributePointer.Format.Float);
-		setPointer(VertexBuffer.Type.Color, 3, 6 * 4, 3 * 4, VertexAttributePointer.Format.Float);
+
+		setPointer(VertexBuffer.Type.Vertex, 3, stride, offsetVertex, VertexAttributePointer.Format.Float);
+		setPointer(VertexBuffer.Type.Normal, 3, stride, offsetNormal, VertexAttributePointer.Format.Float);
+		setPointer(VertexBuffer.Type.TextCoords, 2, stride, offsetUVs, VertexAttributePointer.Format.Float);
+
 	}
 }

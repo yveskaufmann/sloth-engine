@@ -373,6 +373,7 @@ public class Lwjgl3Renderer implements Renderer {
 		if (texture.isUpdateRequired()) {
 			updateTextureData(texture, unit);
 		}
+
 		bindTexture(texture, unit);
 	}
 
@@ -389,23 +390,44 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		int target = bindTexture(texture, unit);
-		Image image = texture.getImage();
-		ByteBuffer imageData = image.getReader().getBuffer();
-		imageData.flip();
+
+		// Only upload the image if one is set
+		ByteBuffer imageBuffer = null;
+		if (texture.getImage() != null) {
+			Image image = texture.getImage();
+			imageBuffer = image.getReader().getBuffer();
+			imageBuffer.flip();
+		}
 
 		glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
 
 		if (created) {
-			glTexImage2D(target, 0, GL_RGB8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(target, 0, GL_RGB8, texture.getWidth(), texture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
+			glGenerateMipmap(target);
 		}
-		glTexSubImage2D(target, 0, 0, 0, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-		glGenerateMipmap(target);
 
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glGenerateMipmap(target);
+		if (imageBuffer != null && texture.isUpdateRequired()) {
+			glTexSubImage2D(target, 0, 0, 0, texture.getWidth(), texture.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
+
+			if (texture.getMinFilter().requiresMipMaps()) {
+				if (caps.OpenGL30) {
+					glGenerateMipmap(target);
+				}
+			}
+		}
+
+
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, convertToMagFilter(texture.getMagFilter()));
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, convertToMinFilter(texture.getMinFilter()));
+
+		switch (texture.getType()) {
+			case DIMENSION_3D:
+				glTexParameteri(target, GL_TEXTURE_WRAP_R, convertToWrapMode(texture.getWrapMode(Texture.TextureAxis.R)));
+			case DIMENSION_2D:
+				glTexParameteri(target, GL_TEXTURE_WRAP_T, convertToWrapMode(texture.getWrapMode(Texture.TextureAxis.T)));
+			case DIMENSION_1D:
+				glTexParameteri(target, GL_TEXTURE_WRAP_S, convertToWrapMode(texture.getWrapMode(Texture.TextureAxis.S)));
+		}
 
 		if (texture.getAnisotropicLevel() >= 1.0) {
 			if (caps.GL_EXT_texture_filter_anisotropic) {
@@ -413,9 +435,39 @@ public class Lwjgl3Renderer implements Renderer {
 			}
 		}
 
-		glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 64.0f);
-
 		texture.disableUpdateRequired();
+	}
+
+	private int convertToWrapMode(Texture.WrapMode wrapMode) {
+		switch (wrapMode) {
+			case Repeast: return GL_REPEAT;
+			case ClampEDGE: return GL_CLAMP_TO_EDGE;
+			case ClampBORDER: return GL_CLAMP_TO_BORDER;
+			case MirroredRepeat: return GL_MIRRORED_REPEAT;
+		}
+
+		throw new IllegalArgumentException("Unsupported WrapMode specified" + wrapMode);
+	}
+
+	private int convertToMinFilter(Texture.MinFilter minFilter) {
+		switch (minFilter) {
+			case NearestNeighbour: return GL_NEAREST;
+			case Bilinear: return GL_LINEAR;
+			case Trilinear: return GL_LINEAR_MIPMAP_LINEAR;
+			case LINEAR_MIPMAP_NEAREST: return GL_LINEAR_MIPMAP_NEAREST;
+			case NEAREST_MIPMAP_LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
+			case NEAREST_MIPMAP_NEAREST: return GL_NEAREST_MIPMAP_NEAREST;
+		}
+
+		throw new IllegalArgumentException("Unsupported MinFilter specified" + minFilter);
+	}
+
+	private int convertToMagFilter(Texture.MagFilter magFilter) {
+		switch (magFilter) {
+			case Bilinear: return GL_LINEAR;
+			case NearestNeighbour: return GL_NEAREST;
+		}
+		throw new IllegalArgumentException("Unsupported MagFilter specified" + magFilter);
 	}
 
 	private int bindTexture(Texture texture, int unit) {
@@ -605,6 +657,8 @@ public class Lwjgl3Renderer implements Renderer {
 			case TRIANGLES: return GL_TRIANGLES;
 			case TRIANGLE_FAN: return GL_TRIANGLE_FAN;
 			case TRIANGLE_STRIP: return GL_TRIANGLE_STRIP;
+			case QUADS: return GL_QUADS;
+			case QUAD_STRIP: return GL_QUAD_STRIP;
 			default:
 				throw new IllegalArgumentException(
 					String.format("Unsupported mesh mode specified %s", mode.name())

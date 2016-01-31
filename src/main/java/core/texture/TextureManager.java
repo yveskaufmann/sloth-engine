@@ -59,6 +59,9 @@ public class TextureManager implements EngineComponent {
 		texture.setWidth(width);
 		texture.setHeight(height);
 		texture.setDepth(depth);
+		texture.setWrapMode(Texture.TextureAxis.S, Texture.WrapMode.Repeast);
+		texture.setWrapMode(Texture.TextureAxis.T, Texture.WrapMode.Repeast);
+		texture.setWrapMode(Texture.TextureAxis.R, Texture.WrapMode.Repeast);
 
 		if (width == NOT_SET) {
 			throw new IllegalArgumentException("A texture must have at least a width value greater than zero");

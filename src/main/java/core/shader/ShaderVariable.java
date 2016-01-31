@@ -6,9 +6,16 @@ package core.shader;
 public abstract class ShaderVariable {
 
 	/**
+	 * This prefix is put in front of shader variables
+	 * if they are provided from the internal engine.
+	 */
+	public static final String VAR_PREFIX = "sl_";
+
+	/**
 	 * Marks a location as not found by the glsl compiler.
 	 */
 	public static final int LOCATION_NOT_FOUND = -1;
+
 
 	/**
 	 * Marks a location as not known this is the initial

@@ -4,6 +4,8 @@ import core.math.Color;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import core.utils.BufferUtils;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.nio.FloatBuffer;
 
@@ -54,6 +56,14 @@ public class Uniform extends ShaderVariable {
 		setValue(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 
+	public void setValue(Vector4f value) {
+		setValue(value.x, value.y, value.z, value.w);
+	}
+
+	public void setValue(Vector3f value) {
+		setValue(value.x, value.y, value.z);
+	}
+
 	public void setValue(VariableType type, Object value) {
 		if (this.value == value) return;
 
@@ -101,6 +111,7 @@ public class Uniform extends ShaderVariable {
 	public String toString() {
 		return "Uniform variable \"" + super.toString() +"\"";
 	}
+
 
 
 }

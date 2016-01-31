@@ -3,6 +3,9 @@ package shadersloth;
 import core.Engine;
 import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
+import core.geometry.primitives.Sphere;
+import core.light.LightList;
+import core.light.PointLight;
 import core.math.Color;
 import core.renderer.RenderState;
 import core.scene.TargetCamera;
@@ -11,15 +14,14 @@ import core.texture.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.opengl.GLUtil;
 
 import java.io.IOException;
 
 import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static org.lwjgl.opengl.GL11.glGetError;
 
 // TODO inputManager
 // TODO offscreen rendering support
@@ -46,6 +48,7 @@ public class ShaderSloth extends SlothApplication {
 
 	private Shader diffuseShader;
 	private Texture rabbitDiffuse;
+	private LightList lightList;
 
 	@Override
 	protected void prepare() {
@@ -54,12 +57,25 @@ public class ShaderSloth extends SlothApplication {
 		zoomLevel = 1.0f;
 
 		rabbit = Engine.getMesh("rabbit.obj");
+		rabbit = new Sphere(2.0f, 16, 16);
+		rabbit = new Cube();
 		diffuseShader = Engine.getShader("Default");
-		rabbitDiffuse = Engine.getTextureManager().createTexture("rabbitDiffuse", "Rabbit_D.tga");
+		rabbitDiffuse = Engine.getTextureManager().createTexture("rabbitDiffuse", "brick.jpg");
+		rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear);
+		rabbitDiffuse.setMagFilter(Texture.MagFilter.Bilinear);
+		rabbitDiffuse.setAnisotropicLevel(16.0f);
 
 		cubePos = new Vector3f(0f, 0f, 0f);
 		rendererManager.getRenderState().enableFPSCounter().setCullFaceMode(CullFaceMode.Off).apply();
 		renderer.setClearColor(Color.LightGrey);
+
+		lightList = new LightList();
+		PointLight point = new PointLight();
+		point.setAttenuation(0.8f);
+		point.setPosition(new Vector3f(0.0f, -1.0f, 0.2f));
+		point.setColor(new Color(1.0f, 1.0f, 1.0f, 1.0f));
+		lightList.add(point);
+
 	}
 
 	@Override
@@ -85,6 +101,8 @@ public class ShaderSloth extends SlothApplication {
 		diffuseShader.getUniform("modelViewMatrix").setValue(modelViewMatrix);
 		diffuseShader.getUniform("normalMatrix").setValue(normalMatrix);
 		diffuseShader.getUniform("diffuseTexture").setValue(1);
+		lightList.passToShader(diffuseShader);
+
 		renderer.setShader(diffuseShader);
 		renderer.setTexture(1, rabbitDiffuse);
 		renderer.drawMesh(rabbit);
@@ -174,6 +192,18 @@ public class ShaderSloth extends SlothApplication {
 				if (key == GLFW_KEY_A && action == GLFW_REPEAT) {
 					zoomLevel += 0.1;
 					System.out.println("A Pressed " + zoomLevel);
+				}
+
+				if (key == GLFW_KEY_I && action == GLFW_PRESS) {
+					rabbitDiffuse.setMinFilter(Texture.MinFilter.NearestNeighbour);
+				}
+
+				if (key == GLFW_KEY_O && action == GLFW_PRESS) {
+					rabbitDiffuse.setMinFilter(Texture.MinFilter.Bilinear);
+				}
+
+				if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+					rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear);
 				}
 
 			}

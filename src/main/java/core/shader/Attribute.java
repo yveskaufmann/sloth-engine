@@ -11,48 +11,48 @@ public class Attribute extends ShaderVariable {
 	/**
 	 * Default Attribute name for vertex position data
 	 */
-	public final String VERTEX_ATTRIBUTE_NAME = "position";
+	public final String VERTEX_ATTRIBUTE_NAME = VAR_PREFIX +"position";
 
 	/**
 	 * Default Attribute name for normals
 	 */
-	public final String NORMAL_ATTRIBUTE_NAME = "normal";
+	public final String NORMAL_ATTRIBUTE_NAME = VAR_PREFIX + "normal";
 
 	/**
 	 * Default Attribute name for colors
 	 */
-	public final String COLOR_ATTRIBUTE_NAME =  "color";
+	public final String COLOR_ATTRIBUTE_NAME = VAR_PREFIX + "color";
 
 	/**
 	 * Default Attribute name for texture coordinates 01
 	 */
-	public final String TEXTCOORDS1_ATTRIBUTE_NAME = "textcoord01";
+	public final String TEXTCOORDS1_ATTRIBUTE_NAME = VAR_PREFIX + "textcoord01";
 
 	/**
 	 * Default Attribute name for texture coordinates 02
 	 */
-	public final String TEXTCOORDS2_ATTRIBUTE_NAME = "textcoord02";
+	public final String TEXTCOORDS2_ATTRIBUTE_NAME = VAR_PREFIX + "textcoord02";
 
 
 	/**
 	 * Default Attribute name for texture coordinates 03
 	 */
-	public final String TEXTCOORDS3_ATTRIBUTE_NAME = "textcoord03";
+	public final String TEXTCOORDS3_ATTRIBUTE_NAME = VAR_PREFIX + "textcoord03";
 
 	/**
 	 * Default Attribute name for texture coordinates 04
 	 */
-	public final String TEXTCOORDS4_ATTRIBUTE_NAME = "textcoord04";
+	public final String TEXTCOORDS4_ATTRIBUTE_NAME = VAR_PREFIX + "textcoord04";
 
 	/**
 	 * Default Attribute name for texture coordinates 05
 	 */
-	public final String TEXTCOORDS5_ATTRIBUTE_NAME = "textcoord05";
+	public final String TEXTCOORDS5_ATTRIBUTE_NAME = VAR_PREFIX +"textcoord05";
 
 	/**
 	 * Default Attribute name for texture coordinates 06
 	 */
-	public final String TEXTCOORDS6_ATTRIBUTE_NAME = "textcoord06";
+	public final String TEXTCOORDS6_ATTRIBUTE_NAME = VAR_PREFIX + "textcoord06";
 
 
 	/**
