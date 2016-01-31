@@ -1,6 +1,7 @@
 package core.texture.image;
 
 import core.utils.BufferUtils;
+import core.utils.TypeSize;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -27,7 +28,7 @@ public class BufferedImageReader implements ImageReader {
 		int width  = xEnd - x;
 		int height = yEnd - y;
 
-		if (width < 0 || height <0 ) {
+		if (width < 0 || height < 0) {
 			throw new IllegalArgumentException("XEnd/YEnd must be greater than x/y.");
 		}
 
@@ -36,10 +37,19 @@ public class BufferedImageReader implements ImageReader {
 			pixelBuffer = new int[bufferSize];
 		}
 
-		imageData.getRGB(x, y, xEnd, yEnd, pixelBuffer, 0, image.getWidth());
-		IntBuffer imageBuffer = BufferUtils.createBuffer(pixelBuffer);
-		imageBuffer.flip();
+		//mageData.getRGB(x, y, xEnd, yEnd, pixelBuffer, 0, image.getWidth());
+		ByteBuffer imageBuffer = BufferUtils.createByteBuffer(bufferSize * TypeSize.INT);
 
-		return null;
+		for (int xPos = x;  xPos < xEnd; xPos++) {
+			for(int yPos = y; yPos < yEnd; yPos++) {
+				int rgb = imageData.getRGB(xPos,yPos);
+				imageBuffer.put((byte) ((rgb >> 16) & 0xFF)); // Red
+				imageBuffer.put((byte) ((rgb >> 8) & 0xFF));  // Green
+				imageBuffer.put((byte) (rgb & 0xFF));       // Blue
+				imageBuffer.put((byte) ((rgb >> 24) & 0xFF)); // Alpha
+			}
+		}
+		imageBuffer.flip();
+		return imageBuffer;
 	}
 }

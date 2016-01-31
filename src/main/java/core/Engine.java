@@ -6,6 +6,7 @@ import core.renderer.Renderer;
 import core.renderer.RendererManager;
 import core.shader.Shader;
 import core.shader.ShaderRepository;
+import core.texture.TextureManager;
 import core.utils.Singleton;
 import core.window.Window;
 import core.window.WindowManager;
@@ -30,6 +31,7 @@ public class Engine {
 	private static MeshRepository meshRepository;
 	private static RendererManager renderManager;
 	private static WindowManager windowManager;
+	private static TextureManager textureManager;
 	private static boolean initialized;
 
 	private Engine() {}
@@ -70,6 +72,11 @@ public class Engine {
 	}
 
 	static
+	public TextureManager getTextureManager(){
+		return textureManager;
+	}
+
+	static
 	public void start() {
 
 		if (initialized) {
@@ -85,10 +92,12 @@ public class Engine {
 		renderManager = new RendererManager();
 		meshRepository = new MeshRepository();
 		shaderRepository = new ShaderRepository();
+		textureManager = new TextureManager();
 
 		windowManager.initialize();
 		renderManager.initialize();
 		shaderRepository.initialize();
+		textureManager.initialize();
 		initialized = true;
 
 	}

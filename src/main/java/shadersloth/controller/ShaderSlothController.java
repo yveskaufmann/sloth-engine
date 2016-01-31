@@ -13,6 +13,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
 import org.lwjgl.util.stream.StreamHandler;
 import shadersloth.ShaderSloth;
+import shadersloth.SlothApplication;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -55,7 +56,7 @@ public class ShaderSlothController implements Initializable {
 	/**
 	 * The underlying core.renderer implementation
 	 */
-	private ShaderSloth sandbox;
+	private SlothApplication sandbox;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {

@@ -7,6 +7,7 @@ import core.math.Color;
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import core.renderer.font.FontRenderer;
@@ -23,11 +24,14 @@ import java.nio.*;
 import static core.geometry.VertexBuffer.Type;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
+import static org.lwjgl.opengl.GL43.GL_CAVEAT_SUPPORT;
 import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 import static core.renderer.RenderState.CullFaceMode;
 import static core.renderer.RenderState.TestFunc;
@@ -141,32 +145,34 @@ public class Lwjgl3Renderer implements Renderer {
 		if (shader.isUpdateRequired()) {
 			updateShaderData(shader);
 		}
-
+		// TODO: check if shader is valid
+		// if un valid assign a fallback shader.
 		bindShaderProgram(shader);
 		updateShaderUniforms(shader);
 	}
 
-
-	private void updateShaderData(Shader shader) {
+	private boolean updateShaderData(Shader shader) {
 		int id  = shader.getId();
+
 		if (id == HardwareObject.UNSET_ID) {
 			id = glCreateProgram();
-
 			if (id == 0) {
-				throw new RendererExpception(
-					"Failed to create a new ShaderProgram: invalid ShaderProgram id ("+ id +") received."
-				);
+				Log.error("Failed to create a new ShaderProgram: invalid ShaderProgram id ("+ id +") received.");
+				throw new RendererExpception("Failed to create a new ShaderProgram");
 			}
 			shader.setId(id);
 			objectManager.register(shader);
 		}
-
 		for (ShaderSource source : shader.getShaderSources()) {
 			if (source.isUpdateRequired()) {
-				updateShaderSource(source);
+				if (! updateShaderSource(source)) {
+					shader.disableUpdateRequired();
+					return false;
+				}
 			}
 			glAttachShader(id, source.getId());
 		}
+
 
 		boolean linkSuccess;
 		String infoLog;
@@ -174,24 +180,25 @@ public class Lwjgl3Renderer implements Renderer {
 		glLinkProgram(id);
 		linkSuccess = glGetProgrami(id, GL_LINK_STATUS) == GL_TRUE;
 		infoLog = glGetProgramInfoLog(shader.getId());
-
 		if (linkSuccess) {
-			Log.info("Shader link success");
+			Log.debug("Shader link success");
 			shader.disableUpdateRequired();
 			resetUniformLocation(shader);
 		} else {
-			Log.error("Failed to link core.shader program {}\n{}", shader, infoLog);
+			Log.error("Failed to link shader program {}\n{}", shader, infoLog);
 		}
+
+		return linkSuccess;
 
 	}
 
 
-	private void updateShaderSource(ShaderSource source) {
+	private boolean updateShaderSource(ShaderSource source) {
 		int id = source.getId();
 		if (id == HardwareObject.UNSET_ID) {
 			id = glCreateShader(toShaderTypeConstant(source.getType()));
 			if (id == 0) {
-				throw new RendererExpception("Failed to created core.shader invalid id received: %d", id);
+				throw new RendererExpception("Failed to created shader object invalid id received: %d", id);
 			}
 			source.setId(id);
 			objectManager.register(source);
@@ -208,6 +215,8 @@ public class Lwjgl3Renderer implements Renderer {
 			Log.info("Success to compile core.shader {}", source.toString());
 		}
 		source.disableUpdateRequired();
+
+		return compileSuccess;
 
 	}
 
@@ -233,7 +242,7 @@ public class Lwjgl3Renderer implements Renderer {
 		if (location == ShaderVariable.LOCATION_UNKNOWN) {
 			updateUniformLocation(shader, uniform);
 			if (uniform.getLocation() == ShaderVariable.LOCATION_NOT_FOUND) {
-				// Ensures that and not found uniform variable is handled only once
+				// Ensures that and not found uniform variable are handled only once
 				uniform.disableUpdateRequired();
 				return;
 			}
@@ -268,21 +277,20 @@ public class Lwjgl3Renderer implements Renderer {
 
 			case Int:
 				int int1 = (int) value;
-				glUniform1f(location, int1);
+				glUniform1i(location, int1);
 				break;
 			case Int2:
 				int[] int2 = (int[]) value;
-				glUniform2f(location, int2[0], int2[1]);
+				glUniform2i(location, int2[0], int2[1]);
 				break;
 			case Int3:
-				float[] int3 = (float[]) value;
-				glUniform3f(location, int3[0], int3[1], int3[2]);
+				int[] int3 = (int[]) value;
+				glUniform3i(location, int3[0], int3[1], int3[2]);
 				break;
 			case Int4:
-				float[] int4 = (float[]) value;
-				glUniform4f(location, int4[0], int4[1], int4[2], int4[3]);
+				int[] int4 = (int[]) value;
+				glUniform4i(location, int4[0], int4[1], int4[2], int4[3]);
 				break;
-
 			case Matrix3x3:
 				fb = (FloatBuffer) value;
 				glUniformMatrix3fv(location, false, fb);
@@ -307,8 +315,11 @@ public class Lwjgl3Renderer implements Renderer {
 
 	private void bindShaderProgram(Shader shader) {
 		int shaderId = shader.getId();
-		if (ctx.boundShader == null || ctx.boundShader.getId() != shaderId) {
+		if (ctx.boundShader == null || ctx.boundShader.getId() != shaderId || shader.isUpdateRequired()) {
+			// TODO don't bind invalid shaders
 			glUseProgram(shaderId);
+			glGetError();
+			// GLUtil.checkGLError();
 			ctx.boundShader = shader;
 		}
 	}
@@ -335,7 +346,8 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 
 		for (ShaderSource source : shader.getShaderSources()) {
-			if (source.getId() != HardwareObject.UNSET_ID) {
+			if (source.getId() != HardwareObject.UNSET_ID && source.getId() >= 0) {
+				// TODO: check if a source was already attached
 				glDetachShader(shader.getId(), source.getId());
 				deleteShaderSource(source);
 			}
@@ -351,7 +363,6 @@ public class Lwjgl3Renderer implements Renderer {
 			Log.warn("Shader is not uploaded to GPU, cannot be deleted");
 			return;
 		}
-
 		glDeleteShader(source.getId());
 		source.enableUpdateRequired();
 		source.resetObject();
@@ -368,12 +379,46 @@ public class Lwjgl3Renderer implements Renderer {
 	private void updateTextureData(Texture texture, int unit) {
 		boolean created = false;
 		int id = texture.getId();
+		glGetError();
+
 		if (id == HardwareObject.UNSET_ID) {
 			id = glGenTextures();
 			texture.setId(id);
 			objectManager.register(texture);
 			created = true;
 		}
+
+		int target = bindTexture(texture, unit);
+		Image image = texture.getImage();
+		ByteBuffer imageData = image.getReader().getBuffer();
+		imageData.flip();
+
+		glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
+
+		if (created) {
+			glTexImage2D(target, 0, GL_RGB8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		}
+		glTexSubImage2D(target, 0, 0, 0, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+		glGenerateMipmap(target);
+
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glGenerateMipmap(target);
+
+		if (texture.getAnisotropicLevel() >= 1.0) {
+			if (caps.GL_EXT_texture_filter_anisotropic) {
+				glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, texture.getAnisotropicLevel());
+			}
+		}
+
+		glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 64.0f);
+
+		texture.disableUpdateRequired();
+	}
+
+	private int bindTexture(Texture texture, int unit) {
 
 		unit = Math.max(0, unit);
 		if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1) {
@@ -382,51 +427,6 @@ public class Lwjgl3Renderer implements Renderer {
 			throw new RendererExpception(description);
 		}
 
-
-		// check gpu caps set settings if required
-		// loadImageData
-		int target = bindTexture(texture, unit);
-		Image image = texture.getImage();
-		if (image != null && image.isUpdateRequired()) {
-			ByteBuffer imageData = image.getReader().getBuffer();
-			if (created) {
-				switch (target) {
-					case GL_TEXTURE_1D:
-						glTexImage1D(target,0, GL_RGBA, image.getWidth() * image.getHeight(),0, GL_RGBA, GL_UNSIGNED_INT, imageData);
-						break;
-					case GL_TEXTURE_2D:
-						glTexImage2D(target, 0, GL_RGBA, image.getWidth(), image.getHeight(),0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-						break;
-				}
-			} else {
-				switch (target) {
-					case GL_TEXTURE_1D:
-						glTexSubImage1D(target, GL_RGBA,0, image.getWidth() * image.getHeight(), GL_RGBA, GL_UNSIGNED_INT, imageData);
-						break;
-					case GL_TEXTURE_2D:
-						glTexSubImage2D(target, 0, 0, 0, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-						break;
-				}
-			}
-		}
-
-		// TODO: implementation must depend on core.texture
-		// NODE: only for the first time
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		if (texture.getAnisotropicLevel() >= 1.0) {
-			if (caps.GL_EXT_texture_filter_anisotropic) {
-				glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, texture.getAnisotropicLevel());
-			}
-		}
-
-		texture.disableUpdateRequired();
-	}
-
-	private int bindTexture(Texture texture, int unit) {
 		int id = texture.getId();
 		if(ctx.activeTextureUnit != unit) {
 			glActiveTexture(GL_TEXTURE0 + unit);
@@ -446,6 +446,7 @@ public class Lwjgl3Renderer implements Renderer {
 		switch (type) {
 			case DIMENSION_1D: return GL_TEXTURE_1D;
 			case DIMENSION_2D: return GL_TEXTURE_2D;
+			case DIMENSION_3D: return GL_TEXTURE_3D;
 			default: throw new RendererExpception("Unsupported core.texture type detected: {}", type.name());
 		}
 	}
@@ -480,8 +481,8 @@ public class Lwjgl3Renderer implements Renderer {
 			glPointSize(mesh.getPointSize());
 			ctx.pointSize = mesh.getPointSize();
 		}
-
 		renderMesh(mesh);
+
 	}
 
 	private void renderMesh(Mesh mesh) {
@@ -494,6 +495,7 @@ public class Lwjgl3Renderer implements Renderer {
 			updateBuffer(interleavedBuffer);
 		}
 
+
 		for (VertexBuffer buffer : mesh.getBuffers()) {
 			Type type = buffer.getType();
 			if (Type.Index.equals(type) ||
@@ -502,6 +504,8 @@ public class Lwjgl3Renderer implements Renderer {
 
 			setVertexAttributes(buffer, interleavedBuffer);
 		}
+
+
 
 
 		VertexBuffer indices = mesh.getBuffer(Type.Index);
@@ -538,7 +542,10 @@ public class Lwjgl3Renderer implements Renderer {
 	private void clearVertexAttributes() {
 		if (ctx.boundShader != null) {
 			for(Attribute attribute : ctx.boundShader.getAttributes()) {
-				glDisableVertexAttribArray(attribute.getLocation());
+				int location = attribute.getLocation();
+				if (location >= 0) {
+					glDisableVertexAttribArray(attribute.getLocation());
+				}
 			}
 		}
 	}
@@ -549,19 +556,27 @@ public class Lwjgl3Renderer implements Renderer {
 
 		Attribute attribute = ctx.boundShader.getAttribute(buffer.getType());
 		int location = attribute.getLocation();
+
 		if (location == Attribute.LOCATION_UNKNOWN && attribute.isUpdateRequired()) {
 			attribute.bindName(buffer);
+
 			if (attribute.getName() == null) {
 				throw new RendererExpception("An attribute requires a name, please consider to set a name for each attribute");
 			}
+
 			location = glGetAttribLocation(ctx.boundShader.getId(), attribute.getName());
-			if (location == Attribute.LOCATION_NOT_FOUND) {
-				Log.warn("The attribute {} isn't an active attribute in the core.shader {}.\nThe attribute could not be bounded to the core.shader.", attribute.getName());
+
+			if ( location < 0 ) {
+				Log.warn("The attribute {} isn't an active attribute in the shader {}.\nThe attribute could not be bounded to the shader.", attribute.getName(), ctx.boundShader.getShaderName());
 				attribute.disableUpdateRequired();
 				return;
 			}
+
 			attribute.setLocation(location);
 		}
+
+		// When invalid location lets ignore this attribute for now.
+		if (location < 0) return;
 
 		if (interleavedBuffer == null) {
 			updateBuffer(buffer);
@@ -577,7 +592,6 @@ public class Lwjgl3Renderer implements Renderer {
 			buffer.getPointer().getNormalized(),
 			buffer.getPointer().getStride(),
 			buffer.getPointer().getOffset());
-
 	}
 
 
@@ -860,9 +874,10 @@ public class Lwjgl3Renderer implements Renderer {
 			currentFps = renderedFrames;
 			renderedFrames = 0;
 			lastTime += 1.0;
-
 		}
-		fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.0f, Color.Red);
+
+		// TODO: Font renderer should use this renderer it self
+		// fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.0f, Color.Red);
 
 
 	}

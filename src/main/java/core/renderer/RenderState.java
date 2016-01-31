@@ -269,7 +269,7 @@ public class RenderState {
 
 		cullFaceMode = CullFaceMode.Back;
 		depthTestMode = TestFunc.Less;
-		blendMode = BlendFunc.Off;
+		blendMode = BlendFunc.Alpha;
 		lineWidth = 1.0f;
 		pointSize = 1.0f;
 		return this;

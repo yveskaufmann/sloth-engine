@@ -50,6 +50,14 @@ public class WaveFrontObjectLoader implements MeshLoader {
 		try(BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			parseFile(reader, vertices, normals, uvs, index);
 			buffer = buildInterleavedBuffer(vertices, normals, uvs, index);
+			if (Log.isDebugEnabled()) {
+				Log.debug("Object File Info: \n" + String.join("\n",
+					"Vertices: " + vertices.size(),
+					"Normals: " + normals.size(),
+					"TextureCoordinates: " + uvs.size(),
+					"Indexes: "  + index.size())
+				);
+			}
 			setupMesh(mesh, buffer);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -95,18 +103,18 @@ public class WaveFrontObjectLoader implements MeshLoader {
 				i+=1;
 			}
 
-			if (containsNormals) {
-				index = indexes.get(i) * 3;
-				buffer.put(normals.get(index));
-				buffer.put(normals.get(index + 1));
-				buffer.put(normals.get(index + 2));
-				i+=1;
-			}
-
 			if (containsUvs) {
 				index = indexes.get(i) * 2;
 				buffer.put(uvs.get(index));
 				buffer.put(uvs.get(index + 1));
+				i+=1;
+			}
+
+			if (containsNormals) {
+				index = indexes.get(i) * 3;
+				buffer.put(normals.get(index));
+				buffer.put(normals.get((index + 1)));
+				buffer.put(normals.get((index + 2)));
 				i+=1;
 			}
 		}
@@ -119,23 +127,21 @@ public class WaveFrontObjectLoader implements MeshLoader {
 		mesh.setMode(Mesh.Mode.TRIANGLES);
 		mesh.setBuffer(VertexBuffer.Type.Interleaved, 3, buffer);
 
-
 		int offset = 0;
 		if (containsVertices) {
 			mesh.setPointer(VertexBuffer.Type.Vertex, 3, stride, offset, VertexAttributePointer.Format.Float);
 			offset += TypeSize.FLOAT * 3;
 		}
 
+		if (containsUvs) {
+			mesh.setPointer(VertexBuffer.Type.TextCoords, 2, stride, offset,  VertexAttributePointer.Format.Float);
+			offset += TypeSize.FLOAT * 2;
+		}
+
 		if (containsNormals) {
 			mesh.setPointer(VertexBuffer.Type.Normal, 3, stride, offset,  VertexAttributePointer.Format.Float);
 			offset += TypeSize.FLOAT * 3;
 		}
-
-		if (containsUvs) {
-			mesh.setPointer(VertexBuffer.Type.TextCoords, 2, stride, offset,  VertexAttributePointer.Format.Float);
-		}
-
-
 	}
 
 	private void parseFile(BufferedReader reader, List<Float> vertices, List<Float> normals, List<Float> uvs, List<Integer> index) throws IOException {
@@ -186,7 +192,7 @@ public class WaveFrontObjectLoader implements MeshLoader {
 
 	private void parseComponents(int count, String[] components, List<Float> writeTo) {
 		// Offset +1 is required because components contains the tag too.
-		if (components.length != count + 1) throw new MeshLoaderException("In Line %d are not enough components found", lineNumber);
+		if (components.length < count + 1) throw new MeshLoaderException("In Line %d are not enough components found", lineNumber);
 		for (int i = 0; i < count; i++) {
 			writeTo.add(Float.valueOf(components[i + 1]));
 		}
@@ -201,6 +207,7 @@ public class WaveFrontObjectLoader implements MeshLoader {
 				containsVertices = indexSize > 0 && indexes[0].length() > 0;
 				containsUvs = indexSize > 1 && indexes[1].length() > 0;
 				containsNormals = indexSize > 2 && indexes[2].length() > 0;
+				Log.debug("Components Per Index " + indexSize);
 			} else if (indexSize != indexes.length) {
 				throw new MeshLoaderException("Found in consistent faces definition in line %d.", lineNumber);
 			}

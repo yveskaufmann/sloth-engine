@@ -9,13 +9,11 @@ import core.utils.HardwareObject;
 public class Texture extends HardwareObject {
 
 
-	public Image getImage() {
-		return image;
-	}
+
 
 	public enum Dimension {
 		DIMENSION_1D,
-		DIMENSION_2D,
+		DIMENSION_2D, DIMENSION_3D,
 	}
 
 	public enum MinFilter {
@@ -41,9 +39,14 @@ public class Texture extends HardwareObject {
 		S, T, R
 	}
 
-	private Dimension type;
+	private int width;
+	private int height;
+	private int depth;
+
+	private Dimension dimension;
 	private MinFilter minFilter;
 	private MagFilter magFilter;
+
 	private int anisotropicFilteringAmont;
 	private boolean requiresMipMapGeneration;
 
@@ -51,12 +54,12 @@ public class Texture extends HardwareObject {
 	private String name;
 
 
-	public Texture() {
+	Texture() {
 		super(Texture.class);
 	}
 
 	public Dimension getType() {
-		return type;
+		return dimension;
 	}
 
 	public MinFilter getMinFilter() {
@@ -84,6 +87,34 @@ public class Texture extends HardwareObject {
 	public void setAntistropicFiltering(int filterAmount) {
 		filterAmount = Math.min(0, filterAmount);
 		this.anisotropicFilteringAmont = filterAmount;
+	}
+
+	public Image getImage() {
+		return image;
+	}
+
+	void setImage(Image image) {
+		this.image = image;
+	}
+
+	void setWidth(int width) {
+		this.width = width;
+	}
+
+	void setHeight(int height) {
+		this.height = height;
+	}
+
+	void setDepth(int depth) {
+		this.depth = depth;
+	}
+
+	void setDimension(Dimension dimension) {
+		this.dimension = dimension;
+	}
+
+	void setName(String name) {
+		this.name = name;
 	}
 
 	@Override

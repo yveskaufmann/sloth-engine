@@ -3,6 +3,7 @@ package core.scene;
 import core.math.MathUtils;
 import core.math.MatrixUtils;
 import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -19,19 +20,28 @@ public class TargetCamera extends BaseCamera {
 	private float minZoom;
 	private float maxZoom;
 
+	private float horizontalAngle;
+	private float verticalAngle;
+	private float mouseSpeed;
+
 	public TargetCamera() {
 		super();
 		target = new Vector3f(0.0f, 0.0f, 0.0f);
 		zoomAmount = 1.0f;
 		minZoom = -20.f;
-		maxZoom = 20.f;
+		maxZoom = 100.f;
+		mouseSpeed = 50.0f;
 
 	}
 
 	public void update(float time) {
 
 		handleMouse(time);
-		position.mul(new Matrix3f().rotateX(mouseDirection.x).mul(new Matrix3f().rotateY(mouseDirection.y)));
+
+		Matrix3f rotationXY = new Matrix3f();
+		rotationXY.rotateX(verticalAngle).rotateY(horizontalAngle);
+		// new Matrix3f().rotateX(verticalAngle).mul(new Matrix3f().rotateY(horizontalAngle))
+		position.mul(rotationXY);
 
 		// Calculate direction vector
 		target.sub(position, direction);
@@ -60,15 +70,22 @@ public class TargetCamera extends BaseCamera {
 		Window window = Engine.getPrimaryWindow();
 		xBuffer.clear(); yBuffer.clear();
 		GLFW.glfwGetCursorPos(window.getWindowId(), xBuffer, yBuffer);
-		float xPosMouse = (float) xBuffer.get();
-		float yPosMouse = (float) yBuffer.get();
+
+		float height = window.getHeight();
+		float width = window.getWidth();
+
+		// Convert to dvi coordinates
+		float xPosMouse = (float) (xBuffer.get() / width) * 2 - 1;
+		float yPosMouse = (float) (yBuffer.get() / height) * 2 - 1;
+
+		float xCenter = (float) (width / 2.0f);
+		float yCenter = (float) (height / 2.0f);
 
 		if (GLFW.glfwGetMouseButton(window.getWindowId(), GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS) {
 			mouseDirection.set(lastMousePos).sub(xPosMouse, yPosMouse);
-			mouseDirection.normalize();
-			System.out.println(mouseDirection.x + " " + mouseDirection.y);
-
-
+			// mouseDirection.normalize();
+			horizontalAngle -= mouseSpeed * time * mouseDirection.x;
+			verticalAngle += mouseSpeed * time * mouseDirection.y;
 		}
 
 		lastMousePos.set(xPosMouse, yPosMouse);

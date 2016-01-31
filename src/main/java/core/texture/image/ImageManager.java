@@ -1,9 +1,11 @@
 package core.texture.image;
 
+import core.EngineComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +16,7 @@ import java.io.InputStream;
  * Central class for image handling
  * such as loading if images etc.
  */
-public class ImageManager {
+public class ImageManager implements EngineComponent {
 
 	/**
 	 * This array service as map in order to convert an
@@ -49,13 +51,13 @@ public class ImageManager {
 	 *
 	 * @throws IOException if an error occurs while loading the image
      */
-	public static Image loadImage(String filename) throws IOException  {
+	public Image loadImage(String filename) throws IOException  {
 		String imagePath;
 
 		imagePath = ASSETS_TEXTURE_FOLDER + filename;
 
 		try(InputStream in = new FileInputStream(imagePath)) {
-			return loadImage(in);
+			return loadImage(in, filename);
 		} catch (FileNotFoundException e) {
 			Log.error("The specified image file {} could not be found.", imagePath);
 			throw e;
@@ -74,20 +76,25 @@ public class ImageManager {
 	 *
 	 * @throws IOException if an error occurs while loading the image.
      */
-	public static Image loadImage(InputStream inputStream) throws IOException {
+	private Image loadImage(InputStream inputStream, String filename) throws IOException {
+
 		BufferedImage imageData;
 		try {
 			imageData = ImageIO.read(inputStream);
 		} catch (IOException e) {
-			Log.error("Failed to parseFile the image from the the specified file input stream.", e);
+			Log.error("Failed to load the specified image: " + filename, e);
 			throw e;
+		}
+
+		if (imageData == null) {
+			throw new IOException("Failed to load the specified image: " + filename + ": image format not supported");
 		}
 		Image.ImageFormat imageFormat = determineImageFormat(imageData);
 		Image image = new core.texture.image.BufferedImage(imageData, imageFormat);
 		return image;
 	}
 
-	private static Image.ImageFormat determineImageFormat(BufferedImage imageData) {
+	private Image.ImageFormat determineImageFormat(BufferedImage imageData) {
 		int type = imageData.getType();
 
 		if (type <= 0 || type >= AWT_IMAGE_FORMAT_MAPPING.length) {
@@ -95,5 +102,27 @@ public class ImageManager {
 		}
 
 		return AWT_IMAGE_FORMAT_MAPPING[type];
+	}
+
+	@Override
+	public void initialize() {
+
+	}
+
+	@Override
+	public void shutdown() {
+
+	}
+
+	public static void show( java.awt.Image image ) {
+		JFrame frame = new JFrame();
+		JPanel imageView = new JPanel();
+		imageView.setBackground(java.awt.Color.BLACK);
+		imageView.add(new JLabel(new ImageIcon(image)));
+		frame.add(imageView);
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setSize(image.getWidth(null),image.getHeight(null));
+		frame.setVisible(true);
+		frame.repaint();
 	}
 }

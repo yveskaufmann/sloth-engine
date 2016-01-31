@@ -3,8 +3,13 @@ package core.shader;
 import core.geometry.VertexBuffer;
 import core.renderer.Renderer;
 import core.shader.source.ShaderSource;
+import core.utils.BufferUtils;
 import core.utils.HardwareObject;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
