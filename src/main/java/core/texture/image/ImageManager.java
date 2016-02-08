@@ -1,6 +1,6 @@
 package core.texture.image;
 
-import core.EngineComponent;
+import core.engine.EngineComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +112,11 @@ public class ImageManager implements EngineComponent {
 	@Override
 	public void shutdown() {
 
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return true;
 	}
 
 	public static void show( java.awt.Image image ) {

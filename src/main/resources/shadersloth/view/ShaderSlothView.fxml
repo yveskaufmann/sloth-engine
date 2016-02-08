@@ -54,14 +54,14 @@
                                     </ScrollPane>
                                  </content>
                             </TitledPane>
-                            <TitledPane animated="false" text="untitled 3">
+                            <TitledPane animated="false" text="Uniforms">
                               <content>
-                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                                  <fx:include source="VectorEditorView.fxml"/>
                               </content>
                             </TitledPane>
-                            <TitledPane animated="false" text="untitled 1">
+                            <TitledPane animated="false" text="Lights">
                               <content>
-                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                                  <fx:include source="VectorEditorView.fxml"/>
                               </content>
                             </TitledPane>
                           </panes>
@@ -97,6 +97,7 @@
                 <Tab text="Untitled Tab 1">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+
                   </content>
                 </Tab>
                 <Tab text="Untitled Tab 2">

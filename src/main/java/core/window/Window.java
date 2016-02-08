@@ -6,7 +6,7 @@ import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import core.Engine;
+import core.engine.Engine;
 import core.utils.Cleanable;
 
 import java.nio.IntBuffer;

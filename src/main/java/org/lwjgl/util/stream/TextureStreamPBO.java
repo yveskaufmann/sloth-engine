@@ -150,7 +150,7 @@ abstract class TextureStreamPBO extends StreamBufferedPBO implements TextureStre
 	}
 
 	private void upload(final int srcPBO) {
-		// Asynchronously upload current update
+		// Asynchronously upload current onUpdate
 
 		glBindTexture(GL_TEXTURE_2D, texID);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride >> 2);

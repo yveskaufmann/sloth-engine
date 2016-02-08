@@ -1,7 +1,7 @@
 package core.renderer;
 
 
-import core.EngineComponent;
+import core.engine.EngineComponent;
 
 public class RendererManager implements EngineComponent {
 
@@ -39,6 +39,11 @@ public class RendererManager implements EngineComponent {
 		}
 
 		initialized = false;
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
 	}
 
 	/**

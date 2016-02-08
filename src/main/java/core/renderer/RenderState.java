@@ -1,6 +1,6 @@
 package core.renderer;
 
-import core.Engine;
+import core.engine.Engine;
 
 public class RenderState {
 

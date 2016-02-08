@@ -1,7 +1,7 @@
 package core.texture;
 
-import core.Engine;
-import core.EngineComponent;
+import core.engine.Engine;
+import core.engine.EngineComponent;
 import core.texture.image.Image;
 import core.texture.image.ImageManager;
 
@@ -23,6 +23,7 @@ public class TextureManager implements EngineComponent {
 
 	private final Map<String, Texture> textures = new HashMap<>();
 	private final ImageManager imageManager = new ImageManager();
+	private boolean initialized;
 
 	public Texture createTexture(String name, String imageFileName) {
 		Image image;
@@ -93,6 +94,7 @@ public class TextureManager implements EngineComponent {
 	@Override
 	public void initialize() {
 		imageManager.initialize();
+		initialized = true;
 	}
 
 	@Override
@@ -101,5 +103,11 @@ public class TextureManager implements EngineComponent {
 		textures.values().forEach((texture -> {
 			texture.deleteObject(Engine.getCurrentRenderer());
 		}));
+		initialized = false;
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
 	}
 }

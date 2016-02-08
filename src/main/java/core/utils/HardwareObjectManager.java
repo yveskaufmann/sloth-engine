@@ -3,7 +3,7 @@ package core.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import core.renderer.Renderer;
-import core.Engine;
+import core.engine.Engine;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;

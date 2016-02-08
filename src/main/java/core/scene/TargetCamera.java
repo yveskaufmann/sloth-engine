@@ -3,17 +3,16 @@ package core.scene;
 import core.math.MathUtils;
 import core.math.MatrixUtils;
 import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
-import core.Engine;
+import core.engine.Engine;
 import core.utils.BufferUtils;
 import core.window.Window;
 
 import java.nio.DoubleBuffer;
 
-public class TargetCamera extends BaseCamera {
+public class TargetCamera extends Camera {
 
 	private Vector3f target;
 	private float zoomAmount;

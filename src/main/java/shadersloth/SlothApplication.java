@@ -1,9 +1,8 @@
 package shadersloth;
 
-import core.Engine;
+import core.engine.Engine;
 import core.renderer.Renderer;
 import core.renderer.RendererManager;
-import core.scene.TargetCamera;
 import core.window.Window;
 import core.window.WindowManager;
 import javafx.beans.property.ObjectProperty;
@@ -61,8 +60,9 @@ public abstract class SlothApplication {
 			initOffRendering(window);
 			window.hide();
 		}
-
 		renderer = rendererManager.getRenderer();
+
+
 	}
 
 	protected void run() {
@@ -119,7 +119,7 @@ public abstract class SlothApplication {
 		viewPortProperty.addListener((observable, oldValue, newValue) -> {
 			window.setWidth((int) newValue.getWidth());
 			window.setHeight((int) newValue.getHeight());
-			// TODO: Don't trigger the update Window size from a external thread
+			// TODO: Don't trigger the onUpdate Window size from a external thread
 			window.updateViewportSize();
 		});
 		// TODO need implementation which works on lower the ope GL 3.0.

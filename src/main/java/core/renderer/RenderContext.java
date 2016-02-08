@@ -54,13 +54,13 @@ public class RenderContext {
 	public boolean debugOutputSynchronously;
 
 	/**
-	 * If enabled, the −wc <= zc <= wc plane equation is ignored by view volume clipping (effectively, there is no near or far plane clipping).
+	 * If enabled, the −wc <= zc <= wc plane equation is ignored by shadersloth.view volume clipping (effectively, there is no near or far plane clipping).
 	 * <a href="https://www.opengl.org/sdk/docs/man/html/glDepthRange.xhtml">See glDepthRange</a>.
 	 */
 	public boolean depthClamp;
 
 	/**
-	 * If enabled, do depth comparisons and update the depth buffer.
+	 * If enabled, do depth comparisons and onUpdate the depth buffer.
 	 * Note that even if the depth buffer exists and the depth mask is non-zero,
 	 * the depth buffer is not updated if the depth test is disabled.
 	 *
@@ -192,7 +192,7 @@ public class RenderContext {
 	public boolean scissorTest;
 
 	/**
-	 * If enabled, do stencil testing and update the stencil buffer.
+	 * If enabled, do stencil testing and onUpdate the stencil buffer.
 	 * See <a href="https://www.opengl.org/sdk/docs/man/html/glStencilFunc.xhtml">glStencilFunc</a> and
 	 *
 	 * <a href="https://www.opengl.org/sdk/docs/man/html/glStencilOp.xhtml">glStencilOp</a>.

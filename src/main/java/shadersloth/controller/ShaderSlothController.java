@@ -60,9 +60,8 @@ public class ShaderSlothController implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		renderView.fitWidthProperty().bind(renderViewRoot.widthProperty());
-		renderView.fitHeightProperty().bind(renderViewRoot.heightProperty());
-
+		renderView.setFitWidth(512);
+		renderView.setFitHeight(512);
 
 	}
 
@@ -95,7 +94,7 @@ public class ShaderSlothController implements Initializable {
 				// This method runs in the background rendering thread
 				Platform.runLater(() -> {
                     try {
-                        // If we're quitting, discard update
+                        // If we're quitting, discard onUpdate
                         if ( !renderView.isVisible() )
                             return;
 
@@ -105,11 +104,11 @@ public class ShaderSlothController implements Initializable {
                             renderView.setImage(renderImage);
                         }
 
-                        // Throttling, only update the JavaFX view once per frame.
+                        // Throttling, only onUpdate the JavaFX shadersloth.view once per frame.
                         // *NOTE*: The +1 is weird here, but apparently setPixels triggers a new pulse within the current frame.
                         // If we ignore that, we'd get a) worse performance from uploading double the frames and b) exceptions
                         // on certain configurations (e.g. Nvidia GPU with the D3D pipeline).
-                        if ( frame <= lastUpload + 1 )
+                        if ( frame <= lastUpload + 2 )
                             return;
 
                         lastUpload = frame;

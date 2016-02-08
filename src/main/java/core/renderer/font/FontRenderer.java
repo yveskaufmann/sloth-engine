@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import core.renderer.RendererExpception;
-import core.Engine;
+import core.engine.Engine;
 import core.shader.Shader;
 
 import javax.swing.*;

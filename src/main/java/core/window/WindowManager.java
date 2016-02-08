@@ -1,18 +1,13 @@
 package core.window;
 
-import core.Engine;
-import core.EngineComponent;
+import core.engine.EngineComponent;
 import org.lwjgl.glfw.GLFW;
-import core.utils.Cleanable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
@@ -55,6 +50,11 @@ public class WindowManager implements EngineComponent {
 			window.clean();
 		}
 		initialized = false;
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
 	}
 
 	private WindowManager reset() {

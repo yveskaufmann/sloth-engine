@@ -47,13 +47,13 @@ public class ShaderSlothJavaFx extends Application {
     public void start(final Stage primaryStage) {
 
 
-		final URL fxmlURL = getClass().getClassLoader().getResource("view/ShaderSlothView.fxml");
+		final URL fxmlURL = getClass().getClassLoader().getResource("shadersloth/view/ShaderSlothView.fxml");
 		final FXMLLoader fxmlLoader = new FXMLLoader(fxmlURL);
 		final Pane content;
 		try {
 			content = (Pane) fxmlLoader.load();
 		} catch (Exception e) {
-			Log.error("Failed to parseFile core.shader sloth view", e);
+			Log.error("Failed to parseFile core.shader sloth shadersloth.view", e);
 			System.exit(-1);
 			return;
 		}

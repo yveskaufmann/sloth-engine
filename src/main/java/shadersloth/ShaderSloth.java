@@ -1,6 +1,6 @@
 package shadersloth;
 
-import core.Engine;
+import core.engine.Engine;
 import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
 import core.geometry.primitives.Sphere;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 // TODO inputManager

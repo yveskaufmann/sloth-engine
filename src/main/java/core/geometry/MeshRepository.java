@@ -1,12 +1,15 @@
 package core.geometry;
 
+import core.engine.EngineComponent;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class MeshRepository {
+public class MeshRepository implements EngineComponent {
 
 	private final Map<String, Mesh> meshes = new HashMap<>();
 	private final MeshLoaderManager meshLoader = new MeshLoaderManager();
+	private boolean initialized;
 
 	public MeshRepository() {
 	}
@@ -42,5 +45,20 @@ public class MeshRepository {
 			meshes.put(fileName, mesh);
 		}
 		return mesh;
+	}
+
+	@Override
+	public void initialize() {
+		initialized = true;
+	}
+
+	@Override
+	public void shutdown() {
+		initialized = false;
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
 	}
 }

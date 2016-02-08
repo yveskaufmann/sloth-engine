@@ -198,7 +198,7 @@ public interface Renderer {
 
 	/**
 	 * Reset all GPU objects so that they are
-	 * update or created on the next frame.
+	 * onUpdate or created on the next frame.
 	 */
 	void resetGLObjects();
 

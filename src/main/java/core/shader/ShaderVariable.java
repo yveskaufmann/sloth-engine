@@ -65,7 +65,7 @@ public abstract class ShaderVariable {
 	 * Ressets this core.shader variable to it's initial
 	 * state which contains the location
 	 * is set to LOCATION_UNKNOWN and the variable
-	 * is marked as update required.
+	 * is marked as onUpdate required.
 	 */
 	public void reset() {
 		location = LOCATION_UNKNOWN;

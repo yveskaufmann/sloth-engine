@@ -4,7 +4,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-public abstract class BaseCamera {
+public abstract class Camera {
 
 	private final Quaternionf orientation;
 	protected final Vector3f position;
@@ -25,7 +25,7 @@ public abstract class BaseCamera {
 	protected float pitch;
 	protected float roll;
 
-	public BaseCamera() {
+	public Camera() {
 
 		this.orientation = new Quaternionf();
 
