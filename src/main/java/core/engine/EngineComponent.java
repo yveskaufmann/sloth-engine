@@ -2,6 +2,42 @@ package core.engine;
 
 /**
  * Interface for a engine component.
+ * A component has the following life cycle:
+ *  <code><pre>
+ *       ____________
+ *      | initialize |
+ *       -----|------
+ *            |
+ *            +<----------------------+
+ *       _____|________               |
+ *      | onFrameStart |              |
+ *       -----|--------               |
+ *       _____|________               |
+ *      | onUpdate     |              |
+ *       -----|--------               |
+ *       _____|_________              |
+ *      | onBeforeRender|             |
+ *       -----|---------              |
+ *       _____|________               |
+ *      | Render       |              |
+ *       -----|--------               |
+ *       _____|_________              |
+ *      | onAfterRender |             |
+ *       -----|---------              |
+ *       _____|______                 |
+ *      | onFrameEnd |                |
+ *       -----|------                 |
+ *            |                       |
+ *            |     Loop = true       |
+ *            +-----------------------+
+ *            |
+ *       ____________
+ *      |  shutdown  |
+ *       -----|------
+ *
+ *  </pre></code>
+ *
+ *
  */
 public interface EngineComponent {
 
@@ -24,4 +60,20 @@ public interface EngineComponent {
 	 * @return true if already initialized
 	 */
 	boolean isInitialized();
+
+	/**
+	 * Will be called before a new Frame is started
+	 */
+	default void onFrameStart() {}
+	default void onUpdate(float elapsedTime) {}
+	default void onBeforeRender(float elapsedTime) {}
+	default void onRender(float elapsedTime) {};
+	default void onAfterRender(float elapsedTime) {}
+
+	/**
+	 * Will be called after a Frame is complete.
+	 */
+	default void onFrameEnd() {}
+
+
 }

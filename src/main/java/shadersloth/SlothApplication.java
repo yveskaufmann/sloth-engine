@@ -1,5 +1,6 @@
 package shadersloth;
 
+import core.engine.AppSettings;
 import core.engine.Engine;
 import core.renderer.Renderer;
 import core.renderer.RendererManager;
@@ -21,16 +22,17 @@ import java.util.function.Supplier;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public abstract class SlothApplication {
+
 	/**
 	 * The logger
 	 */
 	private static final Logger Log = LoggerFactory.getLogger(ShaderSloth.class);
+
 	/**
 	 * Supplier for the ReadHandler which,
 	 * delivers the the rendered picture to an
 	 * external thread.
 	 */
-
 	protected WindowManager windowManager;
 	protected RendererManager rendererManager;
 	protected Renderer renderer;
@@ -44,7 +46,7 @@ public abstract class SlothApplication {
 	private CountDownLatch runningLatch;
 
 	protected void init() {
-		Engine.start();
+		Engine.start(new AppSettings());
 		windowManager = Engine.windowManager();
 		rendererManager = Engine.renderManager();
 
@@ -52,7 +54,7 @@ public abstract class SlothApplication {
 			.setTitle("Window the first")
 			.setSize(1024, 768)
 			.setResizeable(true)
-			.setGLContextVersion(3, 0)
+			.setGLContextVersion(3, 1)
 			.build()
 			.enable();
 
@@ -89,7 +91,7 @@ public abstract class SlothApplication {
 			}
 			render(elapsedTime);
 			renderer.onNewFrame();
-			window.update();
+			window.onFrameEnd();
 			lastTime = currentTime;
 
 			if ( enabledOffscreen ) {

@@ -1,8 +1,11 @@
 package core.scene;
 
+import core.input.InputManager;
+import core.input.provider.MouseInputProvider;
 import core.math.MathUtils;
 import core.math.MatrixUtils;
 import org.joml.Matrix3f;
+import org.joml.Vector2d;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -60,27 +63,21 @@ public class TargetCamera extends Camera {
 		MatrixUtils.from(zoomPosition, right, directionUp, direction, viewMatrix);
 	}
 
-	private DoubleBuffer xBuffer = BufferUtils.createDoubleBuffer(1);
-	private DoubleBuffer yBuffer = BufferUtils.createDoubleBuffer(1);
 	private Vector2f lastMousePos = new Vector2f();
 	private Vector2f mouseDirection = new Vector2f();
 
 	private void handleMouse(float time) {
 		Window window = Engine.getPrimaryWindow();
-		xBuffer.clear(); yBuffer.clear();
-		GLFW.glfwGetCursorPos(window.getWindowId(), xBuffer, yBuffer);
-
 		float height = window.getHeight();
 		float width = window.getWidth();
 
+		InputManager inputManager = Engine.getInputManager();
+		Vector2d mousePos = inputManager.getMousePosition();
 		// Convert to dvi coordinates
-		float xPosMouse = (float) (xBuffer.get() / width) * 2 - 1;
-		float yPosMouse = (float) (yBuffer.get() / height) * 2 - 1;
+		float xPosMouse = (float) (mousePos.x / width) * 2 - 1;
+		float yPosMouse = (float) (mousePos.y / height) * 2 - 1;
 
-		float xCenter = (float) (width / 2.0f);
-		float yCenter = (float) (height / 2.0f);
-
-		if (GLFW.glfwGetMouseButton(window.getWindowId(), GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS) {
+		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Middle)) {
 			mouseDirection.set(lastMousePos).sub(xPosMouse, yPosMouse);
 			// mouseDirection.normalize();
 			horizontalAngle -= mouseSpeed * time * mouseDirection.x;

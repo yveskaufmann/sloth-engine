@@ -3,6 +3,9 @@ package core.engine;
 import core.geometry.Mesh;
 import core.geometry.MeshRepository;
 import core.input.InputManager;
+import core.input.InputManagerFactory;
+import core.input.provider.glfw.GLFWKeyInputProvider;
+import core.input.provider.glfw.GLFWMouseInputProvider;
 import core.renderer.Renderer;
 import core.renderer.RendererManager;
 import core.shader.Shader;
@@ -27,8 +30,6 @@ public class Engine {
 		enableLogging();
 	}
 
-
-
 	private static ShaderRepository shaderRepository;
 	private static MeshRepository meshRepository;
 	private static RendererManager renderManager;
@@ -37,15 +38,17 @@ public class Engine {
 	private static InputManager inputManager;
 	private static boolean initialized;
 	private static List<EngineComponent> components = new ArrayList<>();
+	private static AppSettings appSettings = new AppSettings();
 
 	private Engine() {}
 
 	/**
 	 * Starts the engine and all its components.
+	 * @param settings
 	 */
 	static
-	public void start() {
-
+	public void start(AppSettings settings) {
+		appSettings = settings;
 		if (initialized) {
 			throw new IllegalArgumentException("The Engine is already initialized");
 		}
@@ -55,6 +58,7 @@ public class Engine {
 		}
 
 		registerDefaultComponents();
+
 		initialized = true;
 	}
 
@@ -67,6 +71,7 @@ public class Engine {
 		meshRepository = register(new MeshRepository(), MeshRepository.class);
 		shaderRepository = register(new ShaderRepository(), ShaderRepository.class);
 		textureManager = register(new TextureManager(), TextureManager.class);
+		inputManager = register(InputManagerFactory.createInputManager(Engine.getPrimaryWindow()), InputManager.class);
 	}
 
 	/**
@@ -81,7 +86,7 @@ public class Engine {
 	private static <T extends EngineComponent> T register(EngineComponent component, Class<T> type) {
 		if (! components.contains(component)) {
 			components.add(component);
-			if (! component.isInitialized()) {
+			if (!component.isInitialized()) {
 				component.initialize();
 			}
 		}
@@ -96,8 +101,14 @@ public class Engine {
 	public static void unregister(EngineComponent component) {
 		if (components.contains(component) && component.isInitialized()) {
 			components.remove(component);
-			component.shutdown();
+			if (component.isInitialized()) {
+				component.shutdown();
+			}
 		}
+	}
+
+	public static AppSettings getSettings() {
+		return appSettings;
 	}
 
 	/**
@@ -105,15 +116,10 @@ public class Engine {
 	 */
 	static
 	public void shutdown() {
-		if (!initialized) {
+		if (! initialized) {
 			throw new IllegalArgumentException("The Engine isn't initialized");
 		}
-
-		for( EngineComponent component : components) {
-			if (component.isInitialized()) {
-				component.shutdown();
-			}
-		}
+		onShutdown();
 		components.clear();
 		GLFW.glfwTerminate();
 		initialized = false;
@@ -141,7 +147,7 @@ public class Engine {
 
 	static
 	public Window getPrimaryWindow() {
-		return windowManager.getLastActiveWindow();
+		return windowManager.getPrimaryWindow();
 	}
 
 	static
@@ -168,31 +174,47 @@ public class Engine {
 		}
 	}
 
-	public static void onFrameStart() {
+	public static void onInit() {
+		components.stream().filter((c) -> !c.isInitialized()).forEach(EngineComponent::initialize);
 	}
 
-	/**
-	 * Updates all registered onUpdate required components.
-	 * This method called once per frame and before all
-	 * the rendering happen.
-	 *
-	 * @param time the difference to the last frame
-	 */
-	static
-	public void onUpdate(float time) {
-		for( EngineComponent component : components) {
-			if ( component.isInitialized() && component instanceof UpdateRequiredComponent ) {
-				UpdateRequiredComponent.class.cast(component).update(time);
-			}
-		}
+	public static void onFrameStart() {
+		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameStart);
+	}
+
+	public static void onUpdate(float elapsedTime) {
+		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onUpdate(elapsedTime));
 	}
 
 	public static void onBeforeRender(float elapsedTime) {
+		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onBeforeRender(elapsedTime));
+	}
+
+	public static void onRender(float elapsedTime) {
+		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onRender(elapsedTime));
 	}
 
 	public static void onAfterRender(float elapsedTime) {
+		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onAfterRender(elapsedTime));
 	}
 
 	public static void onFrameEnd() {
+		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameEnd);
+	}
+
+	public static void onShutdown() {
+		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::shutdown);
+	}
+
+	public static boolean shouldExit() {
+		return windowManager.getPrimaryWindow().shouldClose();
+	}
+
+	public static void requestExit() {
+		windowManager.getPrimaryWindow().requestClose();
+	}
+
+	public static InputManager getInputManager() {
+		return inputManager;
 	}
 }

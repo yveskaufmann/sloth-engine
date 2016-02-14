@@ -8,15 +8,17 @@ import static core.input.provider.MouseInputProvider.MouseButton;
  */
 public class MouseEvent extends InputEvent {
 
-
-
-	private int x;
-	private int y;
+	private double x;
+	private double y;
 	private double mouseWheelAmount;
 	private MouseButton button;
 	private boolean pressed;
 
-	public MouseEvent(MouseButton button, boolean pressed, int x, int y, double mouseWheel) {
+	public MouseEvent(double x, double y, double mouseWheel) {
+		this(MouseButton.None, false, x, y, mouseWheel);
+	}
+
+	public MouseEvent(MouseButton button, boolean pressed, double x, double y, double mouseWheel) {
 		this.x = x;
 		this.y = y;
 		this.mouseWheelAmount = mouseWheel;
@@ -52,7 +54,7 @@ public class MouseEvent extends InputEvent {
 	 *
 	 * @return x position in pixels.
 	 */
-	public int getX() {
+	public double getX() {
 		return x;
 	}
 
@@ -61,7 +63,7 @@ public class MouseEvent extends InputEvent {
 	 *
 	 * @return y position in pixels.
 	 */
-	public int getY() {
+	public double getY() {
 		return y;
 	}
 

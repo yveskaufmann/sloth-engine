@@ -103,7 +103,7 @@ public class JavaFXKeyProvider
 			keystate.clear(keyButton.ordinal());
 		}
 
-		KeyEvent keyEvent = new KeyEvent(keyButton, pressed, event.isMetaDown(), event.isAltDown(), event.isShiftDown());
+		KeyEvent keyEvent = new KeyEvent(keyButton, pressed, event.isMetaDown(), event.isAltDown(), event.isShiftDown(), event.isControlDown());
 		if (keyEvent.getKeyButton() != KeyButton.None) {
 			synchronized (eventQueue) {
 				eventQueue.add(keyEvent);
@@ -311,6 +311,30 @@ public class JavaFXKeyProvider
 				return KeyButton.F11;
 			case F12:
 				return KeyButton.F12;
+			case F13:
+				return KeyButton.F13;
+			case F14:
+				return KeyButton.F14;
+			case F15:
+				return KeyButton.F15;
+			case F16:
+				return KeyButton.F16;
+			case F17:
+				return KeyButton.F17;
+			case F18:
+				return KeyButton.F18;
+			case F19:
+				return KeyButton.F19;
+			case F20:
+				return KeyButton.F20;
+			case F21:
+				return KeyButton.F21;
+			case F22:
+				return KeyButton.F22;
+			case F23:
+				return KeyButton.F23;
+			case F24:
+				return KeyButton.F24;
 			case PRINTSCREEN:
 				return KeyButton.Print;
 			case INSERT:
@@ -320,9 +344,9 @@ public class JavaFXKeyProvider
 			case COMMAND:
 				return KeyButton.Meta;
 			case BACK_QUOTE:
-				return KeyButton.BackQuote;
+				return KeyButton.GraveAccent;
 			case QUOTE:
-				return KeyButton.SingleQuote;
+				return KeyButton.Apostrophe;
 			case ALT_GRAPH:
 				return KeyButton.AltGraph;
 		}

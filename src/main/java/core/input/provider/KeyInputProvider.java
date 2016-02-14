@@ -21,7 +21,20 @@ public interface KeyInputProvider extends InputProvider {
 		F10,
 		F11,
 		F12,
-		BackQuote,
+		F13,
+		F14,
+		F15,
+		F16,
+		F17,
+		F18,
+		F19,
+		F20,
+		F21,
+		F22,
+		F23,
+		F24,
+		F25,
+		GraveAccent,
 		Digit0,
 		Digit1,
 		Digit2,
@@ -59,7 +72,7 @@ public interface KeyInputProvider extends InputProvider {
 		K,
 		L,
 		Semicolon,
-		SingleQuote,
+		Apostrophe,
 		BackSlash,
 		Enter,
 		Shift,
@@ -107,7 +120,7 @@ public interface KeyInputProvider extends InputProvider {
 		Pause,
 		SCROLL_LOCK,
 		Print,
-		None;
+		None, NumPad_Enter;
 
 	}
 

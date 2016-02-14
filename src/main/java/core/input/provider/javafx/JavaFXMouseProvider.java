@@ -35,6 +35,8 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	 */
 	private int previousY;
 
+
+
 	/**
 	 * Creates a JavaFXMouseProvider.
 	 *

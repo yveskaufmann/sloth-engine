@@ -1,5 +1,7 @@
 package core.window;
 
+import core.engine.AppSettings;
+import core.engine.Engine;
 import core.engine.EngineComponent;
 import org.lwjgl.glfw.GLFW;
 
@@ -17,7 +19,7 @@ public class WindowManager implements EngineComponent {
 
 	public static final int DEFAULT_WIDTH = 1024;
 	public static final int DEFAULT_HEIGHT = 768;
-	public static final String DEFAULT_TITLE = "Untitled";
+	public static final String DEFAULT_TITLE = "EngineApp";
 
 	private Map<Integer, Integer> windowHints = null;
 	private List<Window> windows = null;
@@ -37,19 +39,23 @@ public class WindowManager implements EngineComponent {
 		setHeight(DEFAULT_HEIGHT);
 		setTitle(DEFAULT_TITLE);
 		reset();
+		// Creates a primary window which is required for rendering
+		create(Engine.getSettings());
+
 		initialized = true;
 	}
 
 	@Override
 	public void shutdown() {
-		if (!initialized) {
+		if (! initialized) {
 			throw new IllegalStateException("The WindowManager is already initialized");
 		}
 		reset();
 		for (Window window : windows) {
-			window.clean();
+			window.destroy();
 		}
 		initialized = false;
+
 	}
 
 	@Override
@@ -119,11 +125,16 @@ public class WindowManager implements EngineComponent {
 		return this;
 	}
 
-	public Window getLastActiveWindow() {
+	public Window getPrimaryWindow() {
 		if (windows.size() == 0) return null;
-		return windows.get(windows.size() - 1);
+		return windows.get(0);
 	}
 
+	/**
+	 * Creates a GLFW Window with the previous
+	 *
+	 * @return a new created window.
+     */
 	public Window build() {
 		windowHints.forEach(GLFW::glfwWindowHint);
 
@@ -140,4 +151,38 @@ public class WindowManager implements EngineComponent {
 	}
 
 
+	/**
+	 * Creates a window which is specified
+	 * by a assigned AppSettings Object.
+	 *
+	 * @param settings the settings object which describes the new window.
+	 * @return the new created disabled window.
+     */
+	public Window create(AppSettings settings) {
+		 Window window =
+			 setTitle(settings.getString(AppSettings.Title, DEFAULT_TITLE))
+			.setResizeable(settings.getBoolean(AppSettings.Resizeable, false))
+			.setGLContextVersion(
+				settings.getInteger(AppSettings.GLMajorVersion, 3),
+				settings.getInteger(AppSettings.GLMinorVersion, 0))
+			.setSize(
+				settings.getInteger(AppSettings.Width, DEFAULT_WIDTH),
+				settings.getInteger(AppSettings.Height, DEFAULT_HEIGHT)
+			).build().enable();
+
+		if (settings.getBoolean(AppSettings.VSync, false)) {
+			window.enableVsync();
+		}
+
+		return window;
+	}
+
+	@Override
+	public void onFrameEnd() {
+		for (Window window : windows) {
+			if (window.isEnabled()) {
+				window.onFrameEnd();
+			}
+		}
+	}
 }

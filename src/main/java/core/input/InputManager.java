@@ -1,12 +1,14 @@
 package core.input;
 
-import core.engine.UpdateRequiredComponent;
+import core.engine.EngineComponent;
 import core.input.event.InputEvent;
 import core.input.event.KeyEvent;
 import core.input.event.MouseEvent;
 import core.input.provider.KeyInputProvider;
 import core.input.provider.MouseInputProvider;
-import org.joml.Vector2i;
+import org.joml.Vector2d;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -21,7 +23,9 @@ import static core.input.provider.KeyInputProvider.KeyButton;
  * Main entry point for input management like,
  * check key state, mouse states and so on.
  */
-public class InputManager implements InputReceiver, UpdateRequiredComponent {
+public class InputManager implements InputReceiver, EngineComponent {
+
+	private static final Logger Log = LoggerFactory.getLogger(InputManager.class);
 
 	private final MouseInputProvider mouseProvider;
 	private final KeyInputProvider keyProvider;
@@ -29,7 +33,7 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	private final Queue<InputEvent> eventQueue;
 
 	private final BitSet mouseKeySet;
-	private final Vector2i mousePosition;
+	private final Vector2d mousePosition;
 	private double mouseWheelAmount;
 	private boolean isInitialized;
 
@@ -48,7 +52,7 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 		this.eventQueue = new ConcurrentLinkedQueue<>();
 
 		this.mouseKeySet = new BitSet(0x3);
-		this.mousePosition = new Vector2i();
+		this.mousePosition = new Vector2d();
 		this.mouseWheelAmount = 0;
 	}
 
@@ -58,6 +62,7 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	 */
 	@Override
 	public void initialize() {
+		Log.info("Initialize InputManager with [" + mouseProvider.getClass().getName() + ", " + keyProvider.getClass().getName() + "]");
 		mouseProvider.setInputReceiver(this);
 		keyProvider.setInputReceiver(this);
 		mouseProvider.initialize();
@@ -70,6 +75,7 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	 */
 	@Override
 	public void shutdown() {
+		Log.info("Shutdown InputManager with [" + mouseProvider.getClass().getName() + ", " + keyProvider.getClass().getName() + "]");
 		mouseProvider.shutdown();
 		keyProvider.shutdown();
 		isInitialized = false;
@@ -85,10 +91,11 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	 * be called one time per frame before all other onUpdate
 	 * routines.
 	 *
-	 * @param time the time has passed since the last frame.
+	 * @param elaspedTime the time that has passed since the last frame.
 	 */
 	@Override
-	public void update(float time) {
+	public void onUpdate(float elaspedTime) {
+		mouseWheelAmount = 0.0f;
 		mouseProvider.update();
 		keyProvider.update();
 		delegateEvents();
@@ -196,7 +203,7 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	 *
 	 * @return the mouse position.
 	 */
-	public Vector2i getMousePosition() {
+	public Vector2d getMousePosition() {
 		return mousePosition;
 	}
 
@@ -218,6 +225,4 @@ public class InputManager implements InputReceiver, UpdateRequiredComponent {
 	public boolean isMouseButtonPressed(MouseButton mouseButton) {
 		return mouseKeySet.get(mouseButton.ordinal());
 	}
-
-
 }

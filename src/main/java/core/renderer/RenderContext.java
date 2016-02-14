@@ -6,9 +6,6 @@ import static core.renderer.RenderState.*;
 
 public class RenderContext {
 
-
-
-
 	RenderContext() {
 		reset();
 	}
@@ -290,12 +287,6 @@ public class RenderContext {
 	 */
 	public int boundElementArrayVboBuffer;
 
-
-	/**
-	 * If the fps counter should be enabled
-	 */
-	public boolean fpsCounterEnabled;
-
 	/**
 	 * Viewport start x coordinate
 	 */
@@ -366,7 +357,6 @@ public class RenderContext {
 		textureCubeMapSeamless = false;
 		programPointSize = false;
 		wireframe = false;
-		fpsCounterEnabled = false;
 		depthTestMode = TestFunc.Off;
 		blendMode = BlendFunc.Off;
 		logicOperation = LogicalPixelOperation.Copy;

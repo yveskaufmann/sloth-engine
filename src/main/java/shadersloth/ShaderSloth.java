@@ -1,12 +1,19 @@
 package shadersloth;
 
+import core.engine.AppSettings;
 import core.engine.Engine;
+import core.engine.EngineApp;
 import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
 import core.geometry.primitives.Sphere;
+import core.input.InputListener;
+import core.input.InputManager;
+import core.input.event.KeyEvent;
+import core.input.event.MouseEvent;
 import core.light.LightList;
 import core.light.PointLight;
 import core.math.Color;
+import core.renderer.FPSCounter;
 import core.renderer.RenderState;
 import core.scene.TargetCamera;
 import core.shader.Shader;
@@ -20,13 +27,8 @@ import java.io.IOException;
 import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
 
-// TODO inputManager
-// TODO offscreen rendering support
-public class ShaderSloth extends SlothApplication {
-
-	private GLFWKeyCallback keyCallback;
+public class ShaderSloth extends EngineApp implements InputListener {
 
 	// TODO Encapsulate in scene
 	private Matrix4f modelMatrix = new Matrix4f();
@@ -34,14 +36,12 @@ public class ShaderSloth extends SlothApplication {
 	private Matrix4f viewMatrix = new Matrix4f();
 	private Matrix4f modelViewMatrix = new Matrix4f();
 	private Matrix4f projectionMatrix = new Matrix4f();
-	private Matrix4f modelViewProjMatrix = new Matrix4f();
+	private Matrix4f modelViewProjectionMatrix = new Matrix4f();
 
 
 	// TODO: should provided by a special node type: Geometry
 	private Mesh rabbit;
 	private Vector3f cubePos;
-
-	// TODO: InputHandling should be managed by dedicated class
 	private TargetCamera camera;
 	float zoomLevel;
 
@@ -51,7 +51,9 @@ public class ShaderSloth extends SlothApplication {
 
 	@Override
 	protected void prepare() {
-		addInputHandler();
+		Engine.register(new FPSCounter());
+		inputManager.addListener(this);
+
 		camera = new TargetCamera();
 		zoomLevel = 1.0f;
 
@@ -79,6 +81,9 @@ public class ShaderSloth extends SlothApplication {
 
 	@Override
 	public void update(float elapsedTime) {
+
+		zoomLevel -= 30.0 * elapsedTime * inputManager.getMouseWheelAmount();
+
 		modelMatrix.identity().scale(1.0f).translate(cubePos);
 		camera.setPosition(0f, 5f, 2f);
 		camera.setTarget(cubePos);
@@ -88,7 +93,7 @@ public class ShaderSloth extends SlothApplication {
 		viewMatrix.set(camera.getViewMatrix());
 		modelViewMatrix.identity().set(viewMatrix).mul(modelMatrix, modelViewMatrix);
 		projectionMatrix.identity().setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
-		modelViewProjMatrix.identity().mul(projectionMatrix).mul(modelViewMatrix);
+		modelViewProjectionMatrix.identity().mul(projectionMatrix).mul(modelViewMatrix);
 		viewMatrix.normal(normalMatrix);
 	}
 
@@ -96,7 +101,7 @@ public class ShaderSloth extends SlothApplication {
 	public void render(float elapsedTime) throws IOException {
 
 		renderer.clearBuffers(true, true, false);
-		diffuseShader.getUniform("mvp").setValue(modelViewProjMatrix);
+		diffuseShader.getUniform("mvp").setValue(modelViewProjectionMatrix);
 		diffuseShader.getUniform("modelViewMatrix").setValue(modelViewMatrix);
 		diffuseShader.getUniform("normalMatrix").setValue(normalMatrix);
 		diffuseShader.getUniform("diffuseTexture").setValue(1);
@@ -106,17 +111,13 @@ public class ShaderSloth extends SlothApplication {
 		renderer.setTexture(1, rabbitDiffuse);
 		renderer.drawMesh(rabbit);
 		// renderWithWireframe(diffuseShader);
-
-
 	}
 
 	@Override
 	protected void cleanUp() {
-		keyCallback.release();
 	}
 
 	private void renderWithWireframe(Shader diffuseShader) throws IOException {
-
 
 		// Render the thick wireframe version.
 		rendererManager.getRenderState()
@@ -139,76 +140,42 @@ public class ShaderSloth extends SlothApplication {
 		diffuseShader.getUniform("isWireframe").setValue(0);
 	}
 
-	private void addInputHandler() {
-		glfwSetKeyCallback(window.getWindowId(), keyCallback = new GLFWKeyCallback() {
-			@Override
-			public void invoke(long window, int key, int scancode, int action, int mods) {
+	@Override
+	public void onMouseEvent(MouseEvent event) {
+		double mouseWheelAmount = event.getMouseWheelAmount();
 
-				RenderState state = rendererManager.getRenderState();
 
-				if (key == GLFW_KEY_ESCAPE) {
-					glfwSetWindowShouldClose(window, GL_TRUE);
-				}
+	}
 
-				if (key == GLFW_KEY_C && action == GLFW_PRESS ) {
+	@Override
+	public void onKeyEvent(KeyEvent keyEvent) {
+		RenderState state = rendererManager.getRenderState();
+		if (keyEvent.isPressed()) {
+			switch (keyEvent.getKeyButton()) {
+				case Esc: Engine.requestExit();
+				case P: rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear); break;
+				case O: rabbitDiffuse.setMinFilter(Texture.MinFilter.Bilinear); break;
+				case I: rabbitDiffuse.setMinFilter(Texture.MinFilter.NearestNeighbour); break;
+				case A: zoomLevel += 0.1; break;
+				case Q: zoomLevel -= 0.1; break;
+				case C:
 					if (state.getCullFaceMode() == CullFaceMode.Off) {
 						state.setCullFaceMode(CullFaceMode.Back);
 					} else {
 						state.setCullFaceMode(CullFaceMode.Off);
 					}
 					state.apply();
-				}
+					break;
+				case W: state.enableWireframe(!state.isWireframe()).apply(); break;
+				case Up: cubePos.add(0.0f, 0.2f, 0.0f); break;
+				case Left: cubePos.add(-0.2f, 0.0f, 0.0f); break;
+				case Right: cubePos.add(0.2f, 0.0f, 0.0f); break;
+				case Down: cubePos.add(0.0f, -0.2f, 0.0f); break;
 
-
-				if (key == GLFW_KEY_W && action == GLFW_PRESS ) {
-					state.enableWireframe(!state.isWireframe());
-					state.apply();
-				}
-
-				if (key == GLFW_KEY_UP && action == GLFW_REPEAT) {
-					cubePos.add(0.0f, 0.2f, 0.0f);
-				}
-
-				if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) {
-					cubePos.add(0.0f, -0.2f, 0.0f);
-				}
-
-				if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) {
-					cubePos.add(-0.2f, 0.0f, 0.0f);
-				}
-
-				if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) {
-					cubePos.add(0.2f, 0.0f, 0.0f);
-				}
-
-
-				if (key == GLFW_KEY_Q && action == GLFW_REPEAT) {
-
-					zoomLevel -= 0.1;
-					System.out.println("Q pressed " + zoomLevel);
-				}
-
-				if (key == GLFW_KEY_A && action == GLFW_REPEAT) {
-					zoomLevel += 0.1;
-					System.out.println("A Pressed " + zoomLevel);
-				}
-
-				if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-					rabbitDiffuse.setMinFilter(Texture.MinFilter.NearestNeighbour);
-				}
-
-				if (key == GLFW_KEY_O && action == GLFW_PRESS) {
-					rabbitDiffuse.setMinFilter(Texture.MinFilter.Bilinear);
-				}
-
-				if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-					rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear);
-				}
 
 			}
-		});
+		}
 	}
-
 
 	/**
 	 * Run the core.renderer without offscreen support, exists only for
@@ -218,9 +185,10 @@ public class ShaderSloth extends SlothApplication {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		SlothApplication box = new ShaderSloth();
-		box.run();
+		EngineApp sandbox = new ShaderSloth();
+		sandbox.start(new AppSettings());
 	}
+
 
 
 }

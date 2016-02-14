@@ -15,7 +15,7 @@ import java.nio.IntBuffer;
  * The core.window class which encapsulates the
  * core.window which is used to show the rendering result.
  */
-public class Window implements Cleanable {
+public class Window {
 
 	private static final Logger Log = LoggerFactory.getLogger(Window.class);
 
@@ -30,8 +30,9 @@ public class Window implements Cleanable {
 	private enum State {
 		ENABLED,
 		DISABLED,
-		CLEANED;
+		CLEANED
 	}
+
 	Window(long windowId, String title) {
 		this.windowId = windowId;
 		this.title = title;
@@ -121,7 +122,7 @@ public class Window implements Cleanable {
 		return this;
 	}
 
-	public Window update() {
+	public Window onFrameEnd() {
 		GLFW.glfwSwapBuffers(windowId);
 		GLFW.glfwPollEvents();
 		return this;
@@ -157,10 +158,9 @@ public class Window implements Cleanable {
 		}
 	}
 
-	@Override
-	public void clean() {
+	public void destroy() {
 		if (state == State.CLEANED) {
-			throw new IllegalArgumentException("The Window was already cleaned");
+			throw new IllegalArgumentException("The Window was already destroyed");
 		}
 
 		if (state == State.DISABLED) {
@@ -184,7 +184,10 @@ public class Window implements Cleanable {
 		int h =  getHeight();
 
 		aspectRatio = ((float)w / (float)h);
-		Engine.renderManager().updateViewportSize(0, 0, w, h);
+
+		if (Engine.renderManager() != null) {
+			Engine.renderManager().updateViewportSize(0, 0, w, h);
+		}
 	}
 
 	/**
@@ -194,5 +197,9 @@ public class Window implements Cleanable {
      */
 	public float getAspectRatio() {
 		return aspectRatio;
+	}
+
+	public boolean isEnabled() {
+		return state == State.ENABLED;
 	}
 }

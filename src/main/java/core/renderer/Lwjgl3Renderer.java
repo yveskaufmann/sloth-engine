@@ -42,10 +42,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 	private HardwareObjectManager objectManager;
 	private RenderContext ctx;
-	private double lastTime;
-	private int renderedFrames;
 	private FontRenderer fontRenderer;
-	private int currentFps;
 	private GLCapabilities caps;
 
 	public Lwjgl3Renderer() {
@@ -55,9 +52,8 @@ public class Lwjgl3Renderer implements Renderer {
 	private void initialize() {
 		objectManager = new HardwareObjectManager();
 		ctx = new RenderContext();
-		lastTime = glfwGetTime();
+		// TODO extract to different component
 		fontRenderer = new FontRenderer(new Font("Courier", Font.PLAIN, 32));
-		renderedFrames = 0;
 		caps = GL.getCapabilities();
 	}
 
@@ -820,8 +816,6 @@ public class Lwjgl3Renderer implements Renderer {
 			ctx.cullFaceMode = state.getCullFaceMode();
 		}
 
-		ctx.fpsCounterEnabled = state.isFPSCounterEnabled();
-
 		if (state.getBlendMode() != ctx.blendMode) {
 			switch (state.getBlendMode()) {
 				case Off:
@@ -914,27 +908,6 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void onNewFrame() {
-		if (ctx.fpsCounterEnabled) {
-			fpsCounter();
-		}
 		objectManager.deleteAllUnused();
-
 	}
-
-	public void fpsCounter() {
-		double currentTime = glfwGetTime();
-		renderedFrames++;
-		if (currentTime - lastTime >= 1.0) {
-			currentFps = renderedFrames;
-			renderedFrames = 0;
-			lastTime += 1.0;
-		}
-
-		// TODO: Font renderer should use this renderer it self
-		// fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.0f, Color.Red);
-
-
-	}
-
-
 }

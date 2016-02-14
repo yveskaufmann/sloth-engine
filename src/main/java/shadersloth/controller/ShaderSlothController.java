@@ -137,8 +137,8 @@ public class ShaderSlothController implements Initializable {
 			System.out.println(newValue.toString());
 		}));
 
-		sandbox = new ShaderSloth();
-		sandbox.start(runningLatch, this::getReadHandler, renderView.viewportProperty());
+		//sandbox = new ShaderSloth();
+		//sandbox.start(runningLatch, this::getReadHandler, renderView.viewportProperty());
 	}
 
 }

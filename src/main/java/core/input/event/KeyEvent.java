@@ -42,6 +42,11 @@ public class KeyEvent extends InputEvent {
 	private boolean shiftkey;
 
 	/**
+	 * Flag which indicates if a ctrl keyButton was hold down while a keyButton was pressed or released.
+	 */
+	private boolean ctrlKey;
+
+	/**
 	 * Creates a keyButton event.
 	 *
 	 * @param keyButton
@@ -77,12 +82,13 @@ public class KeyEvent extends InputEvent {
 	 * 			Indicator if a shift keyButton was pressed
 	 * 			while this event was triggered.
 	 */
-	public KeyEvent(KeyButton keyButton, boolean pressed, boolean metakey, boolean altkey, boolean shiftkey) {
+	public KeyEvent(KeyButton keyButton, boolean pressed, boolean metakey, boolean altkey, boolean shiftkey, boolean ctrlKey) {
 		this.keyButton = keyButton;
 		this.pressed = pressed;
 		this.metakey = metakey;
 		this.altkey = altkey;
 		this.shiftkey = shiftkey;
+		this.ctrlKey = ctrlKey;
 	}
 
 	/**
@@ -137,6 +143,17 @@ public class KeyEvent extends InputEvent {
 		return shiftkey;
 	}
 
+	/**
+	 * Indicates if a keyButton and a ctrl keyButton was pressed
+	 * simultaneously.
+	 *
+	 * @return true if the keyButton and ctrl keyButton was pressed
+	 * simultaneously.
+	 */
+	public boolean isControlkeyPressed() {
+		return ctrlKey;
+	}
+
 	@Override
 	public String toString() {
 		return "KeyEvent{" +
@@ -145,6 +162,7 @@ public class KeyEvent extends InputEvent {
 				", metakey=" + metakey +
 				", altkey=" + altkey +
 				", shiftkey=" + shiftkey +
+				", ctrlkey=" + ctrlKey +
 				'}';
 	}
 }
