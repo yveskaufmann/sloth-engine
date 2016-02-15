@@ -6,7 +6,7 @@ package core.shader;
 public abstract class ShaderVariable {
 
 	/**
-	 * This prefix is put in front of shader variables
+	 * This prefix is set in front of shader variables
 	 * if they are provided from the internal engine.
 	 */
 	public static final String VAR_PREFIX = "sl_";

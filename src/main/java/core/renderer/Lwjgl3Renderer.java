@@ -7,10 +7,8 @@ import core.math.Color;
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
-import org.lwjgl.opengl.GLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import core.renderer.font.FontRenderer;
 import core.shader.*;
 import core.shader.source.ShaderSource;
 import core.texture.Texture;
@@ -18,11 +16,9 @@ import core.texture.image.Image;
 import core.utils.HardwareObject;
 import core.utils.HardwareObjectManager;
 
-import java.awt.*;
 import java.nio.*;
 
 import static core.geometry.VertexBuffer.Type;
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
@@ -31,7 +27,6 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
-import static org.lwjgl.opengl.GL43.GL_CAVEAT_SUPPORT;
 import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 import static core.renderer.RenderState.CullFaceMode;
 import static core.renderer.RenderState.TestFunc;
@@ -42,7 +37,6 @@ public class Lwjgl3Renderer implements Renderer {
 
 	private HardwareObjectManager objectManager;
 	private RenderContext ctx;
-	private FontRenderer fontRenderer;
 	private GLCapabilities caps;
 
 	public Lwjgl3Renderer() {
@@ -53,7 +47,6 @@ public class Lwjgl3Renderer implements Renderer {
 		objectManager = new HardwareObjectManager();
 		ctx = new RenderContext();
 		// TODO extract to different component
-		fontRenderer = new FontRenderer(new Font("Courier", Font.PLAIN, 32));
 		caps = GL.getCapabilities();
 	}
 
@@ -141,8 +134,7 @@ public class Lwjgl3Renderer implements Renderer {
 		if (shader.isUpdateRequired()) {
 			updateShaderData(shader);
 		}
-		// TODO: check if shader is valid
-		// if un valid assign a fallback shader.
+		// TODO: fallback shader
 		bindShaderProgram(shader);
 		updateShaderUniforms(shader);
 	}
@@ -398,7 +390,7 @@ public class Lwjgl3Renderer implements Renderer {
 		glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
 
 		if (created) {
-			glTexImage2D(target, 0, GL_RGB8, texture.getWidth(), texture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
+			glTexImage2D(target, 0, GL_RGBA, texture.getWidth(), texture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 			glGenerateMipmap(target);
 		}
 
@@ -677,7 +669,6 @@ public class Lwjgl3Renderer implements Renderer {
 
 		}
 	}
-
 
 
 	@Override

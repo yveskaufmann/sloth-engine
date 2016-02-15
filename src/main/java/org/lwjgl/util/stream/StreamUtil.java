@@ -102,8 +102,7 @@ public final class StreamUtil {
 	}
 
 	static boolean isNVIDIA(final GLCapabilities caps) {
-		return  false;
-		// return caps.GL_NV_vertex_program || caps.GL_NV_register_combiners || caps.GL_NV_;
+		return  caps.GL_NV_gpu_shader5;
 	}
 
 	static int getStride(final int width) {

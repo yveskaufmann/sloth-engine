@@ -19,7 +19,7 @@ out vec4 fragColor;
 void main(){
 
 	// Light emission properties
-	// You probably want to put them as uniforms
+	// You probably want to set them as uniforms
 
 	vec3 LightColor = vec3(1.0f,0.4f,0.5f);
 	// vec3 LightColor = vec3(1.0f,1.0f,1.0f); Uebung 15

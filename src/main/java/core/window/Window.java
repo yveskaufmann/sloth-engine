@@ -7,7 +7,6 @@ import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import core.engine.Engine;
-import core.utils.Cleanable;
 
 import java.nio.IntBuffer;
 
@@ -22,7 +21,7 @@ public class Window {
 	private long windowId;
 	private String title;
 	private GLFWWindowSizeCallback sizeCallback;
-	private boolean vsync = true;
+	private boolean isVsyncEnabled = true;
 	private State state;
 	private boolean isVisible = false;
 	private float aspectRatio = 0.0f;
@@ -37,7 +36,7 @@ public class Window {
 		this.windowId = windowId;
 		this.title = title;
 		this.state = State.DISABLED;
-		this.vsync = false;
+		this.isVsyncEnabled = false;
 		enableVsync();
 	}
 
@@ -74,7 +73,6 @@ public class Window {
 	}
 
 	public Window setSize(int width, int height) {
-
 		width = Math.abs(width);
 		height = Math.abs(height);
 
@@ -129,16 +127,16 @@ public class Window {
 	}
 
 	public void enableVsync() {
-		if (!vsync) {
+		if (!isVsyncEnabled) {
 			GLFW.glfwSwapInterval(1);
-			vsync = true;
+			isVsyncEnabled = true;
 		}
 	}
 
 	public void disableVsync() {
-		if (vsync) {
+		if (isVsyncEnabled) {
 			GLFW.glfwSwapInterval(0);
-			vsync = false;
+			isVsyncEnabled = false;
 		}
 	}
 
@@ -183,7 +181,7 @@ public class Window {
 		int w =  getWidth();
 		int h =  getHeight();
 
-		aspectRatio = ((float)w / (float)h);
+		aspectRatio = (float) ((float)w / (float)h);
 
 		if (Engine.renderManager() != null) {
 			Engine.renderManager().updateViewportSize(0, 0, w, h);
@@ -201,5 +199,19 @@ public class Window {
 
 	public boolean isEnabled() {
 		return state == State.ENABLED;
+	}
+
+	@Override
+	public String toString() {
+		return "Window{" +
+			"windowId=" + windowId +
+			", width=" + getWidth() +
+			", height=" + getHeight() +
+			", title='" + title + '\'' +
+			", vsync=" + isVsyncEnabled +
+			", state=" + state +
+			", isVisible=" + isVisible +
+			", aspectRatio=" + aspectRatio +
+			'}';
 	}
 }

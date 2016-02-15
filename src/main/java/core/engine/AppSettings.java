@@ -71,16 +71,16 @@ public class AppSettings  {
 	}
 
 	private void setDefaultSettings() {
-		put(Title, "ShaderSloth");
-		put(Width, 1024);
-		put(Height, 768);
-		put(Fullscreen, false);
-		put(Resizeable, false);
-		put(VSync, true);
-		put(GLMajorVersion, 3);
-		put(GLMinorVersion, 0);
-		put(OffscreenRendering, false);
-		put(InputProvider, "GLFW");
+		set(Title, "ShaderSloth");
+		set(Width, 1024);
+		set(Height, 768);
+		set(Fullscreen, false);
+		set(Resizeable, false);
+		set(VSync, true);
+		set(GLMajorVersion, 3);
+		set(GLMinorVersion, 0);
+		set(OffscreenRendering, false);
+		set(InputProvider, "GLFW");
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class AppSettings  {
      * @return the value of the specified value or fallback.
      */
 	public String getString(String prop, String fallback) {
-		return getProperty(prop, fallback, String.class);
+		return get(prop, fallback, String.class);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class AppSettings  {
 	 * @return the value of the specified value or fallback.
 	 */
 	public Integer getInteger(String prop, Integer fallback) {
-		return getProperty(prop, fallback, Integer.class);
+		return get(prop, fallback, Integer.class);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class AppSettings  {
 	 * @return the value of the specified value or fallback.
 	 */
 	public Long getInteger(String prop, Long fallback) {
-		return getProperty(prop, fallback, Long.class);
+		return get(prop, fallback, Long.class);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class AppSettings  {
 	 * @return the value of the specified value or fallback.
 	 */
 	public Float getInteger(String prop, Float fallback) {
-		return getProperty(prop, fallback, Float.class);
+		return get(prop, fallback, Float.class);
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class AppSettings  {
 	 * @return the value of the specified value or fallback.
 	 */
 	public Double getInteger(String prop, Double fallback) {
-		return getProperty(prop, fallback, Double.class);
+		return get(prop, fallback, Double.class);
 	}
 
 	/**
@@ -158,7 +158,7 @@ public class AppSettings  {
 	 * @return the value of the specified value or fallback.
 	 */
 	public Boolean getBoolean(String prop, Boolean fallback) {
-		return getProperty(prop, fallback, Boolean.class);
+		return get(prop, fallback, Boolean.class);
 	}
 
 	/**
@@ -171,6 +171,7 @@ public class AppSettings  {
 		return getBoolean(prop, false);
 	}
 
+
 	/******************************************************************************
 	 * Setter Wrappers
 	 *****************************************************************************/
@@ -181,17 +182,20 @@ public class AppSettings  {
 	 * @param value the value which should be assign to
 	 *              the specified settings key.
      */
-	public void put(String settingsKey, Object value) {
+	public void set(String settingsKey, Object value) {
 		if (value == null) throw new NullPointerException();
 		properties.put(settingsKey, value);
 	}
 
+	public <T> T get(String key, Class<T> type) {
+		return get(key, null, type);
+	}
 
-	private <T> T getProperty(String prop, T fallback, Class<T> stringClass) {
-		Object value = properties.getOrDefault(prop, fallback);
+	public <T> T get(String key, T fallback, Class<T> type) {
+		Object value = properties.getOrDefault(key, fallback);
 
-		if (stringClass.isInstance(value)) {
-			return stringClass.cast(value);
+		if (type.isInstance(value)) {
+			return type.cast(value);
 		}
 
 		return fallback;

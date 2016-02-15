@@ -5,6 +5,7 @@ import core.engine.EngineComponent;
 import core.texture.image.Image;
 import core.texture.image.ImageManager;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,10 @@ public class TextureManager implements EngineComponent {
 			throw new TextureException(e, "Could not create the texture:image could not loaded");
 		}
 		return createTexture(name, image);
+	}
+
+	public Texture createTexture(String name, BufferedImage image) {
+		return createTexture(name, imageManager.createImageFrom(image));
 	}
 
 	public Texture createTexture(String name, Image image) {
@@ -110,4 +115,6 @@ public class TextureManager implements EngineComponent {
 	public boolean isInitialized() {
 		return initialized;
 	}
+
+
 }

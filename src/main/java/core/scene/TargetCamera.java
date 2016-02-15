@@ -33,7 +33,6 @@ public class TargetCamera extends Camera {
 		minZoom = -20.f;
 		maxZoom = 100.f;
 		mouseSpeed = 50.0f;
-
 	}
 
 	public void update(float time) {
@@ -82,8 +81,14 @@ public class TargetCamera extends Camera {
 			// mouseDirection.normalize();
 			horizontalAngle -= mouseSpeed * time * mouseDirection.x;
 			verticalAngle += mouseSpeed * time * mouseDirection.y;
-		}
 
+			/*
+			if (mousePos.x  > width) inputManager.setMousePosition(0, (int) mousePos.y);
+			if (mousePos.x  < 0) inputManager.setMousePosition((int) width, (int) mousePos.y);
+			if (mousePos.y > height) inputManager.setMousePosition((int) mousePos.x, 0);
+			if (mousePos.y < 0) inputManager.setMousePosition((int) mousePos.x, (int) height);
+			*/
+		}
 		lastMousePos.set(xPosMouse, yPosMouse);
 	}
 

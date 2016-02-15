@@ -7,7 +7,6 @@ import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
 import core.geometry.primitives.Sphere;
 import core.input.InputListener;
-import core.input.InputManager;
 import core.input.event.KeyEvent;
 import core.input.event.MouseEvent;
 import core.light.LightList;
@@ -20,13 +19,11 @@ import core.shader.Shader;
 import core.texture.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFWKeyCallback;
 
 import java.io.IOException;
 
 import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
-import static org.lwjgl.glfw.GLFW.*;
 
 public class ShaderSloth extends EngineApp implements InputListener {
 
@@ -61,7 +58,7 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		rabbit = new Sphere(2.0f, 16, 16);
 		rabbit = new Cube();
 		diffuseShader = Engine.getShader("Default");
-		rabbitDiffuse = Engine.getTextureManager().createTexture("rabbitDiffuse", "brick.jpg");
+		rabbitDiffuse = Engine.textureManager().createTexture("rabbitDiffuse", "brick.jpg");
 		rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear);
 		rabbitDiffuse.setMagFilter(Texture.MagFilter.Bilinear);
 		rabbitDiffuse.setAnisotropicLevel(16.0f);
@@ -101,6 +98,8 @@ public class ShaderSloth extends EngineApp implements InputListener {
 	public void render(float elapsedTime) throws IOException {
 
 		renderer.clearBuffers(true, true, false);
+		rendererManager.getRenderState().apply();
+
 		diffuseShader.getUniform("mvp").setValue(modelViewProjectionMatrix);
 		diffuseShader.getUniform("modelViewMatrix").setValue(modelViewMatrix);
 		diffuseShader.getUniform("normalMatrix").setValue(normalMatrix);
@@ -142,9 +141,6 @@ public class ShaderSloth extends EngineApp implements InputListener {
 
 	@Override
 	public void onMouseEvent(MouseEvent event) {
-		double mouseWheelAmount = event.getMouseWheelAmount();
-
-
 	}
 
 	@Override

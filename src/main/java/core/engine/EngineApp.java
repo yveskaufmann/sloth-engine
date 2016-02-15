@@ -51,6 +51,7 @@ public abstract class EngineApp {
 			appLoop();
 		} catch (Exception ex) {
 			Log.error("A exception occurred the application will be terminated abnormally. ", ex);
+			ex.printStackTrace();
 		} finally {
 			cleanUp();
 			Engine.shutdown();

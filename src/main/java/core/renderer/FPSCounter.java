@@ -1,6 +1,9 @@
 package core.renderer;
 
+import core.engine.Engine;
 import core.engine.EngineComponent;
+import core.math.Color;
+import core.renderer.font.FontRenderer;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
@@ -36,11 +39,13 @@ public class FPSCounter implements EngineComponent {
 			currentFps = renderedFrames;
 			renderedFrames = 0;
 			lastTime += 1.0;
-			System.out.println(currentFps);
 		}
+	}
 
-		// TODO: Font renderer should use this renderer it self
-		// fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.0f, Color.Red);
+	@Override
+	public void onAfterRender(float elapsedTime) {
+		FontRenderer fontRenderer = Engine.renderManager().getFontRenderer();
+		fontRenderer.drawString("FPS " + currentFps, 0, 0, 1.5f, Color.Red);
 	}
 
 	public int getCurrentFPS() {

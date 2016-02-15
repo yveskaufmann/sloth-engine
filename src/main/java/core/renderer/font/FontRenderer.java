@@ -1,10 +1,12 @@
 package core.renderer.font;
 
 import core.math.Color;
-import org.lwjgl.opengl.GL11;
+import core.renderer.*;
+import core.renderer.Renderer;
+import core.texture.Texture;
+import core.texture.TextureManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import core.renderer.RendererExpception;
 import core.engine.Engine;
 import core.shader.Shader;
 
@@ -12,14 +14,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
@@ -27,6 +25,9 @@ import static org.lwjgl.opengl.GL30.*;
  * text.
  */
 public class FontRenderer {
+
+	public static final String FONT_ATLAS_TEXTURE = "fontAtlas";
+
 
 	private class GridInfo {
 		public float rows;
@@ -102,7 +103,7 @@ public class FontRenderer {
 	/**
 	 * The Charset image
 	 */
-	private BufferedImage charsetImage;
+	private volatile BufferedImage charsetImage;
 
 	/**
 	 * Stores info about the created charset image
@@ -116,21 +117,40 @@ public class FontRenderer {
 	private Shader fontShader;
 
 	/**
-	 * The id of the core.texture core.renderer.font.
+	 * The texture which contains the font atlas.
 	 */
-	private int textureId;
+	private Texture texture;
 
 	/**
 	 * VAO id
 	 */
 	private int vaoId;
 
+	/**
+	 * Renderer instance
+	 */
+	private  Renderer renderer;
+
+
+
+	/**
+	 * Render state
+	 */
+	private RenderState renderState = new RenderState();
+
+	/**
+	 * Texture manager
+	 */
+	private TextureManager textureManager;
+	private RendererManager rendererManager;
+
 	public FontRenderer(Font font) {
 		this.font = font;
 		this.metrics = getFontMetrics(font);
-		this.textureId = -1;
 		this.gridPosMap = new HashMap<>();
-		prepareLetterBitmap();
+		this.rendererManager = Engine.renderManager();
+		this.textureManager = Engine.textureManager();
+		new Thread(this::prepareLetterBitmap).start();
 	}
 
 	private void prepareLetterBitmap() {
@@ -164,14 +184,12 @@ public class FontRenderer {
 
 		} while( gridInfo.rows * heightPerLetter > gridInfo.height);
 
-
-
-
 		gridInfo.cellWidth = widthPerLetter / gridInfo.width;
 		gridInfo.cellHeight = heightPerLetter / gridInfo.height;
+
 		Log.debug("Grids size of font sprite image (rows = {}, cols = {})", gridInfo.rows, gridInfo.cols);
 
-		charsetImage = new BufferedImage((int)gridInfo.width, (int)gridInfo.height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage charsetImage = new BufferedImage((int)gridInfo.width, (int)gridInfo.height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D) charsetImage.getGraphics();
 
 
@@ -190,6 +208,7 @@ public class FontRenderer {
 
 		Log.debug("Created core.renderer.font {} core.texture sheet with the size ({},{}).",font.toString().replaceAll("java.awt.Font", "") , gridInfo.width, gridInfo.height);
 		Log.debug("{}.", gridInfo);
+		this.charsetImage = charsetImage;
 	}
 
 	/**
@@ -234,67 +253,43 @@ public class FontRenderer {
 	 * @param image The image which should be loaded into a core.texture
 	 * @return the <code>id</code> of the created core.texture.
      */
-	private int createTexture(BufferedImage image) {
-		int id = glGenTextures();
-		if (id < 0) {
-			throw new RendererExpception("The creation of a core.texture object failed. Error Code:" + glGetError());
-		}
+	private Texture createTexture(BufferedImage image) {
 
-		glBindTexture(GL_TEXTURE_2D, id);
-		/**
-		 * Defines what should happen if the core.texture coordinates exceed the size of this
-		 * core.texture. In this case the core.texture should be clamped to the edge.
-		 */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		Texture texture = textureManager.createTexture(FONT_ATLAS_TEXTURE, image);
+		texture.setWrapMode(Texture.TextureAxis.S, Texture.WrapMode.ClampEDGE);
+		texture.setWrapMode(Texture.TextureAxis.T, Texture.WrapMode.ClampEDGE);
+		texture.setMinFilter(Texture.MinFilter.Trilinear);
+		texture.setMagFilter(Texture.MagFilter.Bilinear);
 
-
-		int width = image.getWidth();
-		int height = image.getHeight();
-
-
-		int pixels[] = new int[width * height];
-		image.getRGB(0, 0, width, height, pixels, 0, width);
-
-		IntBuffer buffer = core.utils.BufferUtils.createBuffer(pixels);
-		buffer.flip();
-
-		// We need only the alpha channel of the font  sprite
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		return id;
+		return texture;
 	}
 
 
 
 	private void prepare() {
+		renderer = rendererManager.getRenderer();
 		vaoId  = glGenVertexArrays();
 		glBindVertexArray(vaoId);
 		bindFontTexture();
 
-		glEnable(GL11.GL_BLEND);
-		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		glDisable(GL11.GL_DEPTH_TEST);
-		glDepthMask(false);
-
+		renderState.reset();
+		renderState.setDepthTestMode(RenderState.TestFunc.Off);
+		renderState.setBlendMode(RenderState.BlendFunc.Alpha);
+		renderState.apply();
 	}
 
 	private void bindFontTexture() {
 
-		if (textureId < 0) {
-			textureId = createTexture(this.charsetImage);
+		if ( charsetImage != null && texture == null) {
+			texture = createTexture(this.charsetImage);
+			this.charsetImage = null;
 		}
+
 		fontShader = Engine.getShader(FONT_SHADER);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureId);
+
 	}
 
 	private void prepareFontShader(char letter, float xStartQuad, float yStartQuad, float xEndQuad, float yEndQuad, Color color) {
-
 		if (!gridPosMap.containsKey(letter)) {
 			letter = UNKNOWN_CHAR;
 		}
@@ -315,7 +310,8 @@ public class FontRenderer {
 		fontShader.getUniform("color").setValue(color);
 
 		try {
-			Engine.getCurrentRenderer().setShader(fontShader);
+			renderer.setShader(fontShader);
+			renderer.setTexture(0, texture);
 		} catch (IOException e) {
 			Log.error("Font core.shader error, ", e);
 		}
@@ -323,7 +319,6 @@ public class FontRenderer {
 	}
 
 	public void drawString(String text, int x, int y, float fontSize, Color color) {
-
 		prepare();
 		float windowWidth = Engine.getPrimaryWindow().getWidth();
 		float windowHeight = Engine.getPrimaryWindow().getHeight();
@@ -355,21 +350,15 @@ public class FontRenderer {
 	}
 
 	private void endRendering() {
-		unBindFontTexture();
-		glDisable(GL11.GL_BLEND);
-		glEnable(GL11.GL_DEPTH_TEST);
-		glDepthMask(true);
+		renderState.setDepthTestMode(RenderState.TestFunc.Less);
+		renderState.setBlendMode(RenderState.BlendFunc.Off);
+		renderState.apply();
+
 		glBindVertexArray(0);
 		glDeleteVertexArrays(vaoId);
 
-
 	}
 
-	private void unBindFontTexture() {
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
 
 	/**
 	 * Retrieves the created char set image which contains

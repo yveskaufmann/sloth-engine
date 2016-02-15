@@ -132,6 +132,8 @@ public class Texture extends HardwareObject {
 	 */
 	private String name;
 
+	// private ImageFormat targetFormat;
+
 	/**
 	 * The Creation of a Texture should done by the TextureManager
 	 * not by this Constructor.

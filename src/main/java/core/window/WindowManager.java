@@ -4,6 +4,8 @@ import core.engine.AppSettings;
 import core.engine.Engine;
 import core.engine.EngineComponent;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +18,8 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  * Class for creation of Window objects.
  */
 public class WindowManager implements EngineComponent {
+
+	private static final Logger Log = LoggerFactory.getLogger(WindowManager.class);
 
 	public static final int DEFAULT_WIDTH = 1024;
 	public static final int DEFAULT_HEIGHT = 768;
@@ -30,6 +34,7 @@ public class WindowManager implements EngineComponent {
 
 	@Override
 	public void initialize() {
+		Log.info("Initialize Window Manager");
 		if (initialized) {
 			throw new IllegalStateException("The WindowManager is already initialized");
 		}
@@ -39,18 +44,22 @@ public class WindowManager implements EngineComponent {
 		setHeight(DEFAULT_HEIGHT);
 		setTitle(DEFAULT_TITLE);
 		reset();
+
 		// Creates a primary window which is required for rendering
 		create(Engine.getSettings());
+		Log.info("Create Primary window " + getPrimaryWindow());
 
 		initialized = true;
 	}
 
 	@Override
 	public void shutdown() {
+		Log.info("Shutdown window manager");
 		if (! initialized) {
 			throw new IllegalStateException("The WindowManager is already initialized");
 		}
 		reset();
+		Log.info("Destroy windows");
 		for (Window window : windows) {
 			window.destroy();
 		}

@@ -1,5 +1,8 @@
 package core.engine;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Interface for a engine component.
  * A component has the following life cycle:
@@ -65,15 +68,33 @@ public interface EngineComponent {
 	 * Will be called before a new Frame is started
 	 */
 	default void onFrameStart() {}
+
+	/**
+	 * TODO: document me
+	 * @param elapsedTime
+     */
 	default void onUpdate(float elapsedTime) {}
+
+	/**
+	 * TODO: documemt me
+	 * @param elapsedTime
+     */
 	default void onBeforeRender(float elapsedTime) {}
-	default void onRender(float elapsedTime) {};
+
+	/**
+	 * TODO: document me
+	 * @param elapsedTime
+     */
+	default void onRender(float elapsedTime) {}
+
+	/**
+	 * TODO: document me
+	 * @param elapsedTime
+     */
 	default void onAfterRender(float elapsedTime) {}
 
 	/**
 	 * Will be called after a Frame is complete.
 	 */
 	default void onFrameEnd() {}
-
-
 }

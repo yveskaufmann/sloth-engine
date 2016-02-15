@@ -4,8 +4,6 @@ import core.geometry.Mesh;
 import core.geometry.MeshRepository;
 import core.input.InputManager;
 import core.input.InputManagerFactory;
-import core.input.provider.glfw.GLFWKeyInputProvider;
-import core.input.provider.glfw.GLFWMouseInputProvider;
 import core.renderer.Renderer;
 import core.renderer.RendererManager;
 import core.shader.Shader;
@@ -67,11 +65,24 @@ public class Engine {
 	 */
 	private static void registerDefaultComponents() {
 		windowManager = register(new WindowManager(), WindowManager.class);
-		renderManager = register(new RendererManager(), RendererManager.class);
-		meshRepository = register(new MeshRepository(), MeshRepository.class);
-		shaderRepository = register(new ShaderRepository(), ShaderRepository.class);
 		textureManager = register(new TextureManager(), TextureManager.class);
-		inputManager = register(InputManagerFactory.createInputManager(Engine.getPrimaryWindow()), InputManager.class);
+		renderManager = register(new RendererManager(), RendererManager.class);
+		shaderRepository = register(new ShaderRepository(), ShaderRepository.class);
+		meshRepository = register(new MeshRepository(), MeshRepository.class);
+		onInit();
+
+		JavaFXOffscreenSupport offscreenSupport = appSettings.get(JavaFXOffscreenSupport.JAVAFX_OFFSCREEN_SUPPORT, JavaFXOffscreenSupport.class);
+		if (offscreenSupport != null) {
+			inputManager = register(InputManagerFactory.createInputManager(offscreenSupport.getNode()), InputManager.class);
+		} else {
+			inputManager = register(InputManagerFactory.createInputManager(Engine.getPrimaryWindow()), InputManager.class);
+		}
+		inputManager.initialize();
+
+		if (offscreenSupport != null) {
+			register(offscreenSupport);
+		}
+
 	}
 
 	/**
@@ -81,14 +92,14 @@ public class Engine {
      */
 	public static void register(EngineComponent component) {
 		register(component, component.getClass());
+		if (!component.isInitialized()) {
+			component.initialize();
+		}
 	}
 
 	private static <T extends EngineComponent> T register(EngineComponent component, Class<T> type) {
 		if (! components.contains(component)) {
 			components.add(component);
-			if (!component.isInitialized()) {
-				component.initialize();
-			}
 		}
 		return type.cast(component);
 	}
@@ -99,16 +110,13 @@ public class Engine {
 	 * @param component the component to remove
 	 */
 	public static void unregister(EngineComponent component) {
+		// TODO: ensure core components are not removed
 		if (components.contains(component) && component.isInitialized()) {
 			components.remove(component);
 			if (component.isInitialized()) {
 				component.shutdown();
 			}
 		}
-	}
-
-	public static AppSettings getSettings() {
-		return appSettings;
 	}
 
 	/**
@@ -128,6 +136,11 @@ public class Engine {
 	static
 	public  ShaderRepository shaderRepository() {
 		return shaderRepository;
+	}
+
+	static
+	public AppSettings getSettings() {
+		return appSettings;
 	}
 
 	static
@@ -161,48 +174,39 @@ public class Engine {
 	}
 
 	static
-	public TextureManager getTextureManager(){
+	public TextureManager textureManager() {
 		return textureManager;
 	}
 
-	private static void enableLogging() {
-		System.setProperty( "java.util.logging.config.file", "logging.properties" );
-		try {
-			LogManager.getLogManager().readConfiguration();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void onInit() {
+	static void onInit() {
 		components.stream().filter((c) -> !c.isInitialized()).forEach(EngineComponent::initialize);
 	}
 
-	public static void onFrameStart() {
+	static void onFrameStart() {
 		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameStart);
 	}
 
-	public static void onUpdate(float elapsedTime) {
+	static void onUpdate(float elapsedTime) {
 		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onUpdate(elapsedTime));
 	}
 
-	public static void onBeforeRender(float elapsedTime) {
+	static void onBeforeRender(float elapsedTime) {
 		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onBeforeRender(elapsedTime));
 	}
 
-	public static void onRender(float elapsedTime) {
+	static void onRender(float elapsedTime) {
 		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onRender(elapsedTime));
 	}
 
-	public static void onAfterRender(float elapsedTime) {
+	static void onAfterRender(float elapsedTime) {
 		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onAfterRender(elapsedTime));
 	}
 
-	public static void onFrameEnd() {
+	static void onFrameEnd() {
 		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameEnd);
 	}
 
-	public static void onShutdown() {
+	static void onShutdown() {
 		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::shutdown);
 	}
 
@@ -216,5 +220,14 @@ public class Engine {
 
 	public static InputManager getInputManager() {
 		return inputManager;
+	}
+
+	private static void enableLogging() {
+		System.setProperty( "java.util.logging.config.file", "logging.properties" );
+		try {
+			LogManager.getLogManager().readConfiguration();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

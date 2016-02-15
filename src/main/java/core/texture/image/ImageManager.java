@@ -18,6 +18,7 @@ import java.io.InputStream;
  */
 public class ImageManager implements EngineComponent {
 
+
 	/**
 	 * This array service as map in order to convert an
 	 * Java.awt format to the corresponding enum type.
@@ -38,6 +39,11 @@ public class ImageManager implements EngineComponent {
 	 * The default look up space for the core.texture images.
 	 */
 	public static final String ASSETS_TEXTURE_FOLDER = "assets/textures/";
+
+	/**
+	 * Flag which indicate if this component is initialized
+	 */
+	private boolean initialized;
 
 	/**
 	 * Loads an image by its name including it's extension.
@@ -89,9 +95,18 @@ public class ImageManager implements EngineComponent {
 		if (imageData == null) {
 			throw new IOException("Failed to load the specified image: " + filename + ": image format not supported");
 		}
+		return createImageFrom(imageData);
+	}
+
+	/**
+	 * Creates an image from a specified buffered image
+	 *
+	 * @param imageData the specified buffered image.
+	 * @return Creates a image object.
+     */
+	public Image createImageFrom(BufferedImage imageData) {
 		Image.ImageFormat imageFormat = determineImageFormat(imageData);
-		Image image = new core.texture.image.BufferedImage(imageData, imageFormat);
-		return image;
+		return new core.texture.image.BufferedImage(imageData, imageFormat);
 	}
 
 	private Image.ImageFormat determineImageFormat(BufferedImage imageData) {
@@ -106,17 +121,19 @@ public class ImageManager implements EngineComponent {
 
 	@Override
 	public void initialize() {
-
+		Log.info("Initialize ImageManager");
+		initialized = true;
 	}
 
 	@Override
 	public void shutdown() {
-
+		Log.info("Shutdown ImageManager");
+		initialized = false;
 	}
 
 	@Override
 	public boolean isInitialized() {
-		return true;
+		return initialized;
 	}
 
 	public static void show( java.awt.Image image ) {

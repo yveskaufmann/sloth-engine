@@ -2,6 +2,7 @@ package core.input.provider.javafx;
 
 import core.input.provider.KeyInputProvider;
 import core.input.event.KeyEvent;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -32,7 +33,6 @@ public class JavaFXKeyProvider
 	 */
 	public JavaFXKeyProvider(Node node) {
 		super(node);
-		node.requestFocus();
 		keystate = new BitSet(KeyButton.values().length);
 	}
 
@@ -42,8 +42,10 @@ public class JavaFXKeyProvider
 	@Override
 	public void initialize() {
 		if (!initialized) {
-			source.addEventHandler(javafx.scene.input.KeyEvent.ANY, this);
-			source.addEventHandler(MouseEvent.MOUSE_ENTERED, this::requestFocus);
+			Platform.runLater(() -> {
+				source.addEventHandler(javafx.scene.input.KeyEvent.ANY, this);
+				source.addEventHandler(MouseEvent.MOUSE_ENTERED, this::requestFocus);
+			});
 			initialized = true;
 		}
 	}
@@ -54,8 +56,10 @@ public class JavaFXKeyProvider
 	@Override
 	public void shutdown() {
 		if (initialized) {
-			source.removeEventHandler(javafx.scene.input.KeyEvent.ANY, this);
-			source.removeEventHandler(MouseEvent.MOUSE_ENTERED, this::requestFocus);
+			Platform.runLater(() -> {
+				source.removeEventHandler(javafx.scene.input.KeyEvent.ANY, this);
+				source.removeEventHandler(MouseEvent.MOUSE_ENTERED, this::requestFocus);
+			});
 			synchronized (eventQueue) {
 				eventQueue.clear();
 			}
@@ -93,11 +97,6 @@ public class JavaFXKeyProvider
 		boolean pressed = javafx.scene.input.KeyEvent.KEY_PRESSED.equals(event.getEventType());
 
 		if (pressed) {
-			// We don't want notify while the keyButton is holding down.
-			if (keystate.get(keyButton.ordinal())) {
-				event.consume();
-				return;
-			}
 			keystate.set(keyButton.ordinal());
 		} else {
 			keystate.clear(keyButton.ordinal());

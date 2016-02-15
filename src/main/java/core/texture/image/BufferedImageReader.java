@@ -40,8 +40,8 @@ public class BufferedImageReader implements ImageReader {
 		//mageData.getRGB(x, y, xEnd, yEnd, pixelBuffer, 0, image.getWidth());
 		ByteBuffer imageBuffer = BufferUtils.createByteBuffer(bufferSize * TypeSize.INT);
 
-		for (int xPos = x;  xPos < xEnd; xPos++) {
-			for(int yPos = y; yPos < yEnd; yPos++) {
+		for (int yPos = x;  yPos < yEnd; yPos++) {
+			for(int xPos = x; xPos < xEnd; xPos++) {
 				int rgb = imageData.getRGB(xPos,yPos);
 				imageBuffer.put((byte) ((rgb >> 16) & 0xFF)); // Red
 				imageBuffer.put((byte) ((rgb >> 8) & 0xFF));  // Green

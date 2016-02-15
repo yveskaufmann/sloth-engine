@@ -1,32 +1,32 @@
 package shadersloth.controller;
 
-import javafx.animation.AnimationTimer;
-import javafx.application.Platform;
+import core.engine.AppSettings;
+import core.engine.JavaFXOffscreenSupport;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
-import org.lwjgl.util.stream.StreamHandler;
 import shadersloth.ShaderSloth;
-import shadersloth.SlothApplication;
 
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 
 public class ShaderSlothController implements Initializable {
+
 
 	@FXML private VBox renderViewRoot;
 	@FXML private ImageView renderView;
 
+	/**
+	 * The underlying core.renderer implementation
+	 */
+	private ShaderSloth rendererLoop;
 	private ObjectProperty<Rectangle2D> viewport;
+
 	public  final ObjectProperty<Rectangle2D> viewportProperty() {
 		if (viewport == null) {
 			viewport = new ObjectPropertyBase<Rectangle2D>(new Rectangle2D(0, 0, renderView.getFitWidth(), renderView.getFitHeight())) {
@@ -53,76 +53,16 @@ public class ShaderSlothController implements Initializable {
 	}
 
 
-	/**
-	 * The underlying core.renderer implementation
-	 */
-	private SlothApplication sandbox;
+
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		renderView.setFitWidth(512);
 		renderView.setFitHeight(512);
 
-	}
 
-	private StreamHandler getReadHandler() {
-		return new StreamHandler() {
 
-			private WritableImage renderImage;
 
-			private long frame;
-			private long lastUpload;
-
-			{
-				new AnimationTimer() {
-					@Override
-					public void handle(final long now) {
-						frame++;
-					}
-				}.start();
-			}
-
-			public int getWidth() {
-				return (int)renderView.getFitWidth();
-			}
-
-			public int getHeight() {
-				return (int)renderView.getFitHeight();
-			}
-
-			public void process(final int width, final int height, final ByteBuffer data, final int stride, final Semaphore signal) {
-				// This method runs in the background rendering thread
-				Platform.runLater(() -> {
-                    try {
-                        // If we're quitting, discard onUpdate
-                        if ( !renderView.isVisible() )
-                            return;
-
-                        // Detect resize and recreate the image
-                        if ( renderImage == null || (int)renderImage.getWidth() != width || (int)renderImage.getHeight() != height ) {
-                            renderImage = new WritableImage(width, height);
-                            renderView.setImage(renderImage);
-                        }
-
-                        // Throttling, only onUpdate the JavaFX shadersloth.view once per frame.
-                        // *NOTE*: The +1 is weird here, but apparently setPixels triggers a new pulse within the current frame.
-                        // If we ignore that, we'd get a) worse performance from uploading double the frames and b) exceptions
-                        // on certain configurations (e.g. Nvidia GPU with the D3D pipeline).
-                        if ( frame <= lastUpload + 2 )
-                            return;
-
-                        lastUpload = frame;
-
-                        // Upload the image to JavaFX
-                        PixelWriter pw = renderImage.getPixelWriter();
-                        pw.setPixels(0, 0, width, height, pw.getPixelFormat(), data, stride);
-                    } finally {
-                        // Notify the render thread that we're done processing
-                        signal.release();
-                    }
-                });
-			}
-		};
 	}
 
 
@@ -133,12 +73,11 @@ public class ShaderSlothController implements Initializable {
 	 * @param runningLatch
      */
 	public void runRenderer(final CountDownLatch runningLatch) {
-		viewportProperty().addListener(((observable, oldValue, newValue) -> {
-			System.out.println(newValue.toString());
-		}));
+		AppSettings settings  = new AppSettings();
+		settings.set(JavaFXOffscreenSupport.JAVAFX_OFFSCREEN_SUPPORT, new JavaFXOffscreenSupport(renderView, runningLatch));
 
-		//sandbox = new ShaderSloth();
-		//sandbox.start(runningLatch, this::getReadHandler, renderView.viewportProperty());
+		rendererLoop = new ShaderSloth();
+		rendererLoop.start(settings);
 	}
 
 }

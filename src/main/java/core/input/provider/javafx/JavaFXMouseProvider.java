@@ -2,6 +2,8 @@ package core.input.provider.javafx;
 
 import core.input.provider.MouseInputProvider;
 import core.input.event.MouseEvent;
+import core.math.MathUtils;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -18,7 +20,7 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	/**
 	 * The amount how far the mouse wheel was rotated.
 	 */
-	private int mouseWheelAmount;
+	private double mouseWheelAmount;
 
 	/**
 	 * Indicates if the mouse wheel was moved.
@@ -55,14 +57,13 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	 */
 	@Override
 	public void moveCursor(int x, int y) {
-		Scene scene = source.getScene();
-		Point2D windowPos = new Point2D(scene.getWindow().getX(), scene.getWindow().getY());
-		Point2D scenePos = windowPos.add(scene.getX(), scene.getY());
-		Point2D sourceNodePos = scenePos.add(source.getLayoutX(), source.getLayoutY());
-
+		System.out.println(x);
+		System.out.println(y);
+		Point2D sourceNodePos = source.localToScreen(x, y);
+		System.out.println(sourceNodePos);
 		try {
 			Robot robot = new Robot();
-			robot.mouseMove((int) (sourceNodePos.getX() + x), (int) sourceNodePos.getY() + y);
+			robot.mouseMove((int) (sourceNodePos.getX()), (int) sourceNodePos.getY());
 		} catch (AWTException e) {
 			e.printStackTrace();
 		}
@@ -75,8 +76,10 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	@Override
 	public void initialize() {
 		if (!initialized) {
-			source.addEventHandler(javafx.scene.input.MouseEvent.ANY, this);
-			source.addEventHandler(javafx.scene.input.ScrollEvent.SCROLL, this::handleWheelEvents);
+			Platform.runLater(() -> {
+				source.addEventHandler(javafx.scene.input.MouseEvent.ANY, this);
+				source.addEventHandler(javafx.scene.input.ScrollEvent.SCROLL, this::handleWheelEvents);
+			});
 			initialized = true;
 		}
 	}
@@ -87,8 +90,10 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	@Override
 	public void shutdown() {
 		if (initialized) {
-			source.removeEventHandler(javafx.scene.input.MouseEvent.ANY, this);
-			source.removeEventHandler(javafx.scene.input.ScrollEvent.SCROLL, this::handleWheelEvents);
+			Platform.runLater(() -> {
+				source.removeEventHandler(javafx.scene.input.MouseEvent.ANY, this);
+				source.removeEventHandler(javafx.scene.input.ScrollEvent.SCROLL, this::handleWheelEvents);
+			});
 			eventQueue.clear();
 			initialized = false;
 		}
@@ -123,9 +128,13 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	 */
 	@Override
 	public void handle(javafx.scene.input.MouseEvent event) {
+		MouseButton mouseButton = toInputMouseEventButton(event.getButton());
+		boolean isPressed = event.getEventType().equals(javafx.scene.input.MouseEvent.MOUSE_PRESSED)
+			|| event.getEventType().equals(javafx.scene.input.MouseEvent.MOUSE_DRAGGED);
+
 		MouseEvent mouseEvent = new MouseEvent(
 			toInputMouseEventButton(event.getButton()),
-			false,
+			isPressed,
 			(int) event.getX(),
 			(int) event.getY(),
 			mouseWheelAmount
@@ -156,8 +165,9 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 
 
 	private void handleWheelEvents(javafx.scene.input.ScrollEvent event) {
-		mouseWheelAmount = (int) event.getDeltaY();
+		mouseWheelAmount = event.getDeltaY() / event.getMultiplierY();
 		mouseWheelMoved = true;
+		System.out.println(mouseWheelAmount);
 		event.consume();
 	}
 }

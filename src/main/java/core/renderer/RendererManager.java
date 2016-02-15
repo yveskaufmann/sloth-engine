@@ -2,15 +2,24 @@ package core.renderer;
 
 
 import core.engine.EngineComponent;
+import core.renderer.font.FontRenderer;
+
+import java.awt.*;
 
 public class RendererManager implements EngineComponent {
 
 	private RenderState currentState;
 	private Renderer renderer;
+	private FontRenderer fontRenderer;
+
 	private boolean initialized = false;
 
 	public Renderer getRenderer() {
 		return renderer;
+	}
+
+	public FontRenderer getFontRenderer() {
+		return fontRenderer;
 	}
 
 	/**
@@ -38,6 +47,10 @@ public class RendererManager implements EngineComponent {
 		if (renderer == null) {
 			renderer = new Lwjgl3Renderer();
 			renderer.applyRenderState(currentState);
+		}
+
+		if (fontRenderer == null) {
+			fontRenderer = new FontRenderer(new Font("Courier", Font.PLAIN, 32));
 		}
 
 		initialized = true;
