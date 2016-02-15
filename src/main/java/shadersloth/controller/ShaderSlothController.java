@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import shadersloth.ShaderSloth;
 
@@ -18,53 +19,22 @@ import java.util.concurrent.CountDownLatch;
 public class ShaderSlothController implements Initializable {
 
 
-	@FXML private VBox renderViewRoot;
+	@FXML private AnchorPane renderViewRoot;
 	@FXML private ImageView renderView;
 
 	/**
 	 * The underlying core.renderer implementation
 	 */
 	private ShaderSloth rendererLoop;
-	private ObjectProperty<Rectangle2D> viewport;
-
-	public  final ObjectProperty<Rectangle2D> viewportProperty() {
-		if (viewport == null) {
-			viewport = new ObjectPropertyBase<Rectangle2D>(new Rectangle2D(0, 0, renderView.getFitWidth(), renderView.getFitHeight())) {
-				@Override
-				public Object getBean() {
-					return ShaderSlothController.this;
-				}
-
-				@Override
-				public String getName() {
-					return "viewport";
-				}
-			};
-
-			renderView.fitWidthProperty().addListener((observable, oldValue, newWidth) -> {
-				viewport.set(new Rectangle2D(0, 0, (Double) newWidth, renderView.getFitHeight()));
-			});
-
-			renderView.fitHeightProperty().addListener((observable, oldValue, newWidth) -> {
-				viewport.set(new Rectangle2D(0, 0, renderView.getFitWidth(), (Double) newWidth));
-			});
-		}
-		return viewport;
-	}
-
-
-
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		// TODO size should depend on parent view
+		//renderView.fitWidthProperty().bind(renderViewRoot.widthProperty());
+		//renderView.fitHeightProperty().bind(renderViewRoot.heightProperty());
 		renderView.setFitWidth(512);
 		renderView.setFitHeight(512);
-
-
-
-
 	}
-
 
 	/**
 	 * This method will run the rendering thread.
@@ -74,6 +44,9 @@ public class ShaderSlothController implements Initializable {
      */
 	public void runRenderer(final CountDownLatch runningLatch) {
 		AppSettings settings  = new AppSettings();
+
+		settings.set(AppSettings.Width, (int) renderView.getFitWidth());
+		settings.set(AppSettings.Height, (int) renderView.getFitHeight());
 		settings.set(JavaFXOffscreenSupport.JAVAFX_OFFSCREEN_SUPPORT, new JavaFXOffscreenSupport(renderView, runningLatch));
 
 		rendererLoop = new ShaderSloth();

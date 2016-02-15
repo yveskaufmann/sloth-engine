@@ -3,6 +3,8 @@ package core.engine;
 import core.window.Window;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
@@ -51,9 +53,8 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 
 		Window window = Engine.getPrimaryWindow();
 		window.setSize((int)renderView.getFitWidth(), (int)renderView.getFitHeight());
-
-
 		window.hide();
+
 		this.renderStreamFactory = StreamUtil.getRenderStreamImplementation();
 		this.renderStream = renderStreamFactory.create(getReadHandler(), 1, 2);
 		initialized = true;

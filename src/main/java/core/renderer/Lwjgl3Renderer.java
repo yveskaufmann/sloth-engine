@@ -82,6 +82,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void setViewport(int x, int y, int width, int height) {
+
 		if (x != ctx.viewPortX || y != ctx.viewportY || width != ctx.viewPortWidth || height != ctx.viewPortHeight)  {
 			ctx.viewPortX = x;
 			ctx.viewportY = y;

@@ -1,6 +1,7 @@
 package core.renderer;
 
 
+import core.engine.Engine;
 import core.engine.EngineComponent;
 import core.renderer.font.FontRenderer;
 
@@ -47,6 +48,7 @@ public class RendererManager implements EngineComponent {
 		if (renderer == null) {
 			renderer = new Lwjgl3Renderer();
 			renderer.applyRenderState(currentState);
+			Engine.getPrimaryWindow().updateViewportSize();
 		}
 
 		if (fontRenderer == null) {

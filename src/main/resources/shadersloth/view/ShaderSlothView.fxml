@@ -5,11 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane
-        fx:id="wrapper"
-        maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-        prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8"
-        xmlns:fx="http://javafx.com/fxml/1" fx:controller="shadersloth.controller.ShaderSlothController" >
+<BorderPane fx:id="wrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="shadersloth.controller.ShaderSlothController">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -56,12 +52,12 @@
                             </TitledPane>
                             <TitledPane animated="false" text="Uniforms">
                               <content>
-                                  <fx:include source="VectorEditorView.fxml"/>
+                                  <fx:include source="VectorEditorView.fxml" />
                               </content>
                             </TitledPane>
                             <TitledPane animated="false" text="Lights">
                               <content>
-                                  <fx:include source="VectorEditorView.fxml"/>
+                                  <fx:include source="VectorEditorView.fxml" />
                               </content>
                             </TitledPane>
                           </panes>
@@ -86,10 +82,11 @@
                         </TabPane>
                      </items>
                   </SplitPane>
-                  <VBox fx:id="renderViewRoot"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="737.0" prefWidth="604.0">
+                  <AnchorPane fx:id="renderViewRoot" prefHeight="512.0" prefWidth="512.0">
                      <children>
-                        <ImageView   fx:id="renderView" />
-                     </children></VBox>
+                        <ImageView fx:id="renderView" />
+                     </children>
+                  </AnchorPane>
               </items>
             </SplitPane>
             <TabPane prefHeight="200.0" prefWidth="200.0" side="BOTTOM" tabClosingPolicy="UNAVAILABLE">

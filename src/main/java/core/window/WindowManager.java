@@ -170,7 +170,7 @@ public class WindowManager implements EngineComponent {
 	public Window create(AppSettings settings) {
 		 Window window =
 			 setTitle(settings.getString(AppSettings.Title, DEFAULT_TITLE))
-			.setResizeable(settings.getBoolean(AppSettings.Resizeable, false))
+			.setResizeable(settings.getBoolean(AppSettings.Resizeable, true))
 			.setGLContextVersion(
 				settings.getInteger(AppSettings.GLMajorVersion, 3),
 				settings.getInteger(AppSettings.GLMinorVersion, 0))

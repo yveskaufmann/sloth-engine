@@ -192,9 +192,9 @@ public class AppSettings  {
 	}
 
 	public <T> T get(String key, T fallback, Class<T> type) {
-		Object value = properties.getOrDefault(key, fallback);
+		Object value = properties.get(key);
 
-		if (type.isInstance(value)) {
+		if (value != null && type.isInstance(value)) {
 			return type.cast(value);
 		}
 

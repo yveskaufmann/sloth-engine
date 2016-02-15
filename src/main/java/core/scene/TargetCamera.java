@@ -69,7 +69,6 @@ public class TargetCamera extends Camera {
 		Window window = Engine.getPrimaryWindow();
 		float height = window.getHeight();
 		float width = window.getWidth();
-
 		InputManager inputManager = Engine.getInputManager();
 		Vector2d mousePos = inputManager.getMousePosition();
 		// Convert to dvi coordinates

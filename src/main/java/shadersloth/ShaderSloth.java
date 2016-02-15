@@ -96,7 +96,6 @@ public class ShaderSloth extends EngineApp implements InputListener {
 
 	@Override
 	public void render(float elapsedTime) throws IOException {
-
 		renderer.clearBuffers(true, true, false);
 		rendererManager.getRenderState().apply();
 
