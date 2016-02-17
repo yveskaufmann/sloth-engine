@@ -66,10 +66,11 @@ public class TargetCamera extends Camera {
 	private Vector2f mouseDirection = new Vector2f();
 
 	private void handleMouse(float time) {
+		InputManager inputManager = Engine.getInputManager();
 		Window window = Engine.getPrimaryWindow();
 		float height = window.getHeight();
 		float width = window.getWidth();
-		InputManager inputManager = Engine.getInputManager();
+
 		Vector2d mousePos = inputManager.getMousePosition();
 		// Convert to dvi coordinates
 		float xPosMouse = (float) (mousePos.x / width) * 2 - 1;
@@ -77,9 +78,8 @@ public class TargetCamera extends Camera {
 
 		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Middle)) {
 			mouseDirection.set(lastMousePos).sub(xPosMouse, yPosMouse);
-			// mouseDirection.normalize();
-			horizontalAngle -= mouseSpeed * time * mouseDirection.x;
-			verticalAngle += mouseSpeed * time * mouseDirection.y;
+			horizontalAngle = mouseSpeed * time * mouseDirection.x;
+			verticalAngle = mouseSpeed * time * mouseDirection.y;
 
 			/*
 			if (mousePos.x  > width) inputManager.setMousePosition(0, (int) mousePos.y);

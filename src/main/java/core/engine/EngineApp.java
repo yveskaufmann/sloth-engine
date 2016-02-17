@@ -1,8 +1,8 @@
 package core.engine;
 
 import core.input.InputManager;
-import core.renderer.Renderer;
 import core.renderer.RendererManager;
+import core.scene.Scene;
 import core.window.Window;
 import core.window.WindowManager;
 import org.slf4j.Logger;
@@ -25,8 +25,9 @@ public abstract class EngineApp {
 	protected WindowManager windowManager;
 	protected RendererManager rendererManager;
 	protected InputManager inputManager;
-	protected Renderer renderer;
 	protected Window window;
+	protected Scene scene;
+
 
 	/**
 	 * Initialize the AppEngine and all it
@@ -41,7 +42,10 @@ public abstract class EngineApp {
 		rendererManager = Engine.renderManager();
 		window = windowManager.getPrimaryWindow();
 		inputManager = Engine.getInputManager();
-		renderer = rendererManager.getRenderer();
+
+		scene = new Scene();
+		rendererManager.setScene(scene);
+
 	}
 
 	public void start(AppSettings settings) {
@@ -99,7 +103,9 @@ public abstract class EngineApp {
 	 * @param elapsedTime the time since the last frames in ms
 	 * @throws IOException if an error occurs
      */
-	protected abstract void render(float elapsedTime) throws IOException;
+	protected void render(float elapsedTime) throws IOException {
+		rendererManager.render(elapsedTime);
+	}
 
 	/**
 	 * Called after the render loop is leaved and provide the

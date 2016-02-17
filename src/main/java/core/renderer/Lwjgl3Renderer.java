@@ -135,7 +135,7 @@ public class Lwjgl3Renderer implements Renderer {
 		if (shader.isUpdateRequired()) {
 			updateShaderData(shader);
 		}
-		// TODO: fallback shader
+
 		bindShaderProgram(shader);
 		updateShaderUniforms(shader);
 	}
@@ -522,6 +522,7 @@ public class Lwjgl3Renderer implements Renderer {
 			glPointSize(mesh.getPointSize());
 			ctx.pointSize = mesh.getPointSize();
 		}
+
 		renderMesh(mesh);
 
 	}

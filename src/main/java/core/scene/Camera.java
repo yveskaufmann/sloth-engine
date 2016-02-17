@@ -28,7 +28,6 @@ public abstract class Camera {
 	public Camera() {
 
 		this.orientation = new Quaternionf();
-
 		this.position = new Vector3f();
 		this.direction = new Vector3f();
 		this.directionUp = new Vector3f();
@@ -36,12 +35,8 @@ public abstract class Camera {
 		this.up = new Vector3f(0.0f, 1.0f, 0.0f);
 		this.viewMatrix = new Matrix4f();
 		this.projectionMatrix = new Matrix4f();
-		fov = 45;
-		aspect = 4f / 3f;
-		near = 0.1f;
-		far = 1000.f;
-		setupProjection(fov, aspect, near, far);
-		yaw = pitch = roll = 0f;
+		this.yaw = this.pitch = this.roll = 0f;
+		setupProjection(45, 4f / 3f, 0.1f, 1000.f);
 	}
 
 	public abstract void update(float time);
@@ -67,7 +62,7 @@ public abstract class Camera {
 		return viewMatrix;
 	}
 
-	public Matrix4f getProjektionMatrix() {
+	public Matrix4f getProjectionMatrix() {
 		return projectionMatrix;
 	}
 

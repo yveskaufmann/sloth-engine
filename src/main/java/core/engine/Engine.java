@@ -36,6 +36,7 @@ public class Engine {
 	private static InputManager inputManager;
 	private static boolean initialized;
 	private static List<EngineComponent> components = new ArrayList<>();
+
 	private static AppSettings appSettings = new AppSettings();
 
 	private Engine() {}

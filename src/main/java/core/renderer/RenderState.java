@@ -236,6 +236,11 @@ public class RenderState {
 		return this;
 	}
 
+	public RenderState toggleWireframe() {
+		this.wireframe = !this.wireframe;
+		return this;
+	}
+
 	public RenderState disableFPSCounter() {
 		this.enableFPSCounter = false;
 		return this;

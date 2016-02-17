@@ -13,15 +13,32 @@ public class Node {
 	private String id;
 	private List<Node> children = new ArrayList<>();
 	private Node parent = null;
-
 	private Vector3f scale = new Vector3f(1f, 1f, 1f);
-	private Vector3f translate = new Vector3f().zero();
+	private Vector3f position = new Vector3f().zero();
 	private Quaternionf rotation = new Quaternionf().identity();
 	private Matrix4f transformMatrix = new Matrix4f();
+	boolean transformChanged = false;
 
 	public Node(String id) {
 		resetTransform();
 		setId(id);
+	}
+
+
+
+	public void traversePreOrder(Consumer<Node> nodeVisitor) {
+		traversePreOrder(this, nodeVisitor, Integer.MAX_VALUE);
+	}
+
+	private void traversePreOrder(Node node, Consumer<Node> nodeVisitor, int depth) {
+		if (node == null || depth == 0) {
+			return;
+		}
+
+		nodeVisitor.accept(node);
+		for (Node child : node.children) {
+			traversePreOrder(child, nodeVisitor, depth - 1);
+		}
 	}
 
 	public String getId() {
@@ -30,25 +47,6 @@ public class Node {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public void traversePreOrder(Consumer<Node> nodeVisitor) {
-		traversePreOrder(nodeVisitor, -1);
-	}
-
-	public void traversePreOrder(Consumer<Node> nodeVisitor, int limit) {
-		traversePreOrder(this, nodeVisitor, limit);
-	}
-
-	private void traversePreOrder(Node node, Consumer<Node> nodeVisitor, int depth) {
-		if (node == null || depth == 0) {
-			return;
-		}
-
-		nodeVisitor.accept(this);
-		for (Node child : children) {
-			traversePreOrder(child, nodeVisitor, depth -1);
-		}
 	}
 
 	public Node getChild(String id) {
@@ -115,6 +113,7 @@ public class Node {
 
 	public void setRotation(Quaternionf rotation) {
 		this.rotation.set(rotation);
+		transformChanged = true;
 	}
 
 
@@ -124,32 +123,36 @@ public class Node {
 
 	public void setScale(float scale) {
 		this.scale.set(scale);
+		transformChanged = true;
 	}
 
-	public void setScale(Vector3f scaleVectot) {
-		scale.set(scaleVectot);
+	public void setScale(Vector3f scaleVector) {
+		scale.set(scaleVector);
 	}
 
-	public Vector3f getTranslate() {
-		return translate;
+	public Vector3f getPosition() {
+		return position;
 	}
 
-	public void setTranslate(Vector3f translate) {
-		this.translate.set(translate);
+	public void setPosition(Vector3f translate) {
+		this.position.set(translate);
+		transformChanged = true;
 	}
 
 	public void resetTransform() {
 		scale.set(1.0f);
-		translate.zero();
+		position.zero();
 		rotation.identity();
 	}
 
 	public Matrix4f getTransformMatrix() {
 		if (true) {
 			transformMatrix.identity();
-			transformMatrix.scale(scale);
-			transformMatrix.rotate(rotation);
-			transformMatrix.translate(translate);
+			transformMatrix.scale(scale).translation(position).rotate(rotation);
+
+
+			// transformMatrix.translationRotateScale(position, rotation, scale);
+			transformChanged = false;
 		}
 		return transformMatrix;
 	}

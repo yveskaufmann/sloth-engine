@@ -6,7 +6,7 @@ uniform int isWireframe;
 uniform sampler2D diffuseTexture;
 uniform int sl_light_count;
 
-#define MAX_COLORS 10
+#define MAX_COLORS 100
 
 uniform struct Light {
 	vec4 position;
@@ -27,11 +27,11 @@ in vec3 normal;
 in vec2 texturecoord;
 out vec4 fragmentColor;
 
-vec3 ambientColor = vec3(0.1, 0.2, 0.3);
-vec3 diffuseColor = vec3(0.2, 0.2, 0.0);
+vec3 ambientColor = vec3(0.3, 0.3, 0.3);
+vec3 diffuseColor = vec3(0.3, 0.3, 0.3);
 vec3 specularColor = vec3(0.3, 0.3, 0.3);
-float shininess = 0.3 * 2.0;
-float ambientIntensity = 0.3;
+float shininess = 200;
+float ambientIntensity = 0.1;
 
 vec3 calcLightning(Light light, vec3 texelColor, vec3 normal, vec3 pos, vec3 camDir) {
 
@@ -40,7 +40,7 @@ vec3 calcLightning(Light light, vec3 texelColor, vec3 normal, vec3 pos, vec3 cam
 	float distanceToLight = length(lightToPos);
     float attenuation = 1.0 / (1.0 + light.attenuation * pow(distanceToLight, 2));
 
-    vec3 ambient = ambientIntensity * texelColor.rgb * light.color.rgb;
+    vec3 ambient = texelColor.rgb * light.color.rgb;
 
     float diffuseIntensity = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diffuseIntensity * texelColor.rgb * light.color.rgb;
@@ -52,22 +52,24 @@ vec3 calcLightning(Light light, vec3 texelColor, vec3 normal, vec3 pos, vec3 cam
      }
      vec3 specular = specularIntensity * specularColor * light.color.rgb;
 
-    return ambient + attenuation * (diffuse + specular);
+    return  mix(diffuse,specular, 0.3);
 }
 
 void main() {
 	vec4 color = texture(diffuseTexture, texturecoord);
+	color = vec4(1.0);
 
 	if (isWireframe == 1) {
 		fragmentColor = color;
 	} else {
-		  vec3 eyePos = normalize(-position.xyz);
-		  vec3 texelColor = vec3(0.0);
-		  for(int i = 0; i < sl_light_count; i++ ) {
-		        texelColor += calcLightning(sl_lights[i], color.rgb, normal, position, eyePos);
-		  }
+		 vec3 eyePos = normalize(-position.xyz);
+		 vec3 texelColor = vec3(0.0);
+         for(int i = 0; i < sl_light_count; i++ ) {
+            texelColor += calcLightning(sl_lights[i], color.rgb, normal, position, eyePos);
+		 }
 
+		 texelColor += ambientColor * ambientIntensity;
          vec3 gamma = vec3(1.0/2.2);
-         fragmentColor = vec4(pow(texelColor, gamma), color.a);
+         fragmentColor = vec4(texelColor, color.a);
 	}
 }

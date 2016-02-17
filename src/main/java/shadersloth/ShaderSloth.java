@@ -3,7 +3,6 @@ package shadersloth;
 import core.engine.AppSettings;
 import core.engine.Engine;
 import core.engine.EngineApp;
-import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
 import core.geometry.primitives.Sphere;
 import core.input.InputListener;
@@ -11,131 +10,91 @@ import core.input.event.KeyEvent;
 import core.input.event.MouseEvent;
 import core.light.LightList;
 import core.light.PointLight;
+import core.material.BasicMaterial;
 import core.math.Color;
 import core.renderer.FPSCounter;
 import core.renderer.RenderState;
+import core.scene.Geometry;
 import core.scene.TargetCamera;
-import core.shader.Shader;
-import core.texture.Texture;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-import static core.renderer.RenderState.BlendFunc;
 import static core.renderer.RenderState.CullFaceMode;
 
 public class ShaderSloth extends EngineApp implements InputListener {
 
-	// TODO Encapsulate in scene
-	private Matrix4f modelMatrix = new Matrix4f();
-	private Matrix4f normalMatrix = new Matrix4f();
-	private Matrix4f viewMatrix = new Matrix4f();
-	private Matrix4f modelViewMatrix = new Matrix4f();
-	private Matrix4f projectionMatrix = new Matrix4f();
-	private Matrix4f modelViewProjectionMatrix = new Matrix4f();
-
-
-	// TODO: should provided by a special node type: Geometry
-	private Mesh rabbit;
-	private Vector3f cubePos;
-	private TargetCamera camera;
 	float zoomLevel;
-
-	private Shader diffuseShader;
-	private Texture rabbitDiffuse;
 	private LightList lightList;
+	private BasicMaterial material;
+	List<Geometry> boxes = new ArrayList<>();
+	private float rotX = 0.0f;
 
 	@Override
 	protected void prepare() {
+
+		zoomLevel = 1.0f;
+
 		Engine.register(new FPSCounter());
 		inputManager.addListener(this);
 
-		camera = new TargetCamera();
-		zoomLevel = 1.0f;
+		Random rnd = new Random();
+		rnd.setSeed(System.nanoTime());
 
-		rabbit = Engine.getMesh("rabbit.obj");
-		rabbit = new Sphere(2.0f, 16, 16);
-		rabbit = new Cube();
-		diffuseShader = Engine.getShader("Default");
-		rabbitDiffuse = Engine.textureManager().createTexture("rabbitDiffuse", "brick.jpg");
-		rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear);
-		rabbitDiffuse.setMagFilter(Texture.MagFilter.Bilinear);
-		rabbitDiffuse.setAnisotropicLevel(16.0f);
+		material = new BasicMaterial();
+		Sphere cube = new Sphere(1.0f, 32, 32);
 
-		cubePos = new Vector3f(0f, 0f, 0f);
-		rendererManager.getRenderState().enableFPSCounter().setCullFaceMode(CullFaceMode.Off).apply();
-		renderer.setClearColor(Color.LightGrey);
+		float radius = 5.0f;
+		int boxCount = 25;
+
+
+		float R = (1.0f / boxCount);
+		for (int i = 0; i <= boxCount; i++) {
+			Geometry box = new Geometry("Box " + i);
+			box.setMaterial(material);
+			box.setScale(0.5f);
+			box.setMesh(cube);
+			box.setPosition(new Vector3f((float) (Math.cos(2.0 * Math.PI * i * R) * radius),  (float) Math.sin(2.0 * Math.PI * i * R) * radius ,  (float) Math.sin(2.0 * Math.PI * i * R) * 20));
+			boxes.add(box);
+			scene.getRootNode().addChild(box);
+
+		}
+
+
+		scene.getCamera().setPosition(0f, 5f, 10f);
+		// ((TargetCamera)scene.getCamera()).setTarget(0.0f, 0.0f, -20.0f);
+
+
 
 		lightList = new LightList();
 		PointLight point = new PointLight();
-		point.setAttenuation(0.8f);
-		point.setPosition(new Vector3f(0.0f, -1.0f, 0.2f));
-		point.setColor(new Color(1.0f, 1.0f, 1.0f, 1.0f));
+		point.setAttenuation(1.0f);
+		point.setPosition(new Vector3f(0.0f, 5.0f, -10.f));
+		point.setColor(new Color(0.8f, 0.8f, 0.8f, 1.0f));
 		lightList.add(point);
+		point = new PointLight();
+		point.setAttenuation(1.0f);
+		point.setPosition(new Vector3f(0.0f, 2.0f, -5.f));
+		point.setColor(new Color(0.3f, 0.8f, 0.0f, 1.0f));
+		lightList.add(point);
+
+		scene.setLightList(lightList);
+
 
 	}
 
 	@Override
 	public void update(float elapsedTime) {
-
 		zoomLevel -= 30.0 * elapsedTime * inputManager.getMouseWheelAmount();
-
-		modelMatrix.identity().scale(1.0f).translate(cubePos);
-		camera.setPosition(0f, 5f, 2f);
-		camera.setTarget(cubePos);
-		camera.zoom(zoomLevel);
-		camera.update(elapsedTime);
-
-		viewMatrix.set(camera.getViewMatrix());
-		modelViewMatrix.identity().set(viewMatrix).mul(modelMatrix, modelViewMatrix);
-		projectionMatrix.identity().setPerspective(45.0f, (float) (window.getWidth() / window.getHeight()) ,0.01f, 100.0f);
-		modelViewProjectionMatrix.identity().mul(projectionMatrix).mul(modelViewMatrix);
-		viewMatrix.normal(normalMatrix);
-	}
-
-	@Override
-	public void render(float elapsedTime) throws IOException {
-		renderer.clearBuffers(true, true, false);
-		rendererManager.getRenderState().apply();
-
-		diffuseShader.getUniform("mvp").setValue(modelViewProjectionMatrix);
-		diffuseShader.getUniform("modelViewMatrix").setValue(modelViewMatrix);
-		diffuseShader.getUniform("normalMatrix").setValue(normalMatrix);
-		diffuseShader.getUniform("diffuseTexture").setValue(1);
-		lightList.passToShader(diffuseShader);
-
-		renderer.setShader(diffuseShader);
-		renderer.setTexture(1, rabbitDiffuse);
-		renderer.drawMesh(rabbit);
-		// renderWithWireframe(diffuseShader);
+		// ((TargetCamera)scene.getCamera()).zoom(zoomLevel);
+		// TODO the scene class should handle this
+		scene.getCamera().update(elapsedTime);
 	}
 
 	@Override
 	protected void cleanUp() {
-	}
-
-	private void renderWithWireframe(Shader diffuseShader) throws IOException {
-
-		// Render the thick wireframe version.
-		rendererManager.getRenderState()
-			.setBlendMode(BlendFunc.Color)
-			.enableWireframe(true)
-			.enableSmoothLines()
-			.setLineWidth(50.0f)
-			.apply();
-
-
-		diffuseShader.getUniform("isWireframe").setValue(1);
-		renderer.setShader(diffuseShader);
-		renderer.drawMesh(rabbit);
-		rendererManager.getRenderState()
-			.setBlendMode(BlendFunc.Alpha)
-			.enableWireframe(false)
-			.disableSmoothLines()
-			.setLineWidth(1.0f)
-			.apply();
-		diffuseShader.getUniform("isWireframe").setValue(0);
 	}
 
 	@Override
@@ -148,24 +107,24 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		if (keyEvent.isPressed()) {
 			switch (keyEvent.getKeyButton()) {
 				case Esc: Engine.requestExit();
-				case P: rabbitDiffuse.setMinFilter(Texture.MinFilter.Trilinear); break;
-				case O: rabbitDiffuse.setMinFilter(Texture.MinFilter.Bilinear); break;
-				case I: rabbitDiffuse.setMinFilter(Texture.MinFilter.NearestNeighbour); break;
 				case A: zoomLevel += 0.1; break;
 				case Q: zoomLevel -= 0.1; break;
 				case C:
-					if (state.getCullFaceMode() == CullFaceMode.Off) {
-						state.setCullFaceMode(CullFaceMode.Back);
+					if (material.getRenderState().getCullFaceMode() == CullFaceMode.Off) {
+						material.getRenderState().setCullFaceMode(CullFaceMode.Back);
 					} else {
-						state.setCullFaceMode(CullFaceMode.Off);
+						material.getRenderState().setCullFaceMode(CullFaceMode.Off);
 					}
 					state.apply();
 					break;
-				case W: state.enableWireframe(!state.isWireframe()).apply(); break;
-				case Up: cubePos.add(0.0f, 0.2f, 0.0f); break;
-				case Left: cubePos.add(-0.2f, 0.0f, 0.0f); break;
-				case Right: cubePos.add(0.2f, 0.0f, 0.0f); break;
-				case Down: cubePos.add(0.0f, -0.2f, 0.0f); break;
+				case W: material.getRenderState().toggleWireframe(); break;
+				case Up: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.2f, 0.0f)); break;
+				case Left: boxes.forEach((box) -> box.getPosition().add(-0.2f, 0.0f, 0.0f)); break;
+				case Right:boxes.forEach((box) ->  box.getPosition().add(0.2f, 0.0f, 0.0f)); break;
+				case Down: boxes.forEach((box) -> box.getPosition().add(0.0f, -0.2f, 0.0f)); break;
+				case PageUp: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.0f, -0.2f)); break;
+				case PageDown: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.0f, 0.2f)); break;
+				case End: rotX += 0.1f; boxes.forEach((box) -> box.getRotation().rotationXYZ(rotX, -rotX, rotX)); break;
 
 
 			}
