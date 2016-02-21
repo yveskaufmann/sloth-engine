@@ -567,11 +567,7 @@ public class Lwjgl3Renderer implements Renderer {
 			throw new IllegalArgumentException("An index buffer is required for the indices parameter");
 		}
 
-
-		if (indices.isUpdateRequired()) {
-			updateBuffer(indices);
-		}
-
+		updateBuffer(indices);
 		glDrawElements(
 			convertToMode(mesh.getMode()),
 			indices.getBuffer().limit(),
