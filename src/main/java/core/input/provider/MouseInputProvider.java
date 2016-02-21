@@ -1,5 +1,8 @@
 package core.input.provider;
 
+import org.joml.Vector2d;
+import org.joml.Vector2i;
+
 /**
  * Interface for a mouse input provider.
  */
@@ -22,5 +25,14 @@ public interface  MouseInputProvider extends InputProvider {
 	 * @param x
 	 * @param y
 	 */
-	void moveCursor(int x, int y);
+	void moveCursor(double x, double y);
+
+	/**
+	 * Retrieves the current mouse position.
+	 *
+	 * @return the current mouse position.
+     */
+	Vector2d cursorPosition();
+
+
 }

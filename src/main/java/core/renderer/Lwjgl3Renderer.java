@@ -359,7 +359,7 @@ public class Lwjgl3Renderer implements Renderer {
 
 	@Override
 	public void setTexture(int unit, Texture texture) {
-		if (texture.isUpdateRequired()) {
+		if (texture != null && texture.isUpdateRequired()) {
 			updateTextureData(texture, unit);
 		}
 
@@ -803,6 +803,12 @@ public class Lwjgl3Renderer implements Renderer {
 				glCullFace(toCullFaceMode(state.getCullFaceMode()));
 			}
 			ctx.cullFaceMode = state.getCullFaceMode();
+		}
+
+		if (state.getFrontFaceWinding() != ctx.frontFaceWinding) {
+			int winding = (state.getFrontFaceWinding() == RenderState.FaceWinding.GL_CCW) ? GL_CCW : GL_CW;
+			glFrontFace(winding);
+			ctx.frontFaceWinding = state.getFrontFaceWinding();
 		}
 
 		if (state.getBlendMode() != ctx.blendMode) {

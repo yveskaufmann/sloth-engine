@@ -6,13 +6,14 @@ import core.engine.EngineComponent;
 import core.material.Material;
 import core.math.Color;
 import core.renderer.font.FontRenderer;
-import core.scene.Camera;
+import core.scene.camera.Camera;
 import core.scene.Geometry;
 import core.scene.Node;
 import core.scene.Scene;
 import core.shader.Shader;
 import core.texture.Texture;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,20 +111,37 @@ public class RendererManager implements EngineComponent {
 	public void render(float elapsedTime) {
 		if (currentScene == null) return;
 
-		renderer.applyRenderState(renderState.reset());
-		renderer.clearBuffers(true, true, false);
 		renderer.setClearColor(Color.LightGrey);
-
-		Node rootNode = currentScene.getRootNode();
+		renderer.clearBuffers(true, true, true);
 
 		//TODO: Filter Gemoetry Nodes which are not in sight
-		rootNode.traversePreOrder((node) -> {
+		currentScene.traverse((node) -> {
 			if (node instanceof Geometry) {
-				renderGeometry((Geometry) node);
+				Geometry geometry = (Geometry) node;
+				if (geometry.isVisible()) {
+
+					GL11.glEnable(GL11.GL_STENCIL_TEST);
+					GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
+					GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
+
+					renderGeometry((Geometry) node);
+					geometry.getMaterial().getRenderState().enableWireframe(false);
+					geometry.getMaterial().getRenderState().setBlendMode(RenderState.BlendFunc.Alpha);
+					geometry.getMaterial().getRenderState().enableSmoothLines();
+					geometry.getMaterial().getShader().getUniform("isWireframe").setValue(1);
+					float oldScale = geometry.getScale().x;
+					geometry.setScale(oldScale * 1.05f);
+					GL11.glStencilFunc(GL11.GL_EQUAL, 0, 0xFF);
+					renderGeometry((Geometry) node);
+					geometry.getMaterial().getRenderState().enableWireframe(false);
+					geometry.getMaterial().getRenderState().setBlendMode(RenderState.BlendFunc.Alpha);
+					geometry.getMaterial().getRenderState().disableSmoothLines();
+					geometry.getMaterial().getShader().getUniform("isWireframe").setValue(0);
+					geometry.setScale(oldScale);
+					GL11.glDisable(GL11.GL_STENCIL_TEST);
+				}
 			}
 		});
-
-
 	}
 
 	private void renderGeometry(Geometry geometry) {
@@ -147,6 +165,7 @@ public class RendererManager implements EngineComponent {
 			shader.getUniform("sl_viewMatrix").setValue(viewMatrix);
 			shader.getUniform("sl_modelMatrix").setValue(modelMatrix);
 			shader.getUniform("sl_normalMatrix").setValue(normalMatrix);
+			// shader.getUniform("isWireframe").setValue(material.getRenderState().isWireframe() ? 1 : 0);
 
 			shader.getUniform("sl_modelViewMatrix").setValue(modelViewMatrix);
 			shader.getUniform("sl_mvp").setValue(modelViewProjectionMatrix);
@@ -155,8 +174,8 @@ public class RendererManager implements EngineComponent {
 				currentScene.getLightList().passToShader(shader);
 			}
 
-			renderer.applyRenderState(material.getRenderState());
 			renderer.setShader(material.getShader());
+
 		} catch (Exception ex) {
 			Log.error("Failed to setup shader", ex);
 		}
@@ -165,6 +184,7 @@ public class RendererManager implements EngineComponent {
 			renderer.setTexture(texture.getKey(), texture.getValue());
 		}
 
+		renderer.applyRenderState(material.getRenderState());
 		renderer.drawMesh(geometry.getMesh());
 	}
 

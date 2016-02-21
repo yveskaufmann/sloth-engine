@@ -42,7 +42,7 @@ void main(){
 	vec3 n = normalize( Normal_cameraspace );
 	// Direction of the light (from the fragment to the light)
 	vec3 l = normalize( LightDirection_cameraspace );
-	// Cosine of the angle between the normal and the light direction,
+	// Cosine of the angle between the normal and the light setTarget,
 	// clamped above 0
 	//  - light is at the vertical of the triangle -> 1
 	//  - light is perpendicular to the triangle -> 0

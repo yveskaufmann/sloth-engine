@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import org.joml.Vector2d;
 
 import java.awt.*;
 
@@ -56,11 +57,8 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	 * @param y the y position of the cursor
 	 */
 	@Override
-	public void moveCursor(int x, int y) {
-		System.out.println(x);
-		System.out.println(y);
+	public void moveCursor(double x, double y) {
 		Point2D sourceNodePos = source.localToScreen(x, y);
-		System.out.println(sourceNodePos);
 		try {
 			Robot robot = new Robot();
 			robot.mouseMove((int) (sourceNodePos.getX()), (int) sourceNodePos.getY());
@@ -68,6 +66,13 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 			e.printStackTrace();
 		}
 
+	}
+
+	@Override
+	public Vector2d cursorPosition() {
+		Point pos = MouseInfo.getPointerInfo().getLocation();
+		Point2D point2D = source.screenToLocal(pos.x, pos.y);
+		return new Vector2d(point2D.getX(), point2D.getY());
 	}
 
 	/**

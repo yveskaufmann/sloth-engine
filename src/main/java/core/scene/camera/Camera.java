@@ -1,4 +1,4 @@
-package core.scene;
+package core.scene.camera;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;

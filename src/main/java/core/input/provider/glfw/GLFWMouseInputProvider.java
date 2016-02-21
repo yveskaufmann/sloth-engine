@@ -2,13 +2,20 @@ package core.input.provider.glfw;
 
 import core.input.event.MouseEvent;
 import core.input.provider.MouseInputProvider;
+import core.utils.BufferUtils;
 import core.window.Window;
+import org.joml.Vector2d;
+import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.system.MemoryUtil;
 
+
+import java.nio.DoubleBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 
 public class GLFWMouseInputProvider extends GLFWInputProvider<MouseEvent> implements MouseInputProvider {
 
@@ -32,6 +39,8 @@ public class GLFWMouseInputProvider extends GLFWInputProvider<MouseEvent> implem
 	 */
 	private double previousY;
 
+
+
 	/**
 	 *  Previous pressed button
 	 */
@@ -41,13 +50,17 @@ public class GLFWMouseInputProvider extends GLFWInputProvider<MouseEvent> implem
 	 * Previous Button State
 	 */
 	private boolean previousButtonState;
+	private DoubleBuffer xBuffer;
+	private DoubleBuffer yBuffer;
 
 	public GLFWMouseInputProvider(Window window) {
 		super(window);
+		xBuffer = BufferUtils.createDoubleBuffer(1);
+		yBuffer = BufferUtils.createDoubleBuffer(1);
 	}
 
 	@Override
-	public void moveCursor(int x, int y) {
+	public void moveCursor(double x, double y) {
 		glfwSetCursorPos(windowId, x, y);
 	}
 
@@ -74,6 +87,15 @@ public class GLFWMouseInputProvider extends GLFWInputProvider<MouseEvent> implem
 		cursorPosCallback.release();
 		scrollCallback.release();
 		initialized = false;
+	}
+
+	@Override
+	public Vector2d cursorPosition() {
+		xBuffer.clear(); yBuffer.clear();
+		glfwGetCursorPos(windowId, xBuffer, yBuffer);
+		xBuffer.rewind(); yBuffer.rewind();
+
+		return new Vector2d(xBuffer.get(), yBuffer.get());
 	}
 
 	private GLFWMouseButtonCallback mouseButtonCallback  = new GLFWMouseButtonCallback() {

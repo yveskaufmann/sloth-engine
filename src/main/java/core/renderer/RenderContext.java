@@ -6,9 +6,16 @@ import static core.renderer.RenderState.*;
 
 public class RenderContext {
 
+
+
 	RenderContext() {
 		reset();
 	}
+
+	/**
+	 * The winding which is expected for front faces.
+	 */
+	public FaceWinding frontFaceWinding;
 
 	/**
 	 * If enabled, do alpha testing. See glAlphaFunc.
@@ -328,6 +335,7 @@ public class RenderContext {
 	public final int[] boundTextures = new int[80];
 
 	public void reset() {
+		frontFaceWinding = FaceWinding.GL_CCW;
 		blend = false;
 		clipDistance = false;
 		colorLogicOp = false;

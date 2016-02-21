@@ -1,11 +1,13 @@
 package core.input;
 
+import core.engine.Engine;
 import core.engine.EngineComponent;
 import core.input.event.InputEvent;
 import core.input.event.KeyEvent;
 import core.input.event.MouseEvent;
 import core.input.provider.KeyInputProvider;
 import core.input.provider.MouseInputProvider;
+import core.window.Window;
 import org.joml.Vector2d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,11 @@ public class InputManager implements InputReceiver, EngineComponent {
 		mouseProvider.initialize();
 		keyProvider.initialize();
 		isInitialized = true;
+		centerMousePosition();
+
 	}
+
+
 
 	/**
 	 * Clean up the resources of input manager.
@@ -208,6 +214,16 @@ public class InputManager implements InputReceiver, EngineComponent {
 	}
 
 	/**
+	 * Retrieves the latest position of the cursor
+	 * from the underlying mouse provider.
+	 *
+	 * @return the latest mouse position
+     */
+	public Vector2d asyncCursorPosition() {
+		return mouseProvider.cursorPosition();
+	}
+
+	/**
 	 * The current amount of mouse wheel rotation amount.
 	 *
 	 * @return the rotation amount.
@@ -224,5 +240,13 @@ public class InputManager implements InputReceiver, EngineComponent {
 	 */
 	public boolean isMouseButtonPressed(MouseButton mouseButton) {
 		return mouseKeySet.get(mouseButton.ordinal());
+	}
+
+	/**
+	 * Center the mouse cursor
+	 */
+	public void centerMousePosition() {
+		Window window = Engine.getPrimaryWindow();
+		setMousePosition(window.getWidth() >> 1, window.getHeight() >> 1);
 	}
 }

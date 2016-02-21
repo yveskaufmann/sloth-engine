@@ -3,6 +3,7 @@ package shadersloth;
 import core.engine.AppSettings;
 import core.engine.Engine;
 import core.engine.EngineApp;
+import core.geometry.Mesh;
 import core.geometry.primitives.Cube;
 import core.geometry.primitives.Sphere;
 import core.input.InputListener;
@@ -11,11 +12,12 @@ import core.input.event.MouseEvent;
 import core.light.LightList;
 import core.light.PointLight;
 import core.material.BasicMaterial;
+import core.material.Material;
 import core.math.Color;
 import core.renderer.FPSCounter;
 import core.renderer.RenderState;
+import core.scene.camera.FreeCamera;
 import core.scene.Geometry;
-import core.scene.TargetCamera;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class ShaderSloth extends EngineApp implements InputListener {
 	private BasicMaterial material;
 	List<Geometry> boxes = new ArrayList<>();
 	private float rotX = 0.0f;
+	private Geometry room;
 
 	@Override
 	protected void prepare() {
@@ -44,28 +47,44 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		rnd.setSeed(System.nanoTime());
 
 		material = new BasicMaterial();
-		Sphere cube = new Sphere(1.0f, 32, 32);
+		Mesh cube = new Sphere(1, 20, 20);
 
-		float radius = 5.0f;
-		int boxCount = 25;
+		room = new Geometry("Room");
+		room.setPosition(new Vector3f(0.0f, 0.0f, 0.0f));
+		room.setScale(10.0f);
+		room.setVisible(true);
+		room.setMesh(new Cube());
+		Material mat = new BasicMaterial();
+		mat.getRenderState().setFrontFaceWinding(RenderState.FaceWinding.GL_CCW);
+		mat.getRenderState().setCullFaceMode(CullFaceMode.Front);
+		room.setMaterial(mat);
+		scene.getRootNode().addChild(room);
 
+		scene.getCamera().setPosition(0f, 5f, 10f);
+		((FreeCamera)scene.getCamera()).setTarget(new Vector3f(10.0f, 2.0f, -10.0f));
 
+		// ((TargetCamera)scene.getCamera()).setTarget(0.0f, 0.0f, -20.0f);
+
+		float radius = 2.0f;
+		int boxCount = 5;
+		float PI2 = (float) (Math.PI * 2);
 		float R = (1.0f / boxCount);
 		for (int i = 0; i <= boxCount; i++) {
 			Geometry box = new Geometry("Box " + i);
 			box.setMaterial(material);
-			box.setScale(0.5f);
+			box.setScale(1.0f);
 			box.setMesh(cube);
-			box.setPosition(new Vector3f((float) (Math.cos(2.0 * Math.PI * i * R) * radius),  (float) Math.sin(2.0 * Math.PI * i * R) * radius ,  (float) Math.sin(2.0 * Math.PI * i * R) * 20));
+			box.setPosition(new Vector3f((float) (Math.cos(R * i * PI2) * radius), 0, (float) (Math.sin(R * i * PI2) * radius)));
 			boxes.add(box);
-			scene.getRootNode().addChild(box);
+			room.addChild(box);
 
 		}
 
-
-		scene.getCamera().setPosition(0f, 5f, 10f);
-		// ((TargetCamera)scene.getCamera()).setTarget(0.0f, 0.0f, -20.0f);
-
+		Geometry g = new Geometry("g");
+		g.setMesh(new Cube());
+		g.setPosition(-9.0f, 0.0f, 0.0f);
+		g.setMaterial(new BasicMaterial());
+		room.addChild(g);
 
 
 		lightList = new LightList();
@@ -115,18 +134,17 @@ public class ShaderSloth extends EngineApp implements InputListener {
 					} else {
 						material.getRenderState().setCullFaceMode(CullFaceMode.Off);
 					}
-					state.apply();
+					rendererManager.getRenderer().applyRenderState(material.getRenderState());
 					break;
-				case W: material.getRenderState().toggleWireframe(); break;
-				case Up: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.2f, 0.0f)); break;
-				case Left: boxes.forEach((box) -> box.getPosition().add(-0.2f, 0.0f, 0.0f)); break;
-				case Right:boxes.forEach((box) ->  box.getPosition().add(0.2f, 0.0f, 0.0f)); break;
-				case Down: boxes.forEach((box) -> box.getPosition().add(0.0f, -0.2f, 0.0f)); break;
+				case E: material.getRenderState().toggleWireframe(); break;
+				case Up:    room.getPosition().add(0.0f, 0.2f, 0.0f); break;
+				case Left:  room.getPosition().add(-0.2f, 0.0f, 0.0f); break;
+				case Right: room.getPosition().add(0.2f, 0.0f, 0.0f); break;
+				case Down:  room.getPosition().add(0.0f, -0.2f, 0.0f); break;
 				case PageUp: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.0f, -0.2f)); break;
 				case PageDown: boxes.forEach((box) -> box.getPosition().add(0.0f, 0.0f, 0.2f)); break;
 				case End: rotX += 0.1f; boxes.forEach((box) -> box.getRotation().rotationXYZ(rotX, -rotX, rotX)); break;
-
-
+				case H: room.setVisible(! room.isVisible()); break;
 			}
 		}
 	}

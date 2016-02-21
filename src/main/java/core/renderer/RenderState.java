@@ -50,6 +50,11 @@ public class RenderState {
 		OrInverted
 	}
 
+	public enum FaceWinding {
+		GL_CW,
+		GL_CCW
+	}
+
 	/**
 	 * Cull face modes which can be used when
 	 * <code>cullFace</code> is enabled. The initial
@@ -158,6 +163,7 @@ public class RenderState {
 	}
 
 
+	private FaceWinding frontWinding;
 	private CullFaceMode cullFaceMode;
 	private TestFunc depthTestMode;
 	private BlendFunc blendMode;
@@ -172,14 +178,52 @@ public class RenderState {
 		reset();
 	}
 
+	/**
+	 * Retrieves the current cull face mode,
+	 * specifies if and which faces should be culled.
+	 *
+	 * @return current cull face mode.
+     */
 	public CullFaceMode getCullFaceMode() {
 		return cullFaceMode;
 	}
 
+	/**
+	 * Specifies the current cull face mode.
+	 *
+	 * @param cullFaceMode the new current cull face mode.
+	 *
+	 * @return this
+     */
 	public RenderState setCullFaceMode(CullFaceMode cullFaceMode) {
 		this.cullFaceMode = cullFaceMode;
 		return this;
 	}
+
+	/**
+	 * Retrieves the face winding for front faces.
+	 *
+	 * @return the face winding for front face
+	 */
+	public FaceWinding getFrontFaceWinding() {
+		return frontWinding;
+	}
+
+
+	/**
+	 * Defines if CW or CCW faces are viewed as
+	 * front faces.
+	 *
+	 * @param faceWinding the face winding.
+	 * @return this instance
+     */
+	public RenderState setFrontFaceWinding(FaceWinding faceWinding) {
+		this.frontWinding = faceWinding;
+		return this;
+	}
+
+
+
 
 	public TestFunc getDepthTestMode() {
 		return depthTestMode;
@@ -260,18 +304,11 @@ public class RenderState {
 		return this;
 	}
 
-	public RenderState apply() {
-		Engine.getCurrentRenderer().applyRenderState(this);
-		return this;
-	}
-
-
-
 	public RenderState reset() {
 		wireframe = false;
 		enableFPSCounter = false;
 		lineSmooth = false;
-
+		frontWinding = FaceWinding.GL_CCW;
 		cullFaceMode = CullFaceMode.Back;
 		depthTestMode = TestFunc.Less;
 		blendMode = BlendFunc.Alpha;

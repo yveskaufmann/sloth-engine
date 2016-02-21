@@ -101,7 +101,7 @@ public class Mesh extends HardwareObject {
 		 * This mode will cause the core.renderer to interpret each group of three adjacent vertices as a connected triangle.<br>
 		 * <br>
 		 * Which leads to a set of connected triangles if enough vertices are specified.<br>
-		 * The face direction of strip triangles is specifies by the winding of the  first triangle.<br>
+		 * The face setTarget of strip triangles is specifies by the winding of the  first triangle.<br>
 		 * <br>
 		 * If a number not divisible by three of vertices was specified the rest of the vertices will
 		 * be ignored. N Vertices leads to N - 2 triangles.

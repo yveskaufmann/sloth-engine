@@ -142,6 +142,10 @@ public class FontRenderer {
 	 * Texture manager
 	 */
 	private TextureManager textureManager;
+
+	/**
+	 * Render Manager
+	 */
 	private RendererManager rendererManager;
 
 	public FontRenderer(Font font) {
@@ -268,25 +272,20 @@ public class FontRenderer {
 
 	private void prepare() {
 		renderer = rendererManager.getRenderer();
-		vaoId  = glGenVertexArrays();
-		glBindVertexArray(vaoId);
 		bindFontTexture();
 
-		renderState.reset();
 		renderState.setDepthTestMode(RenderState.TestFunc.Off);
 		renderState.setBlendMode(RenderState.BlendFunc.Alpha);
-		renderState.apply();
+		renderer.applyRenderState(renderState);
+		fontShader = Engine.getShader(FONT_SHADER);
 	}
 
 	private void bindFontTexture() {
-
-		if ( charsetImage != null && texture == null) {
+		if ( texture == null ) {
 			texture = createTexture(this.charsetImage);
 			this.charsetImage = null;
 		}
-
-		fontShader = Engine.getShader(FONT_SHADER);
-
+		renderer.setTexture(0, texture);
 	}
 
 	private void prepareFontShader(char letter, float xStartQuad, float yStartQuad, float xEndQuad, float yEndQuad, Color color) {
@@ -311,7 +310,6 @@ public class FontRenderer {
 
 		try {
 			renderer.setShader(fontShader);
-			renderer.setTexture(0, texture);
 		} catch (IOException e) {
 			Log.error("Font core.shader error, ", e);
 		}
@@ -350,13 +348,7 @@ public class FontRenderer {
 	}
 
 	private void endRendering() {
-		renderState.setDepthTestMode(RenderState.TestFunc.Less);
-		renderState.setBlendMode(RenderState.BlendFunc.Off);
-		renderState.apply();
-
-		glBindVertexArray(0);
-		glDeleteVertexArrays(vaoId);
-
+		renderer.applyRenderState(renderState.reset());
 	}
 
 

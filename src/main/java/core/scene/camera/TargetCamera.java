@@ -1,4 +1,4 @@
-package core.scene;
+package core.scene.camera;
 
 import core.input.InputManager;
 import core.input.provider.MouseInputProvider;
@@ -8,12 +8,8 @@ import org.joml.Matrix3f;
 import org.joml.Vector2d;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
 import core.engine.Engine;
-import core.utils.BufferUtils;
 import core.window.Window;
-
-import java.nio.DoubleBuffer;
 
 public class TargetCamera extends Camera {
 
@@ -44,7 +40,7 @@ public class TargetCamera extends Camera {
 		// new Matrix3f().rotateX(verticalAngle).mul(new Matrix3f().rotateY(horizontalAngle))
 		position.mul(rotationXY);
 
-		// Calculate direction vector
+		// Calculate setTarget vector
 		target.sub(position, direction);
 		direction.normalize();
 

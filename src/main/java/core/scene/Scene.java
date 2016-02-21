@@ -1,10 +1,16 @@
 package core.scene;
 
 import core.light.LightList;
+import core.scene.camera.Camera;
+import core.scene.camera.FreeCamera;
+import core.scene.traversal.DepthFirstTraverse;
+import core.scene.traversal.Visitor;
 
 public class Scene {
 
 	public static final String ROOT_NODE = "Root Node";
+
+	private DepthFirstTraverse depthFirstTraverser = new DepthFirstTraverse();
 
 	/**
 	 * Root Node of this scene
@@ -69,6 +75,10 @@ public class Scene {
 
 	public LightList getLightList() {
 		return this.lights;
+	}
+
+	public void traverse(Visitor<Node> visitor) {
+		depthFirstTraverser.traverse(rootNode, visitor);
 	}
 
 }

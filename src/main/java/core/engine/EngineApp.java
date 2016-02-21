@@ -72,7 +72,7 @@ public abstract class EngineApp {
 		double lastTime = glfwGetTime();
 		while ( !Engine.shouldExit() ) {
 			double currentTime = glfwGetTime();
-			float elapsedTime =  (float) (lastTime - currentTime);
+			float elapsedTime =  (float) (currentTime - lastTime);
 			Engine.onFrameStart();
 			Engine.onUpdate(elapsedTime);
 			update(elapsedTime);
