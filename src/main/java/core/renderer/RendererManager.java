@@ -4,6 +4,9 @@ package core.renderer;
 import core.engine.Engine;
 import core.engine.EngineComponent;
 import core.material.Material;
+import core.material.MaterialParameter;
+import core.material.Pass;
+import core.material.TextureBinding;
 import core.math.Color;
 import core.renderer.font.FontRenderer;
 import core.scene.camera.Camera;
@@ -18,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.Font;
+import java.util.List;
 import java.util.Map;
 
 
@@ -70,7 +74,6 @@ public class RendererManager implements EngineComponent {
 	}
 
 
-
 	@Override
 	public void onFrameStart() {
 		if (renderer != null) {
@@ -119,73 +122,64 @@ public class RendererManager implements EngineComponent {
 			if (node instanceof Geometry) {
 				Geometry geometry = (Geometry) node;
 				if (geometry.isVisible()) {
-
-					GL11.glEnable(GL11.GL_STENCIL_TEST);
-					GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
-					GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-
 					renderGeometry((Geometry) node);
-					geometry.getMaterial().getRenderState().enableWireframe(false);
-					geometry.getMaterial().getRenderState().setBlendMode(RenderState.BlendFunc.Alpha);
-					geometry.getMaterial().getRenderState().enableSmoothLines();
-					geometry.getMaterial().getShader().getUniform("isWireframe").setValue(1);
-					float oldScale = geometry.getScale().x;
-					geometry.setScale(oldScale * 1.05f);
-					GL11.glStencilFunc(GL11.GL_EQUAL, 0, 0xFF);
-					renderGeometry((Geometry) node);
-					geometry.getMaterial().getRenderState().enableWireframe(false);
-					geometry.getMaterial().getRenderState().setBlendMode(RenderState.BlendFunc.Alpha);
-					geometry.getMaterial().getRenderState().disableSmoothLines();
-					geometry.getMaterial().getShader().getUniform("isWireframe").setValue(0);
-					geometry.setScale(oldScale);
-					GL11.glDisable(GL11.GL_STENCIL_TEST);
 				}
 			}
 		});
 	}
 
 	private void renderGeometry(Geometry geometry) {
-		Material material = geometry.getMaterial();
 		Camera camera = currentScene.getCamera();
-
 		Matrix4f projectionMatrix = camera.getProjectionMatrix();
 		Matrix4f viewMatrix = camera.getViewMatrix();
-		Matrix4f modelMatrix = geometry.getTransformMatrix();
 
+		Matrix4f modelMatrix = geometry.getTransformMatrix();
 		Matrix4f normalMatrix = new Matrix4f();
 		viewMatrix.normal(normalMatrix);
 
 		Matrix4f modelViewMatrix = new Matrix4f(viewMatrix).mul(modelMatrix);
 		Matrix4f modelViewProjectionMatrix = new Matrix4f(projectionMatrix).mul(modelViewMatrix);
 
-		try {
-			Shader shader = material.getShader();
-			// TODO shader parameters should be received from material
+		Material material = geometry.getMaterial();
+		List<Pass> passes = material.getPasses();
+		int countOfPasses = passes.size();
+
+		for (int i = 0; i < countOfPasses; i++) {
+			Pass pass = passes.get(i);
+			Pass nextPass = i > 0 ? passes.get(i - 1) : null;
+			Pass prevPass = i + 1 < countOfPasses ? passes.get(i + 1) : null;
+
+			Shader shader = pass.getShader();
+			shader.getUniform("sl_cameraPosition").setValue(camera.getPosition());
 			shader.getUniform("sl_projectionMatrix").setValue(projectionMatrix);
+			shader.getUniform("sl_modelViewMatrix").setValue(modelViewMatrix);
 			shader.getUniform("sl_viewMatrix").setValue(viewMatrix);
 			shader.getUniform("sl_modelMatrix").setValue(modelMatrix);
 			shader.getUniform("sl_normalMatrix").setValue(normalMatrix);
-			// shader.getUniform("isWireframe").setValue(material.getRenderState().isWireframe() ? 1 : 0);
-
-			shader.getUniform("sl_modelViewMatrix").setValue(modelViewMatrix);
 			shader.getUniform("sl_mvp").setValue(modelViewProjectionMatrix);
 
-			if (currentScene.getLightList() != null) {
+			pass.preparePass(prevPass);
+			if (currentScene.getLightList() != null && pass.isLightningEnabled()) {
 				currentScene.getLightList().passToShader(shader);
 			}
 
-			renderer.setShader(material.getShader());
+			for(MaterialParameter parameter : material.getMaterialParameters().values()) {
+				shader.getUniform(parameter.getName()).setValue(parameter);
+			}
+			try {
+				renderer.setShader(shader);
+			} catch (Exception ex) {
+				Log.error("Failed to setup shader", ex);
+			}
 
-		} catch (Exception ex) {
-			Log.error("Failed to setup shader", ex);
+			for(TextureBinding tb: pass.getTextures().values()) {
+				renderer.setTexture(tb.getUint(), tb.getTexture());
+			}
+
+			renderer.applyRenderState(pass.getRenderState());
+			renderer.drawMesh(geometry.getMesh());
+			pass.postProcessPass(nextPass);
 		}
-
-		for(Map.Entry<Integer, Texture> texture : material.getTextures().entrySet()) {
-			renderer.setTexture(texture.getKey(), texture.getValue());
-		}
-
-		renderer.applyRenderState(material.getRenderState());
-		renderer.drawMesh(geometry.getMesh());
 	}
 
 }

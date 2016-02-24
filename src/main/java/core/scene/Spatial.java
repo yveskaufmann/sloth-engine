@@ -32,6 +32,11 @@ public class Spatial {
 	protected static final String UNSET_ID = "UNSET_ID";
 
 	/**
+	 * The scene the node is attached to
+	 */
+	protected Scene scene;
+
+	/**
 	 * The id of this spatial
 	 */
 	protected String id = UNSET_ID;
@@ -176,8 +181,6 @@ public class Spatial {
 	}
 
 
-
-
 	// TODO: check if transformations must be updated
 	//		 then
 
@@ -206,6 +209,11 @@ public class Spatial {
 		return localTransformation.getPosition();
 	}
 
+	public Vector3f getWorldPosition() {
+		updateTransform();
+		return wordTransformation.getPosition();
+	}
+
 	public void setPosition(Vector3f translate) {
 		localTransformation.setPosition(translate);
 	}
@@ -218,6 +226,19 @@ public class Spatial {
 		localTransformation.resetTransform();
 	}
 
-
-
+	/**
+	 * Retrieves the scene to which
+	 * this spatial is attached.
+	 *
+	 * @return the scene.
+     */
+	public Scene getScene() {
+		if (scene == null) {
+			Spatial parent = getParent();
+			if (parent != null) {
+				scene = parent.getScene();
+			}
+		}
+		return scene;
+	}
 }

@@ -29,7 +29,7 @@ public interface Renderer {
 	 *
 	 * @param state the state to apply.
      */
-	void applyRenderState(RenderState state); // TODO: This approach is not very reliable, when no one reset the state.
+	void applyRenderState(RenderState state);
 
 	/**
 	 *  Forces to reset the state of this shader.

@@ -1,14 +1,38 @@
-package core.light;
+package core.scene.light;
 
 import static core.shader.ShaderVariable.VAR_PREFIX;
+
+import core.engine.Engine;
+import core.geometry.Mesh;
+import core.geometry.primitives.Sphere;
+import core.material.BasicMaterial;
 import core.math.Color;
+import core.renderer.RenderState;
+import core.scene.Geometry;
+import core.scene.Node;
 import core.shader.Shader;
 import core.shader.Uniform;
 
 /**
  * Base type of light entity.
  */
-public abstract class Light {
+public abstract class Light extends Node {
+
+	class LightGeometry extends Geometry {
+		// TODO: Mesh repository in order to share meshes
+		public LightGeometry(String id) {
+			super(id);
+
+			Shader shader = Engine.shaderManager().getShader("Icon", "Icon", "Icon");
+
+			setMaterial(new BasicMaterial(shader));
+			setMesh(new Sphere(0.5f, 4, 4));
+			getMaterial().setEnableLightning(false);
+			getMaterial().getRenderState().enableWireframe(false);
+			getMaterial().getRenderState().setCullFaceMode(RenderState.CullFaceMode.Off);
+
+		}
+	}
 
 	public static final String LIGHT_UNIFORM_ARRAY =  VAR_PREFIX +"lights";
 	public static final String LIGHT_UNIFORM_TYPE = "type";
@@ -20,10 +44,12 @@ public abstract class Light {
 	private float attenuation;
 	private LightType type;
 
-	public Light(LightType type) {
+	public Light(String id, LightType type) {
+		super(id);
 		this.attenuation = 1.0f;
 		this.color = Color.White;
 		this.type = type;
+		this.addChild(new LightGeometry(id + "_geometry"));
 	}
 
 	public void setColor(Color color) {

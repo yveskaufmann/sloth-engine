@@ -1,4 +1,4 @@
-package core.light;
+package core.scene.light;
 
 import core.shader.Shader;
 

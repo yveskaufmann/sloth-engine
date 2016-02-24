@@ -174,6 +174,9 @@ public class RenderState {
 	private boolean lineSmooth;
 	private boolean smoothLineEnabled;
 
+	/**
+	 * Create a render state instance.
+	 */
 	public RenderState() {
 		reset();
 	}
@@ -209,7 +212,6 @@ public class RenderState {
 		return frontWinding;
 	}
 
-
 	/**
 	 * Defines if CW or CCW faces are viewed as
 	 * front faces.
@@ -221,9 +223,6 @@ public class RenderState {
 		this.frontWinding = faceWinding;
 		return this;
 	}
-
-
-
 
 	public TestFunc getDepthTestMode() {
 		return depthTestMode;
@@ -271,39 +270,46 @@ public class RenderState {
 		return this;
 	}
 
-	public boolean isFPSCounterEnabled() {
-		return enableFPSCounter;
-	}
-
-	public RenderState enableFPSCounter() {
-		this.enableFPSCounter = true;
-		return this;
-	}
-
 	public RenderState toggleWireframe() {
 		this.wireframe = !this.wireframe;
 		return this;
 	}
 
-	public RenderState disableFPSCounter() {
-		this.enableFPSCounter = false;
+	public boolean isFPSCounterEnabled() {
+		return enableFPSCounter;
+	}
+
+	public RenderState enableFPSCounter(boolean enable) {
+		this.enableFPSCounter = enable;
 		return this;
 	}
 
+	/**
+	 * Determines if smooth line rendering should be
+	 * enabled.
+	 *
+	 * @return true if smooth line rendering should be enabled.
+     */
 	public boolean isSmoothLinesEnabled() {
 		return this.lineSmooth;
 	}
 
-	public RenderState enableSmoothLines() {
-		this.lineSmooth = true;
+	/**
+	 * Enable smooth line rendering.
+	 *
+	 * @param enable
+	 * @return this instance
+     */
+	public RenderState enableSmoothLines(boolean enable) {
+		this.lineSmooth = enable;
 		return this;
 	}
 
-	public RenderState disableSmoothLines() {
-		this.lineSmooth = false;
-		return this;
-	}
-
+	/**
+	 * Reset the render state to the default state.
+	 *
+	 * @return this instance.
+     */
 	public RenderState reset() {
 		wireframe = false;
 		enableFPSCounter = false;

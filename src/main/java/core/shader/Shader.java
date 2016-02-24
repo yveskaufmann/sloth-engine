@@ -3,13 +3,8 @@ package core.shader;
 import core.geometry.VertexBuffer;
 import core.renderer.Renderer;
 import core.shader.source.ShaderSource;
-import core.utils.BufferUtils;
 import core.utils.HardwareObject;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +16,7 @@ public class Shader extends HardwareObject {
 	private Map<String, Uniform> uniforms = null;
 	private Map<VertexBuffer.Type, Attribute> attributes = null;
 	private String shaderName = null;
+	private boolean valid;
 
 	public Shader(String name) {
 		super(Shader.class);
@@ -104,6 +100,14 @@ public class Shader extends HardwareObject {
 	@Override
 	public String toString() {
 		return String.format("Shader-" + shaderName);
+	}
+
+	public boolean isValid() {
+		return valid;
+	}
+
+	public void setValid(boolean valid) {
+		this.valid = valid;
 	}
 }
 

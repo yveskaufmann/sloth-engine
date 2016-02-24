@@ -1,11 +1,11 @@
-package core.light;
+package core.scene.light;
 
 /**
  * Entity of an only ambient light.
  */
 public class AmbientLight extends Light {
 
-	public AmbientLight() {
-		super(LightType.Ambient);
+	public AmbientLight(String id) {
+		super(id, LightType.Ambient);
 	}
 }

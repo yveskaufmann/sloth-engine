@@ -3,7 +3,7 @@ package core.shader;
 public enum  ShaderType {
 	VERTEX("vert"),
 	FRAGMENT("frag"),
-	GEOMETRY("geo"),
+	GEOMETRY("geom"),
 	COMPUTE("comp");
 
 	private String extension;

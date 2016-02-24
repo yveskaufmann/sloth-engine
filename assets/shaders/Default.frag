@@ -1,13 +1,12 @@
 #version 130
 precision highp float;
 
-uniform vec4 color = vec4(1.0);
-uniform int isWireframe;
 uniform sampler2D diffuseTexture;
-uniform int sl_light_count;
+uniform mat4 sl_modelMatrix;
+uniform vec3 sl_cameraPosition;
 
 #define MAX_COLORS 100
-
+uniform int sl_light_count;
 uniform struct Light {
 	vec4 position;
 	vec4 color;
@@ -15,61 +14,54 @@ uniform struct Light {
 	int type;
 } sl_lights[MAX_COLORS];
 
-uniform struct Material {
-    float ambient;
-    float diffuse;
-    float shinines;
-} sl_material;
 
+uniform struct Material {
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+    float shininess;
+} sl_material;
 
 in vec3 position;
 in vec3 normal;
 in vec2 texturecoord;
 out vec4 fragmentColor;
 
-vec3 ambientColor = vec3(0.3, 0.3, 0.3);
-vec3 diffuseColor = vec3(0.3, 0.3, 0.3);
-vec3 specularColor = vec3(0.3, 0.3, 0.3);
-float shininess = 200;
-float ambientIntensity = 0.1;
-
 vec3 calcLightning(Light light, vec3 texelColor, vec3 normal, vec3 pos, vec3 camDir) {
 
-    vec3 lightToPos = light.position.xyz - pos;
-	vec3 lightDir = normalize(lightToPos);
-	float distanceToLight = length(lightToPos);
+    vec3 lightDir = light.position.xyz - pos;
+    float distanceToLight = length(lightDir);
+    lightDir = normalize(lightDir);
+
     float attenuation = 1.0 / (1.0 + light.attenuation * pow(distanceToLight, 2));
 
     vec3 ambient = texelColor.rgb * light.color.rgb;
 
-    float diffuseIntensity = max(dot(normal, lightDir), 0.0);
+    float diffuseIntensity = max(dot(normal, lightDir), 0.2);
     vec3 diffuse = diffuseIntensity * texelColor.rgb * light.color.rgb;
 
     float specularIntensity = 0.0;
     if (diffuseIntensity > 0.0) {
-        vec3 reflection = normalize(-reflect(lightDir, normal));
-        specularIntensity = pow(max(dot(reflection, camDir), 0.0), shininess);
-     }
-     vec3 specular = specularIntensity * specularColor * light.color.rgb;
+        vec3 reflection = normalize(reflect(-lightDir, normal));
+        specularIntensity = pow(max( 0.0, dot(camDir, reflection)), sl_material.shininess);
+    }
 
-    return  mix(diffuse,specular, 0.3);
+    vec3 specular = specularIntensity * (sl_material.specular.rgb + light.color.rgb);
+    return  mix(diffuse, specular, 0.5);
 }
 
 void main() {
 	vec4 color = texture(diffuseTexture, texturecoord);
-	color = vec4(1.0);
+    color = vec4(1.0);
 
-	if (isWireframe == 1) {
-		fragmentColor = vec4(vec3(1.0, 0, 0), 1.0);
-	} else {
-		 vec3 eyePos = normalize(-position.xyz);
-		 vec3 texelColor = vec3(0.0);
-         for(int i = 0; i < sl_light_count; i++ ) {
-            texelColor += calcLightning(sl_lights[i], color.rgb, normal, position, eyePos);
-		 }
+    vec3 camDir = normalize(sl_cameraPosition.xyz - position);
+    vec3 texelColor = vec3(0.0);
+    for(int i = 0; i < sl_light_count; i++ ) {
+        texelColor += calcLightning(sl_lights[i], color.rgb, normal, position, camDir);
+    }
 
-		 texelColor += ambientColor * ambientIntensity;
-         vec3 gamma = vec3(1.0/2.2);
-         fragmentColor = vec4(texelColor, color.a);
-	}
+    texelColor *= sl_material.ambient.rgb;
+    vec3 gamma = vec3(1.0/2.2);
+    fragmentColor = vec4(texelColor, color.a);
+
 }

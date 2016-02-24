@@ -1,5 +1,6 @@
 package core.shader;
 
+import core.material.MaterialParameter;
 import core.math.Color;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -62,6 +63,10 @@ public class Uniform extends ShaderVariable {
 
 	public void setValue(Vector3f value) {
 		setValue(value.x, value.y, value.z);
+	}
+
+	public void setValue(MaterialParameter parameter) {
+		setValue(parameter.getType(), parameter.getValue());
 	}
 
 	public void setValue(VariableType type, Object value) {

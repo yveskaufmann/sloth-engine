@@ -9,15 +9,16 @@ import core.geometry.primitives.Sphere;
 import core.input.InputListener;
 import core.input.event.KeyEvent;
 import core.input.event.MouseEvent;
-import core.light.LightList;
-import core.light.PointLight;
+import core.material.Pass;
+import core.scene.light.LightList;
+import core.scene.light.PointLight;
 import core.material.BasicMaterial;
 import core.material.Material;
 import core.math.Color;
 import core.renderer.FPSCounter;
 import core.renderer.RenderState;
-import core.scene.camera.FreeCamera;
 import core.scene.Geometry;
+import core.scene.camera.FreeCamera;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ import static core.renderer.RenderState.CullFaceMode;
 public class ShaderSloth extends EngineApp implements InputListener {
 
 	float zoomLevel;
-	private LightList lightList;
 	private BasicMaterial material;
 	List<Geometry> boxes = new ArrayList<>();
 	private float rotX = 0.0f;
@@ -46,24 +46,29 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		Random rnd = new Random();
 		rnd.setSeed(System.nanoTime());
 
-		material = new BasicMaterial();
-		Mesh cube = new Sphere(1, 20, 20);
+		BasicMaterial mat = new BasicMaterial();
+		mat.getRenderState().setFrontFaceWinding(RenderState.FaceWinding.GL_CCW);
+		mat.getRenderState().setCullFaceMode(CullFaceMode.Back);
+		mat.setParameter("sl_material.diffuse", Color.White);
+		mat.setParameter("sl_material.ambient", Color.White);
+		mat.setShininess(20.0f);
+
+		Pass pass = mat.createPass();
+		pass.getRenderState().enableWireframe(true).setBlendMode(RenderState.BlendFunc.Alpha);
+		pass.setParameter("sl_material.diffuse", Color.White);
+
+		pass.setEnableLightning(false);
 
 		room = new Geometry("Room");
 		room.setPosition(new Vector3f(0.0f, 0.0f, 0.0f));
 		room.setScale(10.0f);
 		room.setVisible(true);
 		room.setMesh(new Cube());
-		Material mat = new BasicMaterial();
-		mat.getRenderState().setFrontFaceWinding(RenderState.FaceWinding.GL_CCW);
-		mat.getRenderState().setCullFaceMode(CullFaceMode.Front);
 		room.setMaterial(mat);
 		scene.getRootNode().addChild(room);
 
 		scene.getCamera().setPosition(0f, 5f, 10f);
 		((FreeCamera)scene.getCamera()).setTarget(new Vector3f(10.0f, 2.0f, -10.0f));
-
-		// ((TargetCamera)scene.getCamera()).setTarget(0.0f, 0.0f, -20.0f);
 
 		float radius = 2.0f;
 		int boxCount = 5;
@@ -71,10 +76,11 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		float R = (1.0f / boxCount);
 		for (int i = 0; i <= boxCount; i++) {
 			Geometry box = new Geometry("Box " + i);
+			material = new BasicMaterial();
 			box.setMaterial(material);
 			box.setScale(1.0f);
-			box.setMesh(cube);
-			box.setPosition(new Vector3f((float) (Math.cos(R * i * PI2) * radius), 0, (float) (Math.sin(R * i * PI2) * radius)));
+			box.setMesh(new Sphere(1, 20, 20));
+			box.setPosition((float) (Math.cos(R * i * PI2) * radius), 0, (float) (Math.sin(R * i * PI2) * radius));
 			boxes.add(box);
 			room.addChild(box);
 
@@ -86,30 +92,25 @@ public class ShaderSloth extends EngineApp implements InputListener {
 		g.setMaterial(new BasicMaterial());
 		room.addChild(g);
 
-
-		lightList = new LightList();
-		PointLight point = new PointLight();
+		PointLight point = new PointLight("Light 1");
 		point.setAttenuation(1.0f);
-		point.setPosition(new Vector3f(0.0f, 5.0f, -10.f));
-		point.setColor(new Color(0.8f, 0.8f, 0.8f, 1.0f));
-		lightList.add(point);
-		point = new PointLight();
-		point.setAttenuation(1.0f);
-		point.setPosition(new Vector3f(0.0f, 2.0f, -5.f));
-		point.setColor(new Color(0.3f, 0.8f, 0.0f, 1.0f));
-		lightList.add(point);
+		point.setPosition(new Vector3f(0.0f, 5.0f, -2.0f));
+		point.setColor(new Color(1.0f, 0.0f, 0.0f, 1.0f));
+		point.setAttenuation(100.0f);
+		scene.add(point);
 
-		scene.setLightList(lightList);
-
-
+		PointLight point2 = new PointLight("Light 2");
+		point2.setAttenuation(1.0f);
+		point2.setPosition(new Vector3f(0.0f, 0.0f, 0.0f));
+		point2.setColor(new Color(1.0f, 1.0f, 1.0f, 1.0f));
+		point2.setAttenuation(20.0f);
+		scene.add(point2);
 	}
 
 	@Override
 	public void update(float elapsedTime) {
 		zoomLevel -= 30.0 * elapsedTime * inputManager.getMouseWheelAmount();
-		// ((TargetCamera)scene.getCamera()).zoom(zoomLevel);
-		// TODO the scene class should handle this
-		scene.getCamera().update(elapsedTime);
+		scene.update(elapsedTime);
 	}
 
 	@Override

@@ -4,32 +4,32 @@ import core.geometry.Mesh;
 import core.geometry.VertexAttributePointer;
 import core.geometry.VertexBuffer;
 import core.math.Color;
-import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GLCapabilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import core.shader.*;
 import core.shader.source.ShaderSource;
 import core.texture.Texture;
 import core.texture.image.Image;
 import core.utils.HardwareObject;
 import core.utils.HardwareObjectManager;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.*;
 
 import static core.geometry.VertexBuffer.Type;
+import static core.renderer.RenderState.CullFaceMode;
+import static core.renderer.RenderState.TestFunc;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
-import static org.lwjgl.opengl.GL14.*;
+import static org.lwjgl.opengl.GL14.GL_MIRRORED_REPEAT;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
-import static core.renderer.RenderState.CullFaceMode;
-import static core.renderer.RenderState.TestFunc;
 
 public class Lwjgl3Renderer implements Renderer {
 
@@ -46,7 +46,6 @@ public class Lwjgl3Renderer implements Renderer {
 	private void initialize() {
 		objectManager = new HardwareObjectManager();
 		ctx = new RenderContext();
-		// TODO extract to different component
 		caps = GL.getCapabilities();
 	}
 
@@ -172,9 +171,12 @@ public class Lwjgl3Renderer implements Renderer {
 		if (linkSuccess) {
 			Log.debug("Shader link success");
 			shader.disableUpdateRequired();
+			shader.setValid(true);
 			resetUniformLocation(shader);
+
 		} else {
 			Log.error("Failed to link shader program {}\n{}", shader, infoLog);
+			shader.setValid(false);
 		}
 
 		return linkSuccess;
@@ -263,7 +265,6 @@ public class Lwjgl3Renderer implements Renderer {
 				float[] fv4 = (float[]) value;
 				glUniform4f(location, fv4[0], fv4[1], fv4[2], fv4[3]);
 				break;
-
 			case Int:
 				int int1 = (int) value;
 				glUniform1i(location, int1);
@@ -305,11 +306,10 @@ public class Lwjgl3Renderer implements Renderer {
 	private void bindShaderProgram(Shader shader) {
 		int shaderId = shader.getId();
 		if (ctx.boundShader == null || ctx.boundShader.getId() != shaderId || shader.isUpdateRequired()) {
-			// TODO don't bind invalid shaders
-			glUseProgram(shaderId);
-			glGetError();
-			// GLUtil.checkGLError();
-			ctx.boundShader = shader;
+			if (shader.isValid()) {
+				glUseProgram(shaderId);
+				ctx.boundShader = shader;
+			}
 		}
 	}
 
@@ -336,7 +336,6 @@ public class Lwjgl3Renderer implements Renderer {
 
 		for (ShaderSource source : shader.getShaderSources()) {
 			if (source.getId() != HardwareObject.UNSET_ID && source.getId() >= 0) {
-				// TODO: check if a source was already attached
 				glDetachShader(shader.getId(), source.getId());
 				deleteShaderSource(source);
 			}

@@ -21,11 +21,9 @@ void main() {
 	vec4 pos = vec4(sl_position.xyz, 1.0f);
 
 	mat3 normalMatrix = transpose(inverse(mat3(sl_modelMatrix)));
-	normal = normalize(sl_normalMatrix * vec4(sl_normal, 1.0)).xyz;
 	normal = normalize(normalMatrix * sl_normal);
-	position = (sl_viewMatrix * pos).xyz;
+	position = (sl_modelMatrix * pos).xyz;
 	texturecoord = sl_textcoord01;
-
 	gl_Position = sl_mvp * pos;
 }
 

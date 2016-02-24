@@ -7,7 +7,7 @@ import core.input.InputManagerFactory;
 import core.renderer.Renderer;
 import core.renderer.RendererManager;
 import core.shader.Shader;
-import core.shader.ShaderRepository;
+import core.shader.ShaderManager;
 import core.texture.TextureManager;
 import core.window.Window;
 import core.window.WindowManager;
@@ -28,7 +28,7 @@ public class Engine {
 		enableLogging();
 	}
 
-	private static ShaderRepository shaderRepository;
+	private static ShaderManager shaderRepository;
 	private static MeshRepository meshRepository;
 	private static RendererManager renderManager;
 	private static WindowManager windowManager;
@@ -68,7 +68,7 @@ public class Engine {
 		windowManager = register(new WindowManager(), WindowManager.class);
 		textureManager = register(new TextureManager(), TextureManager.class);
 		renderManager = register(new RendererManager(), RendererManager.class);
-		shaderRepository = register(new ShaderRepository(), ShaderRepository.class);
+		shaderRepository = register(new ShaderManager(), ShaderManager.class);
 		meshRepository = register(new MeshRepository(), MeshRepository.class);
 		onInit();
 
@@ -111,13 +111,23 @@ public class Engine {
 	 * @param component the component to remove
 	 */
 	public static void unregister(EngineComponent component) {
-		// TODO: ensure core components are not removed
-		if (components.contains(component) && component.isInitialized()) {
+		if (components.contains(component) && component.isInitialized() && isCoreComponent(component)) {
 			components.remove(component);
 			if (component.isInitialized()) {
 				component.shutdown();
 			}
 		}
+	}
+
+	private static boolean isCoreComponent(EngineComponent component) {
+		return
+			component == windowManager    ||
+			component == renderManager    ||
+			component == textureManager   ||
+			component == shaderRepository ||
+			component == meshRepository   ||
+			component == inputManager;
+
 	}
 
 	/**
@@ -135,7 +145,7 @@ public class Engine {
 	}
 
 	static
-	public  ShaderRepository shaderRepository() {
+	public ShaderManager shaderManager() {
 		return shaderRepository;
 	}
 
