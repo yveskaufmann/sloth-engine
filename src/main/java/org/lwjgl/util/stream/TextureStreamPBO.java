@@ -37,7 +37,7 @@ import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 
-/** Implements streaming PBO updates to an OpenGL core.texture. */
+/** Implements streaming PBO updates to an OpenGL texture. */
 abstract class TextureStreamPBO extends StreamBufferedPBO implements TextureStream {
 
 	private final int texID;

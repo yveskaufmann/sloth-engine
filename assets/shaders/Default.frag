@@ -4,6 +4,7 @@ precision highp float;
 uniform sampler2D diffuseTexture;
 uniform mat4 sl_modelMatrix;
 uniform vec3 sl_cameraPosition;
+uniform vec3 sl_cameraDirection;
 
 #define MAX_COLORS 100
 uniform int sl_light_count;
@@ -54,7 +55,7 @@ void main() {
 	vec4 color = texture(diffuseTexture, texturecoord);
     color = vec4(1.0);
 
-    vec3 camDir = normalize(sl_cameraPosition.xyz - position);
+    vec3 camDir = normalize(sl_cameraDirection);
     vec3 texelColor = vec3(0.0);
     for(int i = 0; i < sl_light_count; i++ ) {
         texelColor += calcLightning(sl_lights[i], color.rgb, normal, position, camDir);

@@ -166,7 +166,7 @@ final class RenderStreamINTEL extends StreamBuffered implements RenderStream {
 		fboUtil.bindFramebuffer(GL_READ_FRAMEBUFFER, renderFBO);
 		fboUtil.bindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
 
-		// Blit current core.texture
+		// Blit current texture
 		fboUtil.framebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolveBuffers[trgTEX], 0);
 		fboUtil.blitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glFlush();

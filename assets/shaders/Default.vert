@@ -20,8 +20,8 @@ uniform mat4 sl_projectionMatrix;
 void main() {
 	vec4 pos = vec4(sl_position.xyz, 1.0f);
 
-	mat3 normalMatrix = transpose(inverse(mat3(sl_modelMatrix)));
-	normal = normalize(normalMatrix * sl_normal);
+	mat4 normalMatrix = transpose(inverse(sl_modelMatrix));
+	normal = normalize(normalMatrix * vec4(sl_normal, 0.0)).xyz;
 	position = (sl_modelMatrix * pos).xyz;
 	texturecoord = sl_textcoord01;
 	gl_Position = sl_mvp * pos;
