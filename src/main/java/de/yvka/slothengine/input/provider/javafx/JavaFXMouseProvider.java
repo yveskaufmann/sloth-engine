@@ -160,9 +160,9 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 			case MIDDLE:
 				return MouseButton.Middle;
 			case PRIMARY:
-				return MouseButton.Second;
-			case SECONDARY:
 				return MouseButton.Primary;
+			case SECONDARY:
+				return MouseButton.Second;
 		}
 		return MouseButton.None;
 	}
