@@ -19,7 +19,6 @@ public class FreeCamera extends Camera {
 		horizontalAngle = (float) Math.PI;
 		position.set(0, 0, 0);
 		viewMatrix.identity().lookAt(position, new Vector3f(position).add(direction), up);
-		// Engine.register(new FPSCounter());
 	}
 
 	@Override
@@ -47,9 +46,6 @@ public class FreeCamera extends Camera {
 			verticalAngle = MathUtils.clamp(verticalAngle, -1.5f, 1.5f);
 
 		}
-
-		//horizontalAngle = 0;
-		//verticalAngle = 0;
 
 		direction.set(
 			(float) (Math.cos(verticalAngle) * Math.sin(horizontalAngle)),

@@ -4,16 +4,20 @@ import de.yvka.slothengine.window.Window;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.*;
+import javafx.scene.paint.*;
 import org.lwjgl.util.stream.RenderStream;
 import org.lwjgl.util.stream.StreamHandler;
 import org.lwjgl.util.stream.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
@@ -34,6 +38,7 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 	private RenderStream renderStream;
 	private CountDownLatch runningLatch;
 	private ImageView renderView;
+	private boolean renderViewInitialized;
 
 	public JavaFXOffscreenSupport(ImageView renderView, CountDownLatch runningLatch) {
 		this.runningLatch = runningLatch;
@@ -96,6 +101,7 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 			private long frame;
 			private long lastUpload;
 
+
 			{
 				new AnimationTimer() {
 					@Override
@@ -116,6 +122,17 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 			public void process(final int width, final int height, final ByteBuffer data, final int stride, final Semaphore signal) {
 				// This method runs in the background rendering thread
 				Platform.runLater(() -> {
+
+					/* This ensures that the image is rendered in its correct orientation.
+					 * The Provided image date specifies the image rows from bottom
+					 * to top but the renderView expect the image rows from top
+					 * to bottom.
+					 */
+					if (!renderViewInitialized) {
+						renderView.setScaleY(-1.0);
+						renderViewInitialized = true;
+					}
+
 					try {
 						// If we're quitting, discard onUpdate
 						if ( !renderView.isVisible() )
@@ -138,7 +155,8 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 
 						// Upload the image to JavaFX
 						PixelWriter pw = renderImage.getPixelWriter();
-						pw.setPixels(0, 0, width, height, pw.getPixelFormat(), data, stride);
+						pw.setPixels(0, 0, height, width, pw.getPixelFormat(), data, stride);
+
 					} finally {
 						// Notify the render thread that we're done processing
 						signal.release();

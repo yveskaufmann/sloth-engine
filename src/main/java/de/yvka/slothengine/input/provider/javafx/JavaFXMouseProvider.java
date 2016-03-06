@@ -6,6 +6,8 @@ import de.yvka.slothengine.input.event.MouseEvent;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import org.joml.Vector2d;
 
 import java.awt.*;
@@ -37,7 +39,10 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	 */
 	private int previousY;
 
-
+	/**
+	 * Determines if the y coordinate of the mouse should be inversed.
+	 */
+	private boolean inverseYMouseCoordinate = true; // A hack which is required by the JavaFXOffscreenSupport
 
 	/**
 	 * Creates a JavaFXMouseProvider.
@@ -136,16 +141,19 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 		boolean isPressed = event.getEventType().equals(javafx.scene.input.MouseEvent.MOUSE_PRESSED)
 			|| event.getEventType().equals(javafx.scene.input.MouseEvent.MOUSE_DRAGGED);
 
+		double x = event.getX();
+		double y = inverseYCoordinate(event.getY());
+
 		MouseEvent mouseEvent = new MouseEvent(
 			toInputMouseEventButton(event.getButton()),
 			isPressed,
-			(int) event.getX(),
-			(int) event.getY(),
+			(int) x,
+			(int) y,
 			mouseWheelAmount
 		);
 
-		previousX = (int) event.getX();
-		previousY = (int) event.getY();
+		previousX = (int) x;
+		previousY = (int) y;
 
 		synchronized (eventQueue) {
 			eventQueue.add(mouseEvent);
@@ -171,7 +179,13 @@ public class JavaFXMouseProvider extends JavaFXInputProvider<MouseEvent, javafx.
 	private void handleWheelEvents(javafx.scene.input.ScrollEvent event) {
 		mouseWheelAmount = event.getDeltaY() / event.getMultiplierY();
 		mouseWheelMoved = true;
-		System.out.println(mouseWheelAmount);
 		event.consume();
+	}
+
+	private double inverseYCoordinate(double yCoordinate) {
+		if (inverseYMouseCoordinate && source instanceof ImageView) {
+			yCoordinate = Math.abs(((ImageView)source).getFitHeight() - yCoordinate);
+		}
+		return yCoordinate;
 	}
 }
