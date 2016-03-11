@@ -2,18 +2,12 @@ group 'de.yvka'
 description 'Simple Scene Graph Based 3d Engine'
 version '1.0'
 
-ext {
-    lwjgl3version = "3.0.0b"
-    slf4jVersion = "1.7.13"
-    jdkVersion = "1.8"
-}
-
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 apply from: 'gradle/ide.gradle'
 
-sourceCompatibility = "$jdkVersion"
-targetCompatibility = "$jdkVersion"
+sourceCompatibility = jdkVersion
+targetCompatibility = jdkVersion
 
 repositories {
     mavenLocal()
