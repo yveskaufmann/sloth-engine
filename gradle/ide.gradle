@@ -2,12 +2,8 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 
 idea {
-    project {
-        jdkName = jdkVersion
-        languageLevel = jdkVersion
-    }
-
     module {
+        jdkName = jdkVersion
         downloadJavadoc = true
         downloadSources = true
     }
@@ -15,8 +11,8 @@ idea {
 
 eclipse {
     jdt {
-        sourceCompatibility = "$jdkVersion"
-        targetCompatibility = "$jdkVersion"
+        sourceCompatibility = jdkVersion
+        targetCompatibility = jdkVersion
     }
 
     classpath {
