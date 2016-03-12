@@ -60,7 +60,7 @@ public class FreeCamera extends Camera {
 		viewMatrix.identity().lookAt(position, new Vector3f(position).add(direction), up);
 		// Capture the cursor in the primary window
 
-		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Primary)) {
+		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
 			inputManager.setMousePosition(centerX, centerY);
 			inputHandling(time);
 		}
