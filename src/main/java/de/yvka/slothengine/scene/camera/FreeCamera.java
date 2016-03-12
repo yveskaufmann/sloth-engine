@@ -25,26 +25,26 @@ public class FreeCamera extends Camera {
 	public void update(float time) {
 		InputManager inputManager = Engine.getInputManager();
 		Window window = Engine.getPrimaryWindow();
-		int centerX = window.getWidth() >> 1;
-		int centerY = window.getHeight() >> 1;
+		int centerX = (int) Math.ceil(window.getWidth() * 0.5);
+		int centerY = (int) Math.floor(window.getHeight() * 0.5);
 
 		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Primary)) {
 
-			Vector2d mousePos = inputManager.getMousePosition();
+			System.out.println(window.getWidth());
+			System.out.println(window.getHeight());
 
+			Vector2d mousePos = inputManager.getMousePosition();
 			float offsetX = (float) (centerX - mousePos.x);
 			float offsetY = (float) (centerY - mousePos.y);
 
 			offsetX /= mouseSpeed;
 			offsetY /= mouseSpeed;
 
-
 			horizontalAngle += mouseSpeed * time * offsetX;
 			verticalAngle += mouseSpeed * time * offsetY;
 
 			// Prevents the Camera from vertically flipping
 			verticalAngle = MathUtils.clamp(verticalAngle, -1.5f, 1.5f);
-
 		}
 
 		direction.set(

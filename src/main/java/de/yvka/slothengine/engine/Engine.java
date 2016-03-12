@@ -70,7 +70,6 @@ public class Engine {
 		if ( GL_TRUE != glfwInit()) {
 			throw new IllegalStateException("GLFW could not initialized");
 		}
-
 		registerDefaultComponents();
 
 		initialized = true;
