@@ -28,7 +28,7 @@ public class FreeCamera extends Camera {
 		int centerX = (int) Math.ceil(window.getWidth() * 0.5);
 		int centerY = (int) Math.floor(window.getHeight() * 0.5);
 
-		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Primary)) {
+		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
 
 			System.out.println(window.getWidth());
 			System.out.println(window.getHeight());
