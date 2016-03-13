@@ -15,6 +15,12 @@ public class FreeCamera extends Camera {
 	private float verticalAngle;
 	private float mouseSpeed = 5.0f;
 
+	private double initialX = - 1;
+	private double initialY = -1;
+
+	private double lastXPos = - 1;
+	private double lastYPos = -1;
+
 	public FreeCamera() {
 		horizontalAngle = (float) Math.PI;
 		position.set(0, 0, 0);
@@ -25,17 +31,23 @@ public class FreeCamera extends Camera {
 	public void update(float time) {
 		InputManager inputManager = Engine.getInputManager();
 		Window window = Engine.getPrimaryWindow();
-		int centerX = (int) Math.ceil(window.getWidth() * 0.5);
-		int centerY = (int) Math.floor(window.getHeight() * 0.5);
+
+		int width = window.getWidth();
+		int height = window.getHeight();
 
 		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
-
-			System.out.println(window.getWidth());
-			System.out.println(window.getHeight());
-
 			Vector2d mousePos = inputManager.getMousePosition();
-			float offsetX = (float) (centerX - mousePos.x);
-			float offsetY = (float) (centerY - mousePos.y);
+
+			// When the mouse button pressed the first time
+			if (lastXPos == -1 || lastYPos == -1) {
+				initialX = lastXPos = mousePos.x;
+				initialY = lastYPos = mousePos.y;
+			}
+
+			float offsetX = (float) (lastXPos - mousePos.x);
+			float offsetY = (float) (lastYPos - mousePos.y);
+			lastXPos = mousePos.x;
+			lastYPos = mousePos.y;
 
 			offsetX /= mouseSpeed;
 			offsetY /= mouseSpeed;
@@ -45,6 +57,12 @@ public class FreeCamera extends Camera {
 
 			// Prevents the Camera from vertically flipping
 			verticalAngle = MathUtils.clamp(verticalAngle, -1.5f, 1.5f);
+		} else {
+			if (lastXPos != -1 && lastYPos != -1) {
+				inputManager.setMousePosition((int)initialX, (int)initialY);
+			}
+			lastXPos = -1;
+			lastYPos = -1;
 		}
 
 		direction.set(
@@ -61,7 +79,6 @@ public class FreeCamera extends Camera {
 		// Capture the cursor in the primary window
 
 		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
-			inputManager.setMousePosition(centerX, centerY);
 			inputHandling(time);
 		}
 	}
