@@ -28,7 +28,7 @@ public abstract class Light extends Node {
 
 			Shader shader = Engine.shaderManager().getShader("Icon", "Icon", "Icon");
 
-			setMaterial(new BasicMaterial(shader));
+			setMaterial(new BasicMaterial());
 			setMesh(new Sphere(0.5f, 4, 4));
 			getMaterial().setEnableLightning(false);
 			getMaterial().getRenderState().enableWireframe(false);

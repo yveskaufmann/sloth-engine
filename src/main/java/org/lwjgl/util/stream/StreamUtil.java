@@ -157,12 +157,10 @@ public final class StreamUtil {
 		checkCapabilities(caps);
 
 		final List<RenderStreamFactory> list = new ArrayList<RenderStreamFactory>();
-
 		addIfSupported(caps, list, RenderStreamPBOAMD.FACTORY);
 		addIfSupported(caps, list, RenderStreamPBOCopy.FACTORY);
 		addIfSupported(caps, list, RenderStreamINTEL.FACTORY);
 		addIfSupported(caps, list, RenderStreamPBODefault.FACTORY);
-
 		return list;
 	}
 
