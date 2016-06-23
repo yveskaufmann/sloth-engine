@@ -29,7 +29,7 @@ public class GLFWKeyInputProvider extends GLFWInputProvider<KeyEvent>  implement
 	@Override
 	public void shutdown() {
 		keyState.clear();
-		keyCallback.release();
+		keyCallback.free();
 		initialized = false;
 	}
 

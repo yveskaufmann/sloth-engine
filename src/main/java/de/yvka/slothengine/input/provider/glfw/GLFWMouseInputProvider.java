@@ -86,9 +86,9 @@ public class GLFWMouseInputProvider extends GLFWInputProvider<MouseEvent> implem
 
 	@Override
 	public void shutdown() {
-		mouseButtonCallback.release();
-		cursorPosCallback.release();
-		scrollCallback.release();
+		mouseButtonCallback.free();
+		cursorPosCallback.free();
+		scrollCallback.free();
 		initialized = false;
 	}
 

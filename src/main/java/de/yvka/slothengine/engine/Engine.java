@@ -67,7 +67,7 @@ public class Engine {
 			throw new IllegalArgumentException("The Engine is already initialized");
 		}
 
-		if ( GL_TRUE != glfwInit()) {
+		if ( !glfwInit()) {
 			throw new IllegalStateException("GLFW could not initialized");
 		}
 

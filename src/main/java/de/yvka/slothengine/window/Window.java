@@ -85,7 +85,7 @@ public class Window {
 	}
 
 	public boolean shouldClose() {
-		return GLFW.glfwWindowShouldClose(windowId) == GLFW.GLFW_TRUE;
+		return GLFW.glfwWindowShouldClose(windowId);
 	}
 
 	public Window enable() {
@@ -171,7 +171,7 @@ public class Window {
 	}
 
 	public void requestClose() {
-		GLFW.glfwSetWindowShouldClose(windowId, 1);
+		GLFW.glfwSetWindowShouldClose(windowId, true);
 	}
 
 	/**
