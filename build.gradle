@@ -1,4 +1,4 @@
-group 'de.yvka'
+group 'eu.yvka'
 description 'Simple Scene Graph Based 3d Engine'
 version '1.0'
 
