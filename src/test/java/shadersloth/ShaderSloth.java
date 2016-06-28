@@ -1,22 +1,21 @@
 package shadersloth;
 
-import de.yvka.slothengine.engine.AppSettings;
-import de.yvka.slothengine.engine.Engine;
-import de.yvka.slothengine.engine.EngineApp;
-import de.yvka.slothengine.geometry.primitives.Cube;
-import de.yvka.slothengine.geometry.primitives.Sphere;
-import de.yvka.slothengine.input.InputListener;
-import de.yvka.slothengine.input.event.KeyEvent;
-import de.yvka.slothengine.input.event.MouseEvent;
-import de.yvka.slothengine.material.BasicMaterial;
-import de.yvka.slothengine.material.Pass;
-import de.yvka.slothengine.math.Color;
-import de.yvka.slothengine.renderer.FPSCounter;
-import de.yvka.slothengine.renderer.RenderState;
-import static de.yvka.slothengine.renderer.RenderState.*;
-import de.yvka.slothengine.scene.Geometry;
-import de.yvka.slothengine.scene.camera.FreeCamera;
-import de.yvka.slothengine.scene.light.PointLight;
+import eu.yvka.slothengine.engine.AppSettings;
+import eu.yvka.slothengine.engine.Engine;
+import eu.yvka.slothengine.engine.EngineApp;
+import eu.yvka.slothengine.geometry.primitives.Cube;
+import eu.yvka.slothengine.geometry.primitives.Sphere;
+import eu.yvka.slothengine.input.InputListener;
+import eu.yvka.slothengine.input.event.KeyEvent;
+import eu.yvka.slothengine.input.event.MouseEvent;
+import eu.yvka.slothengine.material.BasicMaterial;
+import eu.yvka.slothengine.material.Pass;
+import eu.yvka.slothengine.math.Color;
+import eu.yvka.slothengine.renderer.FPSCounter;
+import eu.yvka.slothengine.renderer.RenderState;
+import eu.yvka.slothengine.scene.Geometry;
+import eu.yvka.slothengine.scene.camera.FreeCamera;
+import eu.yvka.slothengine.scene.light.PointLight;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -129,9 +128,9 @@ public class ShaderSloth extends EngineApp implements InputListener {
                 case Q: zoomLevel -= 0.1; break;
                 case C:
                     if (material.getRenderState().getCullFaceMode() == RenderState.CullFaceMode.Off) {
-                        material.getRenderState().setCullFaceMode(CullFaceMode.Back);
+                        material.getRenderState().setCullFaceMode(RenderState.CullFaceMode.Back);
                     } else {
-                        material.getRenderState().setCullFaceMode(CullFaceMode.Off);
+                        material.getRenderState().setCullFaceMode(RenderState.CullFaceMode.Off);
                     }
                     rendererManager.getRenderer().applyRenderState(material.getRenderState());
                     break;
