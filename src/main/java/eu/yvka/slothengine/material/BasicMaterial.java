@@ -44,6 +44,11 @@ public class BasicMaterial implements Material {
 	Shader shader;
 
 	/**
+	 * The name of this Shader
+	 */
+	private String name;
+
+	/**
 	 * Specifies if the material should be affected by lightning
 	 */
 	boolean receivesLights = true;
@@ -80,6 +85,7 @@ public class BasicMaterial implements Material {
 	 */
 	public BasicMaterial() {
 		shader = Engine.getShader("Default");
+		name = DEFAULT_MATERIAL_NAME;
 		renderPasses.add(this);
 	}
 
@@ -89,7 +95,18 @@ public class BasicMaterial implements Material {
 	 */
 	public BasicMaterial(Shader shader) {
 		this.shader = shader;
+		name = shader.getShaderName();
 		renderPasses.add(this);
+	}
+
+	@Override
+	public String getMaterialName() {
+		return name;
+	}
+
+	@Override
+	public void setMaterialName(String materialName) {
+		name = materialName;
 	}
 
 	@Override

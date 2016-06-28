@@ -3,8 +3,10 @@ package eu.yvka.slothengine.scene.camera;
 import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.input.InputManager;
 import eu.yvka.slothengine.input.provider.KeyInputProvider;
+import eu.yvka.slothengine.input.provider.MouseInputProvider;
 import eu.yvka.slothengine.math.MathUtils;
 import eu.yvka.slothengine.window.Window;
+
 import org.joml.Vector2d;
 import org.joml.Vector3f;
 
@@ -14,37 +16,55 @@ public class FreeCamera extends Camera {
 	private float verticalAngle;
 	private float mouseSpeed = 5.0f;
 
+	private double initialX = - 1;
+	private double initialY = -1;
+
+	private double lastXPos = - 1;
+	private double lastYPos = -1;
+
 	public FreeCamera() {
 		horizontalAngle = (float) Math.PI;
 		position.set(0, 0, 0);
 		viewMatrix.identity().lookAt(position, new Vector3f(position).add(direction), up);
-		// Engine.register(new FPSCounter());
 	}
 
 	@Override
 	public void update(float time) {
 		InputManager inputManager = Engine.getInputManager();
 		Window window = Engine.getPrimaryWindow();
-		int centerX = window.getWidth() >> 1;
-		int centerY = window.getHeight() >> 1;
 
-		Vector2d mousePos = inputManager.getMousePosition();
+		int width = window.getWidth();
+		int height = window.getHeight();
 
-		float offsetX = (float) (centerX - mousePos.x);
-		float offsetY = (float) (centerY - mousePos.y);
+		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
+			Vector2d mousePos = inputManager.getMousePosition();
 
-		offsetX /= mouseSpeed;
-		offsetY /= mouseSpeed;
+			// When the mouse button pressed the first time
+			if (lastXPos == -1 || lastYPos == -1) {
+				initialX = lastXPos = mousePos.x;
+				initialY = lastYPos = mousePos.y;
+			}
 
+			float offsetX = (float) (lastXPos - mousePos.x);
+			float offsetY = (float) (lastYPos - mousePos.y);
+			lastXPos = mousePos.x;
+			lastYPos = mousePos.y;
 
-		horizontalAngle += mouseSpeed * time * offsetX;
-		verticalAngle += mouseSpeed * time * offsetY;
+			offsetX /= mouseSpeed;
+			offsetY /= mouseSpeed;
 
-		// Prevents the Camera from vertically flipping
-		verticalAngle = MathUtils.clamp(verticalAngle, -1.5f, 1.5f);
+			horizontalAngle += mouseSpeed * time * offsetX;
+			verticalAngle += mouseSpeed * time * offsetY;
 
-		//horizontalAngle = 0;
-		//verticalAngle = 0;
+			// Prevents the Camera from vertically flipping
+			verticalAngle = MathUtils.clamp(verticalAngle, -1.5f, 1.5f);
+		} else {
+			if (lastXPos != -1 && lastYPos != -1) {
+				inputManager.setMousePosition((int)initialX, (int)initialY);
+			}
+			lastXPos = -1;
+			lastYPos = -1;
+		}
 
 		direction.set(
 			(float) (Math.cos(verticalAngle) * Math.sin(horizontalAngle)),
@@ -59,8 +79,9 @@ public class FreeCamera extends Camera {
 		viewMatrix.identity().lookAt(position, new Vector3f(position).add(direction), up);
 		// Capture the cursor in the primary window
 
-		inputManager.setMousePosition(centerX, centerY);
-		inputHandling(time);
+		if (inputManager.isMouseButtonPressed(MouseInputProvider.MouseButton.Second)) {
+			inputHandling(time);
+		}
 	}
 
 	private void inputHandling(float time) {
@@ -113,7 +134,4 @@ public class FreeCamera extends Camera {
 
 	}
 
-	public static void main(String[] args) {
-		System.out.println(Math.sin(90 * Math.PI / 180));
-	}
 }

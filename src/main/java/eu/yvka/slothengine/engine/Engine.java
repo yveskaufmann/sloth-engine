@@ -4,6 +4,7 @@ import eu.yvka.slothengine.geometry.Mesh;
 import eu.yvka.slothengine.geometry.MeshRepository;
 import eu.yvka.slothengine.input.InputManager;
 import eu.yvka.slothengine.input.InputManagerFactory;
+import eu.yvka.slothengine.material.MaterialManager;
 import eu.yvka.slothengine.renderer.Renderer;
 import eu.yvka.slothengine.renderer.RendererManager;
 import eu.yvka.slothengine.shader.Shader;
@@ -29,6 +30,7 @@ public class Engine {
 
 	public static final String DEFAULT_LOG_FILE = "logging.properties";
 
+
 	static {
 		enableLogging();
 	}
@@ -39,6 +41,7 @@ public class Engine {
 	private static WindowManager windowManager;
 	private static TextureManager textureManager;
 	private static InputManager inputManager;
+	private static MaterialManager materialManager;
 	private static boolean initialized;
 	private static List<EngineComponent> components = new ArrayList<>();
 
@@ -61,7 +64,6 @@ public class Engine {
 		if ( !glfwInit()) {
 			throw new IllegalStateException("GLFW could not initialized");
 		}
-
 		registerDefaultComponents();
 
 		initialized = true;
@@ -76,6 +78,7 @@ public class Engine {
 		renderManager = register(new RendererManager(), RendererManager.class);
 		shaderRepository = register(new ShaderManager(), ShaderManager.class);
 		meshRepository = register(new MeshRepository(), MeshRepository.class);
+		materialManager = register(new MaterialManager(), MaterialManager.class);
 		onInit();
 
 		JavaFXOffscreenSupport offscreenSupport = appSettings.get(JavaFXOffscreenSupport.JAVAFX_OFFSCREEN_SUPPORT, JavaFXOffscreenSupport.class);
@@ -132,6 +135,7 @@ public class Engine {
 			component == textureManager   ||
 			component == shaderRepository ||
 			component == meshRepository   ||
+			component == materialManager  ||
 			component == inputManager;
 
 	}
@@ -172,6 +176,11 @@ public class Engine {
 	static
 	public RendererManager renderManager() {
 		return renderManager;
+	}
+
+	static
+	public MaterialManager materialManager() {
+		return materialManager;
 	}
 
 	static

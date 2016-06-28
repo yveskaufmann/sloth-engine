@@ -60,7 +60,6 @@ final class RenderStreamINTEL extends StreamBuffered implements RenderStream {
 			// TODO: We currently require BlitFramebuffer. Relax and implement manually?
 			return caps.GL_INTEL_map_texture && (caps.OpenGL30 || caps.GL_ARB_framebuffer_object || caps.GL_EXT_framebuffer_blit);
 		}
-
 		public RenderStream create(final StreamHandler handler, final int samples, final int transfersToBuffer) {
 			return new RenderStreamINTEL(handler, samples, transfersToBuffer);
 		}

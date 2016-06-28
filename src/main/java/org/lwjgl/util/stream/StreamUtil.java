@@ -131,6 +131,7 @@ public final class StreamUtil {
 	}
 
 	private static void checkCapabilities(final GLCapabilities caps) {
+
 		if ( !caps.OpenGL15 )
 			throw new UnsupportedOperationException("Support for OpenGL 1.5 or higher is required.");
 
@@ -156,12 +157,10 @@ public final class StreamUtil {
 		checkCapabilities(caps);
 
 		final List<RenderStreamFactory> list = new ArrayList<RenderStreamFactory>();
-
-		// addIfSupported(caps, list, RenderStreamPBOAMD.FACTORY);
-		// addIfSupported(caps, list, RenderStreamPBOCopy.FACTORY);
-		// addIfSupported(caps, list, RenderStreamINTEL.FACTORY);
+		addIfSupported(caps, list, RenderStreamPBOAMD.FACTORY);
+		addIfSupported(caps, list, RenderStreamPBOCopy.FACTORY);
+		addIfSupported(caps, list, RenderStreamINTEL.FACTORY);
 		addIfSupported(caps, list, RenderStreamPBODefault.FACTORY);
-
 		return list;
 	}
 

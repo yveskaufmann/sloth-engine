@@ -3,6 +3,7 @@ package eu.yvka.slothengine.window;
 import eu.yvka.slothengine.engine.AppSettings;
 import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.engine.EngineComponent;
+
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,11 +88,13 @@ public class WindowManager implements EngineComponent {
 	}
 
 	public WindowManager setWidth(int width) {
+		if (width <= 0) width = 1;
 		this.width = width;
 		return this;
 	}
 
 	public WindowManager setHeight(int height) {
+		if (height <= 0) height = 1;
 		this.height = height;
 		return this;
 	}
@@ -146,7 +149,6 @@ public class WindowManager implements EngineComponent {
      */
 	public Window build() {
 		windowHints.forEach(GLFW::glfwWindowHint);
-
 		long windowId = GLFW.glfwCreateWindow(width, height, title, NULL, NULL);
 		if (windowId == NULL) {
 			throw new WindowException("Failed to create a window");

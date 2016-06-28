@@ -31,6 +31,7 @@
  */
 package org.lwjgl.util.stream;
 
+import eu.yvka.slothengine.engine.Engine;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
@@ -52,7 +53,6 @@ abstract class RenderStreamPBO extends StreamBufferedPBO implements RenderStream
 	}
 
 	private final ReadbackType readbackType;
-
 	protected final StreamUtil.FBOUtil fboUtil;
 	private final   int                renderFBO;
 
@@ -120,6 +120,13 @@ abstract class RenderStreamPBO extends StreamBufferedPBO implements RenderStream
 		);
 
 		glViewport(0, 0, width, height);
+
+		/**
+		 * Required in order to inter operate with the sloth engine
+		 */
+		if (Engine.getPrimaryWindow() != null) {
+			Engine.getPrimaryWindow().setSize(width, height);
+		}
 
 		fboUtil.bindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 

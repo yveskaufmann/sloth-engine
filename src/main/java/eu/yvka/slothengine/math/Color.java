@@ -206,4 +206,16 @@ public class Color implements Cloneable {
 			throw new RuntimeException(e); // Should never happen.
 		}
 	}
+
+	/**
+	 * Creates a color instance from relative RGB values.
+	 *
+	 * @param red  the red component, in the range 0.0-1.0
+	 * @param green  the green component, in the range 0.0-1.0
+	 * @param blue  the blue component, in the range 0.0-1.0
+     * @return
+     */
+	public static Color fromRGB(double red, double green, double blue) {
+		return new Color((float )red, (float) green, (float)blue);
+	}
 }

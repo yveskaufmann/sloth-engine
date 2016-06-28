@@ -31,6 +31,7 @@
  */
 package org.lwjgl.util.stream;
 
+import org.lwjgl.opengl.ARBCopyBuffer;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.util.stream.StreamUtil.RenderStreamFactory;
@@ -60,11 +61,12 @@ final class RenderStreamPBODefault extends RenderStreamPBO {
 	};
 
 	private final boolean USE_COPY_BUFFER_SUB_DATA;
+	private final GLCapabilities caps;
 
 	RenderStreamPBODefault(final StreamHandler handler, final int samples, final int transfersToBuffer, final ReadbackType readbackType) {
 		super(handler, samples, transfersToBuffer, readbackType);
 
-		final GLCapabilities caps = GL.getCapabilities();
+		caps = GL.getCapabilities();
 
 		USE_COPY_BUFFER_SUB_DATA = (caps.OpenGL31 || caps.GL_ARB_copy_buffer) &&
 		                           // Disable on ATI/AMD GPUs: ARB_copy_buffer is unoptimized on current
@@ -83,9 +85,17 @@ final class RenderStreamPBODefault extends RenderStreamPBO {
 	}
 
 	protected void copyFrames(final int src, final int trg) {
-		if ( USE_COPY_BUFFER_SUB_DATA ) {
+		if ( USE_COPY_BUFFER_SUB_DATA) {
 			glBindBuffer(GL_COPY_WRITE_BUFFER, pbos[trg]);
-			glCopyBufferSubData(GL_PIXEL_PACK_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, height * stride);
+
+			if (caps.OpenGL31) {
+				glCopyBufferSubData(GL_PIXEL_PACK_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, height * stride);
+			} else if (caps.GL_ARB_copy_buffer) {
+				ARBCopyBuffer.glCopyBufferSubData(GL_PIXEL_PACK_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, height * stride);
+			} else {
+				throw new UnsupportedOperationException("The required open gl call glCopyBufferSubData isn't supported");
+			}
+
 			glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 		} else {
 			pinnedBuffers[src] = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY, height * stride, pinnedBuffers[src]);

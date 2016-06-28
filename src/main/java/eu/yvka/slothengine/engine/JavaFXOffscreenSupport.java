@@ -4,24 +4,34 @@ import eu.yvka.slothengine.window.Window;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.*;
+import javafx.scene.paint.*;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.stream.RenderStream;
 import org.lwjgl.util.stream.StreamHandler;
 import org.lwjgl.util.stream.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
  * JavaFX image view offscreen render support based on
  * org.lwjgl.util.stream.
  *
  * @see <a href="https://github.com/Spasi/LWJGL-FX">Spasi/LWJGL-FX</a>
+ *
  *
  */
 public class JavaFXOffscreenSupport implements EngineComponent {
@@ -34,6 +44,7 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 	private RenderStream renderStream;
 	private CountDownLatch runningLatch;
 	private ImageView renderView;
+	private Window window;
 
 	public JavaFXOffscreenSupport(ImageView renderView, CountDownLatch runningLatch) {
 		this.runningLatch = runningLatch;
@@ -48,13 +59,15 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 	@Override
 	public void initialize() {
 		Log.info("Initialize JavaFX Offscreen Renderer");
-
-		Window window = Engine.getPrimaryWindow();
+		window = Engine.getPrimaryWindow();
 		window.setSize((int)renderView.getFitWidth(), (int)renderView.getFitHeight());
 		window.hide();
 
+
 		this.renderStreamFactory = StreamUtil.getRenderStreamImplementation();
 		this.renderStream = renderStreamFactory.create(getReadHandler(), 1, 2);
+		Log.debug("Choose best fitting RenderStream implementation: " + renderStream.getClass().getName());
+
 		initialized = true;
 	}
 
@@ -114,8 +127,10 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 			}
 
 			public void process(final int width, final int height, final ByteBuffer data, final int stride, final Semaphore signal) {
+
 				// This method runs in the background rendering thread
 				Platform.runLater(() -> {
+
 					try {
 						// If we're quitting, discard onUpdate
 						if ( !renderView.isVisible() )
@@ -131,14 +146,16 @@ public class JavaFXOffscreenSupport implements EngineComponent {
 						// *NOTE*: The +1 is weird here, but apparently setPixels triggers a new pulse within the current frame.
 						// If we ignore that, we'd get a) worse performance from uploading double the frames and b) exceptions
 						// on certain configurations (e.g. Nvidia GPU with the D3D pipeline).
-						if ( frame <= lastUpload + 2 )
+						if ( frame <= lastUpload + 1 )
 							return;
 
 						lastUpload = frame;
 
 						// Upload the image to JavaFX
 						PixelWriter pw = renderImage.getPixelWriter();
-						pw.setPixels(0, 0, width, height, pw.getPixelFormat(), data, stride);
+						PixelFormat pixelFormat = pw.getPixelFormat();
+						pw.setPixels(0, 0, width, height, pixelFormat, data, stride);
+
 					} finally {
 						// Notify the render thread that we're done processing
 						signal.release();

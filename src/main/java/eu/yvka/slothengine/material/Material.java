@@ -42,6 +42,28 @@ public interface Material extends Pass {
 	public static final String MATERIAL_SPECULAR = "sl_material.specular";
 
 	/**
+	 * Default Material Name
+     */
+	public static final String DEFAULT_MATERIAL_NAME = "Phong";
+
+	/**
+	 * Returns the name of this material which
+	 * must be unique.
+	 *
+	 * @return the name of this material.
+     */
+ 	String getMaterialName();
+
+	/**
+	 * Specifies the name of this material which
+	 * must be unique.
+	 *
+	 * @param materialName the name of this material.
+	 */
+	 void setMaterialName(String materialName);
+
+
+	/**
 	 * Returns the list of passes
 	 * which are assemble this
 	 * material.
