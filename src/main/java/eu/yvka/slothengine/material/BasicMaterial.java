@@ -11,7 +11,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Basic Material which provides the default behaviour for materials.
@@ -339,5 +342,37 @@ public class BasicMaterial implements Material {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "BasicMaterial{" +
+			"shininess=" + shininess +
+			", diffuse=" + diffuse +
+			", ambient=" + ambient +
+			", specular=" + specular +
+			", shader=" + shader +
+			", name='" + name + '\'' +
+			", receivesLights=" + receivesLights +
+			", state=" + state +
+			", parameters=" + parameters +
+			", textures=" + textures +
+			", textureUnit=" + textureUnit +
+			'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		BasicMaterial that = (BasicMaterial) o;
+		if (!name.equals(that.name)) return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 31 * name.hashCode();
+		return result;
+	}
 }
 

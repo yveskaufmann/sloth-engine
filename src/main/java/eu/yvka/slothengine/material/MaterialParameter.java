@@ -22,6 +22,10 @@ public class MaterialParameter{
 		return value;
 	}
 
+	public void setValue(Object value) {
+		this.value = value;
+	}
+
 	public ShaderVariable.VariableType getType() {
 		return type;
 	}

@@ -22,6 +22,13 @@ public abstract class ShaderSource extends HardwareObject {
 	public abstract String getSource();
 
 	/**
+	 * Update the underlying shader source.
+	 *
+	 * @return
+     */
+	public abstract void updateShaderSource(String source);
+
+	/**
 	 * Returns the time that the shader source was last modified.
 	 *
 	 * @return A long value representing the time when the shader source was last modified.

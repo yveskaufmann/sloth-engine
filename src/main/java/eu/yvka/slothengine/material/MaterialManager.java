@@ -1,26 +1,25 @@
 package eu.yvka.slothengine.material;
 
-
-import eu.yvka.slothengine.utils.NameAlreadyInUseException;
 import eu.yvka.slothengine.engine.EngineComponent;
+import eu.yvka.slothengine.utils.NameAlreadyInUseException;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class MaterialManager implements EngineComponent {
 
 	static private Logger Log = LoggerFactory.getLogger(MaterialManager.class);
 	private boolean initialized;
-	private Map<String, Material> materialRepository;
+	private ObservableMap<String, Material> materialRepository;
 
 	@Override
 	public void initialize() {
 		Log.info("Initialize MaterialManager");
 		Log.info("Prepare Material Repository");
-		materialRepository = new HashMap<>();
+		materialRepository = FXCollections.observableHashMap();
 		try {
 			registerMaterial(new BasicMaterial());
 		} catch (NameAlreadyInUseException e) {} // Will never happen
@@ -55,6 +54,20 @@ public class MaterialManager implements EngineComponent {
 	}
 
 	/**
+	 * Remove and delete this material.
+	 *
+	 * @param material the material to removed
+	 * @return true if the material was removed.
+     */
+	public boolean unregisterMaterial(Material material) {
+		if (materialRepository.containsKey(material.getMaterialName())) {
+			materialRepository.remove(material.getMaterialName());
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Returns a optional which contains the material with the
 	 * specified name if such a material exists.
 	 *
@@ -77,5 +90,29 @@ public class MaterialManager implements EngineComponent {
 		return materialRepository.containsKey(name);
 	}
 
+	public void renameMaterial(String oldName, String newMame) throws NameAlreadyInUseException {
+
+		Material material;
+
+		if (newMame.equals(oldName)) return; // Can be Ignored
+
+		material = materialRepository.get(oldName);
+
+		if (material == null) {
+			throw new IllegalArgumentException("The specified Material '" + oldName + "' don't exists.");
+		}
+
+		if (isMaterialNameInUse(newMame)) {
+			throw new NameAlreadyInUseException(newMame);
+		}
+		material.setMaterialName(newMame);
+		materialRepository.remove(oldName);
+		materialRepository.put(newMame, material);
+		Log.info("rename material '{}' => '{}'", oldName, newMame);
+	}
+
+	public ObservableMap<String, Material> getMaterial() {
+		return materialRepository;
+	}
 
 }

@@ -69,9 +69,6 @@ public class OpenGLCaps {
 		GLFW.glfwMakeContextCurrent(windowId);
 
 		GL.createCapabilities();
-		System.out.println(createCapsString());
-		System.out.println("List of supported extensions:" + String.join("\n", supportedExtensions()));
-
 		GLFW.glfwDestroyWindow(windowId);
 		GLFW.glfwTerminate();
 

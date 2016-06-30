@@ -55,6 +55,16 @@ public class FileShaderSource extends ShaderSource {
 	}
 
 	@Override
+	public void updateShaderSource(String source) {
+		try {
+			IOUtils.writeToFile(file, source);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		enableUpdateRequired();
+	}
+
+	@Override
 	public long lastModified() {
 		return lastModified;
 	}

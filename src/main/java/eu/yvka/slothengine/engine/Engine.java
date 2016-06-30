@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.LogManager;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -44,6 +46,7 @@ public class Engine {
 	private static MaterialManager materialManager;
 	private static boolean initialized;
 	private static List<EngineComponent> components = new ArrayList<>();
+	private static Queue<Runnable> runWhenReadyQueue = new ConcurrentLinkedQueue<>();
 
 	private static AppSettings appSettings = new AppSettings();
 
@@ -208,31 +211,57 @@ public class Engine {
 	}
 
 	static void onFrameStart() {
-		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameStart);
+		while (! runWhenReadyQueue.isEmpty()) {
+			runWhenReadyQueue.poll().run();
+		}
+
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.onFrameStart();
+		}
+
+		// components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameStart);
 	}
 
 	static void onUpdate(float elapsedTime) {
-		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onUpdate(elapsedTime));
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.onUpdate(elapsedTime);
+		}
+		// components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onUpdate(elapsedTime));
 	}
 
 	static void onBeforeRender(float elapsedTime) {
-		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onBeforeRender(elapsedTime));
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.onBeforeRender(elapsedTime);
+		}
+		// components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onBeforeRender(elapsedTime));
 	}
 
 	static void onRender(float elapsedTime) {
-		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onRender(elapsedTime));
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.onRender(elapsedTime);
+		}
+		// components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onRender(elapsedTime));
 	}
 
 	static void onAfterRender(float elapsedTime) {
-		components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onAfterRender(elapsedTime));
+		for (EngineComponent component : components) {
+			if (component.isInitialized())component.onAfterRender(elapsedTime);
+		}
+		// components.stream().filter(EngineComponent::isInitialized).forEach((c) -> c.onAfterRender(elapsedTime));
 	}
 
 	static void onFrameEnd() {
-		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameEnd);
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.onFrameEnd();
+		}
+		//components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::onFrameEnd);
 	}
 
 	static void onShutdown() {
-		components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::shutdown);
+		for (EngineComponent component : components) {
+			if (component.isInitialized()) component.shutdown();
+		}
+		// components.stream().filter(EngineComponent::isInitialized).forEach(EngineComponent::shutdown);
 	}
 
 	public static boolean shouldExit() {
@@ -245,6 +274,10 @@ public class Engine {
 
 	public static InputManager getInputManager() {
 		return inputManager;
+	}
+
+	public static void runWhenReady(Runnable engineInitializedHandler) {
+		runWhenReadyQueue.offer(engineInitializedHandler);
 	}
 
 	private static void enableLogging() {

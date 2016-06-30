@@ -72,4 +72,18 @@ public class IOUtils {
 			} catch (IOException ignored) {}
 		}
 	}
+
+	/**
+	 * Write a String to a File.
+	 *
+	 * @param file
+	 * @param source
+	 * @throws IOException
+     */
+	public static void writeToFile(File file, String source) throws IOException {
+		StringReader reader = new StringReader(source);
+		try(FileWriter writer = new FileWriter(file)) {
+			copy(reader, writer);
+		}
+	}
 }

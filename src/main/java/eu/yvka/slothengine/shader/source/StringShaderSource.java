@@ -21,6 +21,12 @@ public class StringShaderSource extends ShaderSource {
 		return this.source;
 	}
 
+	@Override
+	public void updateShaderSource(String source) {
+		this.source = source;
+		markAsModified();
+	}
+
 	public void setSource(String source) {
 		enableUpdateRequired();
 		this.source = source;

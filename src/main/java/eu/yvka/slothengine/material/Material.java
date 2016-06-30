@@ -54,6 +54,7 @@ public interface Material extends Pass {
      */
  	String getMaterialName();
 
+
 	/**
 	 * Specifies the name of this material which
 	 * must be unique.

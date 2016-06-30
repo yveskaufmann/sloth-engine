@@ -1,5 +1,7 @@
 package eu.yvka.slothengine.math;
 
+import java.text.MessageFormat;
+
 /**
  * Abstraction of rgba value.
  */
@@ -172,7 +174,7 @@ public class Color implements Cloneable {
 
 	@Override
 	public String toString() {
-		return String.format("Color [%f, %f, %f, %f]", r, g, b, a);
+		return MessageFormat.format("Color [{0}, {1}, {2}, {3}]", r, g, b, a);
 	}
 
 	@Override
