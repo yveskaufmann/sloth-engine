@@ -4,6 +4,7 @@ import eu.yvka.slothengine.geometry.loader.MeshLoader;
 import eu.yvka.slothengine.geometry.loader.MeshLoaderException;
 import eu.yvka.slothengine.geometry.loader.WaveFrontObjectLoader;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class MeshLoaderManager {
 	/**
 	 * The directory which is used to lookup for model files.
 	 */
-	private static final String MODEL_DIRECTORY = "assets/models";
+	private static final File MODEL_DIRECTORY = new File("assets/models");
 
 	/**
 	 * The concrete MeshLoaders which are capable to load a mesh file.
@@ -69,13 +70,25 @@ public class MeshLoaderManager {
 	 *
 	 * @throws MeshLoaderException if the mesh file could not be imported as mesh object.
      */
-	public Mesh loadMesh(String name) {
-		MeshLoader loader = getLoaderByExtension(name);
-		return loadMesh(name, loader);
+	public Mesh loadMeshFromAssets(String name) {
+		String path = MODEL_DIRECTORY.getAbsolutePath() + "/" + name;
+		return loadMesh(path);
 	}
 
-	private Mesh loadMesh(String name, MeshLoader loader) {
-		String path = MODEL_DIRECTORY + "/" + name;
+	/**
+	 * Load the mesh file from from a given absolute path.
+	 *
+	 * @param pathToMesh the path to the mesh.
+	 *
+	 * @return the mesh object which contains the data from the specified mesh file.
+	 * @throws MeshLoaderException if the mesh file could not be imported as mesh object.
+     */
+	public Mesh loadMesh(String pathToMesh) {
+		MeshLoader loader = getLoaderByExtension(pathToMesh);
+		return loadMesh(pathToMesh, loader);
+	};
+
+	private Mesh loadMesh(String path, MeshLoader loader) {
 		try {
 			try (FileInputStream in = new FileInputStream(path)) {
 				return loader.load(in);

@@ -2,6 +2,7 @@ package eu.yvka.slothengine.geometry;
 
 import eu.yvka.slothengine.engine.EngineComponent;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,10 +42,26 @@ public class MeshRepository implements EngineComponent {
 	public Mesh getMesh(String fileName, boolean getCachedMesh) {
 		Mesh mesh = meshes.get(fileName);
 		if (mesh == null || !getCachedMesh) {
-			mesh = meshLoader.loadMesh(fileName);
+			mesh = meshLoader.loadMeshFromAssets(fileName);
 			meshes.put(fileName, mesh);
 		}
 		return mesh;
+	}
+
+	/**
+	 * Get the mesh with which is stored in <code>'filename'</code>
+	 * if the mesh was already loaded and <code>getCacheMesh</code>
+	 * is true the the same mesh instance is returned. When it is desired
+	 * a reload of the mesh can be achieved by setting getCacheMesh to
+	 * <code>false</code>.
+	 *
+	 * @param meshFile the absolute file path to the desired mesh file
+	 * @param getCachedMesh if true then the mesh will not reloaded
+	 * @return the already or reloaded mesh.
+	 */
+	public Mesh getMesh(File meshFile, boolean getCachedMesh) {
+		String path = meshFile.getAbsolutePath();
+		return getMesh(path, getCachedMesh);
 	}
 
 	@Override
