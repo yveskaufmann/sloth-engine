@@ -24,8 +24,8 @@ public class MeshRepository implements EngineComponent {
 	 * @param fileName the desired filename which contains the mesh data
 	 * @return the desired mesh.
      */
-	public Mesh getMesh(String fileName) {
-		return getMesh(fileName, true);
+	public Mesh getMeshFromAssets(String fileName) {
+		return getMeshFromAssets(fileName, true);
 	}
 
 	/**
@@ -39,13 +39,25 @@ public class MeshRepository implements EngineComponent {
 	 * @param getCachedMesh if true then the mesh will not reloaded
      * @return the already or reloaded mesh.
      */
-	public Mesh getMesh(String fileName, boolean getCachedMesh) {
+	public Mesh getMeshFromAssets(String fileName, boolean getCachedMesh) {
 		Mesh mesh = meshes.get(fileName);
 		if (mesh == null || !getCachedMesh) {
 			mesh = meshLoader.loadMeshFromAssets(fileName);
 			meshes.put(fileName, mesh);
 		}
 		return mesh;
+	}
+
+	/**
+	 * Get the mesh which is stored in <code>'filename'</code>.
+	 * This method ensures that the mesh is loaded only once and
+	 * that only one instance per mesh file is created.
+	 *
+	 * @param fileName the desired filename which contains the mesh data
+	 * @return the desired mesh.
+	 */
+	public Mesh  getMesh(String fileName) {
+		return getMesh(fileName, true);
 	}
 
 	/**
@@ -59,9 +71,14 @@ public class MeshRepository implements EngineComponent {
 	 * @param getCachedMesh if true then the mesh will not reloaded
 	 * @return the already or reloaded mesh.
 	 */
-	public Mesh getMesh(File meshFile, boolean getCachedMesh) {
-		String path = meshFile.getAbsolutePath();
-		return getMesh(path, getCachedMesh);
+	public Mesh getMesh(String meshFile, boolean getCachedMesh) {
+		String path = new File(meshFile).getAbsolutePath();
+		Mesh mesh = meshes.get(path);
+		if (mesh == null || !getCachedMesh) {
+			mesh = meshLoader.loadMesh(path);
+			meshes.put(path, mesh);
+		}
+		return mesh;
 	}
 
 	@Override

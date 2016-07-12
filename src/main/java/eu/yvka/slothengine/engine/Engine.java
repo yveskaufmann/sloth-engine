@@ -197,6 +197,11 @@ public class Engine {
 	}
 
 	static
+	public Mesh getMeshFromAssets(String fileName) {
+		return meshRepository.getMeshFromAssets(fileName);
+	}
+
+	static
 	public Mesh getMesh(String fileName) {
 		return meshRepository.getMesh(fileName);
 	}
