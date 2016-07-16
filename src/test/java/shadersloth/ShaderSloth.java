@@ -76,7 +76,7 @@ public class ShaderSloth extends EngineApp implements InputListener {
             box.setMaterial(material);
             box.setScale(1.0f);
             box.setMesh(new Sphere(1, 20, 20));
-            box.setMesh(Engine.getMesh("Rabbit.obj"));
+            box.setMesh(Engine.getMeshFromAssets("Rabbit.obj"));
             box.setPosition((float) (Math.cos(R * i * PI2) * radius), 0, (float) (Math.sin(R * i * PI2) * radius));
             boxes.add(box);
             room.addChild(box);

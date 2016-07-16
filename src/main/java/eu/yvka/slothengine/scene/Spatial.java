@@ -20,12 +20,6 @@ import java.util.Stack;
 public class Spatial {
 
 	/**
-	 * Stores the references to all spatial in order to
-	 * support a fast random access to spatial instances.
-	 */
-	protected static final Map<String, Spatial> instances = new HashMap<>();
-
-	/**
 	 * The identifiers which is reserved for spatial which are invalid
 	 * or not attached to a scene.
 	 */
@@ -67,13 +61,6 @@ public class Spatial {
 
 		if (UNSET_ID.equals(id)) {
 			throw new IllegalArgumentException("The UNSET_ID is used reserved for internal use only");
-		}
-
-		if (! instances.containsKey(id)) {
-			instances.put(id, this);
-			this.id = id;
-		} else {
-			throw new IllegalArgumentException("The specified id " + id + "is already used");
 		}
 
 		localTransformation.resetTransform();
@@ -127,7 +114,6 @@ public class Spatial {
 	 * in order to prevent memory leaks.
 	 */
 	void free() {
-		instances.remove(id);
 		id = UNSET_ID;
 	}
 
@@ -168,21 +154,6 @@ public class Spatial {
 			node.combineWithParent();
 		}
 	}
-
-	/**
-	 * Retrieves a spatial by it's id name.
-	 *
-	 * @param id the id of the desired spatial.
-	 *
-	 * @return the spatial with the specified id or null no such spatial exists.
-     */
-	Spatial getSpatitialById(String id) {
-		return instances.getOrDefault(id, null);
-	}
-
-
-	// TODO: check if transformations must be updated
-	//		 then
 
 	public Quaternionf getRotation() {
 		return localTransformation.getRotation();
