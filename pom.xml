@@ -39,10 +39,17 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
-        <lwjgl3Version>3.0.0</lwjgl3Version>
+        <lwjgl3Version>3.0.1-SNAPSHOT</lwjgl3Version>
         <jomlVersion>1.8.0</jomlVersion>
         <logbackVersion>1.1.7</logbackVersion>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>Snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
