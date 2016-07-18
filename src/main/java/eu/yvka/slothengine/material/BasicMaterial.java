@@ -47,6 +47,12 @@ public class BasicMaterial implements Material {
 	Shader shader;
 
 	/**
+	 * The fallback shader which should be used if
+	 * the shader has compile errors.
+	 */
+	Shader fallbackShader;
+
+	/**
 	 * The name of this Shader
 	 */
 	private String name;
@@ -82,12 +88,14 @@ public class BasicMaterial implements Material {
 	 */
 	int textureUnit = 0;
 
+
 	/**
 	 * Creates a basic material with the default shader
 	 * as the first pass.
 	 */
 	public BasicMaterial() {
 		shader = Engine.getShader("Default");
+		fallbackShader = Engine.getShader("Fallback");
 		name = DEFAULT_MATERIAL_NAME;
 		renderPasses.add(this);
 	}
@@ -122,6 +130,16 @@ public class BasicMaterial implements Material {
 		Material newPass = new BasicMaterial(this.shader);
 		renderPasses.add(newPass);
 		return newPass;
+	}
+
+	@Override
+	public boolean hasFallbackShader() {
+		return fallbackShader != null;
+	}
+
+	@Override
+	public Shader getFallbackShader() {
+		return fallbackShader;
 	}
 
 	@Override

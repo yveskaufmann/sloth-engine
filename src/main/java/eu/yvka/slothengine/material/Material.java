@@ -1,5 +1,7 @@
 package eu.yvka.slothengine.material;
 
+import eu.yvka.slothengine.shader.Shader;
+
 import java.util.List;
 
 /**
@@ -84,4 +86,20 @@ public interface Material extends Pass {
      */
 	Pass createPass();
 
+	/***
+	 * Allows it to determine if this material has
+	 * fallback shader, which should be used when
+	 * the original shader has an compiler error.
+	 *
+	 * @return true if a fallback shader is provided.
+     */
+	boolean hasFallbackShader();
+
+	/**
+	 * Returns a fallback shader which should be used
+	 * if the original shader has a compiler error.
+	 *
+	 * @return the fallback Shader.
+     */
+	Shader getFallbackShader();
 }

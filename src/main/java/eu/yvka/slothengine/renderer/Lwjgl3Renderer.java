@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.*;
+import java.text.MessageFormat;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
@@ -196,6 +197,7 @@ public class Lwjgl3Renderer implements Renderer {
 			objectManager.register(source);
 		}
 
+
 		glShaderSource(id, source.getSource());
 		glCompileShader(id);
 
@@ -208,6 +210,11 @@ public class Lwjgl3Renderer implements Renderer {
 			});
 		} else {
 			Log.info("Success to compile shader {}", source.toString());
+			if (! source.isUpdateRequired()) {
+				Engine.notifyShaderErrorListeners((notifier) -> {
+					notifier.onResolved();
+				});
+			}
 		}
 		source.disableUpdateRequired();
 

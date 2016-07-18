@@ -113,7 +113,6 @@ public class RendererManager implements EngineComponent {
 		renderer.setClearColor(Color.LightGrey);
 		renderer.clearBuffers(true, true, true);
 
-		//TODO: Filter Gemoetry Nodes which are not in sight
 		currentScene.traverse((node) -> {
 			if (node instanceof Geometry) {
 				Geometry geometry = (Geometry) node;
@@ -163,21 +162,45 @@ public class RendererManager implements EngineComponent {
 			for(MaterialParameter parameter : material.getMaterialParameters().values()) {
 				shader.getUniform(parameter.getName()).setValue(parameter);
 			}
-			try {
-				renderer.setShader(shader);
-			} catch (Exception ex) {
-				// TODO: setup fallback shader
-				Log.error("Failed to setup shader", ex);
+			useShader(shader);
+
+			if (! shader.isValid()) {
+				if (material.hasFallbackShader()) {
+					// when material pass shader can't be compiled we continue with
+					// a fallback shader if one is provided.
+					final Shader fallbackShader = material.getFallbackShader();
+					fallbackShader.getUniform("sl_cameraPosition").setValue(camera.getPosition());
+					fallbackShader.getUniform("sl_cameraDirection").setValue(camera.getDirection());
+					fallbackShader.getUniform("sl_projectionMatrix").setValue(projectionMatrix);
+					fallbackShader.getUniform("sl_modelViewMatrix").setValue(modelViewMatrix);
+					fallbackShader.getUniform("sl_viewMatrix").setValue(viewMatrix);
+					fallbackShader.getUniform("sl_modelMatrix").setValue(modelMatrix);
+					fallbackShader.getUniform("sl_normalMatrix").setValue(normalMatrix);
+					fallbackShader.getUniform("sl_mvp").setValue(modelViewProjectionMatrix);
+					useShader(fallbackShader);
+					shader = fallbackShader;
+
+				}
 			}
 
-			for(TextureBinding tb: pass.getTextures().values()) {
-				renderer.setTexture(tb.getUint(), tb.getTexture());
-			}
+			if (shader.isValid()) {
+				for (TextureBinding tb : pass.getTextures().values()) {
+					renderer.setTexture(tb.getUint(), tb.getTexture());
+				}
 
-			renderer.applyRenderState(pass.getRenderState());
-			renderer.drawMesh(geometry.getMesh());
+				renderer.applyRenderState(pass.getRenderState());
+				renderer.drawMesh(geometry.getMesh());
+			}
 			pass.postProcessPass(nextPass);
 		}
+	}
+
+	private void useShader(Shader shader) {
+		try {
+            renderer.setShader(shader);
+        } catch (Exception ex) {
+            Log.error("Failed to setup shader", ex);
+        }
 	}
 
 }

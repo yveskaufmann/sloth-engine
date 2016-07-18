@@ -7,4 +7,5 @@ package eu.yvka.slothengine.shader;
 public interface ShaderErrorListener {
 	public void onCompileError(Shader shader, String error);
 	public void onLinkError(Shader shader, String error);
+	public void onResolved();
 }
