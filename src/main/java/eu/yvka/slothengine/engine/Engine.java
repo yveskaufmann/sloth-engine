@@ -8,6 +8,7 @@ import eu.yvka.slothengine.material.MaterialManager;
 import eu.yvka.slothengine.renderer.Renderer;
 import eu.yvka.slothengine.renderer.RendererManager;
 import eu.yvka.slothengine.shader.Shader;
+import eu.yvka.slothengine.shader.ShaderErrorListener;
 import eu.yvka.slothengine.shader.ShaderManager;
 import eu.yvka.slothengine.texture.TextureManager;
 import eu.yvka.slothengine.utils.IOUtils;
@@ -15,6 +16,7 @@ import eu.yvka.slothengine.window.Window;
 import eu.yvka.slothengine.window.WindowManager;
 import org.lwjgl.glfw.GLFW;
 
+import javax.xml.transform.ErrorListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,7 +25,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import java.util.logging.LogManager;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -37,6 +41,8 @@ public class Engine {
 		enableLogging();
 	}
 
+
+	private static List<ShaderErrorListener> errorListeners = new ArrayList<>();
 	private static ShaderManager shaderRepository;
 	private static MeshRepository meshRepository;
 	private static RendererManager renderManager;
@@ -209,6 +215,25 @@ public class Engine {
 	static
 	public TextureManager textureManager() {
 		return textureManager;
+	}
+
+	static
+	public void registerShaderErrorListener(ShaderErrorListener shaderErrorListener) {
+		if (! errorListeners.contains(shaderErrorListener)) {
+			errorListeners.add(shaderErrorListener);
+		}
+	}
+
+	static
+	public void unregisterShaderErrorListener(ShaderErrorListener shaderErrorListener) {
+		if (errorListeners.contains(shaderErrorListener)) {
+			errorListeners.remove(shaderErrorListener);
+		}
+	}
+
+	static
+	public void notifyShaderErrorListeners(Consumer<ShaderErrorListener> notifier) {
+		errorListeners.forEach(notifier);
 	}
 
 	static void onInit() {

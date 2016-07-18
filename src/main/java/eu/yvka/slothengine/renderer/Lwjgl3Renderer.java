@@ -1,5 +1,6 @@
 package eu.yvka.slothengine.renderer;
 
+import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.geometry.Mesh;
 import eu.yvka.slothengine.geometry.VertexAttributePointer;
 import eu.yvka.slothengine.geometry.VertexBuffer;
@@ -150,7 +151,7 @@ public class Lwjgl3Renderer implements Renderer {
 		}
 		for (ShaderSource source : shader.getShaderSources()) {
 			if (source.isUpdateRequired()) {
-				if (! updateShaderSource(source)) {
+				if (! updateShaderSource(shader, source)) {
 					shader.disableUpdateRequired();
 					return false;
 				}
@@ -173,6 +174,9 @@ public class Lwjgl3Renderer implements Renderer {
 
 		} else {
 			Log.error("Failed to link shader program {}\n{}", shader, infoLog);
+			Engine.notifyShaderErrorListeners((notifier) -> {
+				notifier.onLinkError(shader, infoLog);
+			});
 			shader.setValid(false);
 		}
 
@@ -181,7 +185,7 @@ public class Lwjgl3Renderer implements Renderer {
 	}
 
 
-	private boolean updateShaderSource(ShaderSource source) {
+	private boolean updateShaderSource(Shader shader, ShaderSource source) {
 		int id = source.getId();
 		if (id == HardwareObject.UNSET_ID) {
 			id = glCreateShader(toShaderTypeConstant(source.getType()));
@@ -199,6 +203,9 @@ public class Lwjgl3Renderer implements Renderer {
 		if (!compileSuccess) {
 			String infoLog = glGetShaderInfoLog(id);
 			Log.error("Failed to compile shader {}\n{}", source.toString(), infoLog);
+			Engine.notifyShaderErrorListeners((notifier) -> {
+				notifier.onCompileError(shader, infoLog);
+			});
 		} else {
 			Log.info("Success to compile shader {}", source.toString());
 		}

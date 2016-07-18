@@ -166,6 +166,7 @@ public class RendererManager implements EngineComponent {
 			try {
 				renderer.setShader(shader);
 			} catch (Exception ex) {
+				// TODO: setup fallback shader
 				Log.error("Failed to setup shader", ex);
 			}
 

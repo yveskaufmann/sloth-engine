@@ -1,5 +1,6 @@
 package eu.yvka.slothengine.shader;
 
+import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.engine.EngineComponent;
 import eu.yvka.slothengine.shader.source.FileShaderSource;
 import eu.yvka.slothengine.shader.source.ShaderSource;
