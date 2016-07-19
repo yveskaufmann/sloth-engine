@@ -854,8 +854,8 @@ public class Lwjgl3Renderer implements Renderer {
 			ctx.pointSize = state.getLineWidth();
 		}
 
-		if (toggleEnable(GL_LINE_SMOOTH, state.isSmoothLinesEnabled() != ctx.lineSmooth)) {
-			ctx.lineSmooth = state.isSmoothLinesEnabled();
+		if (toggleEnable(GL_LINE_SMOOTH, state.isSmoothLines() != ctx.lineSmooth)) {
+			ctx.lineSmooth = state.isSmoothLines();
 		}
 
 		if (state.getLineWidth() != ctx.lineWith) {

@@ -193,11 +193,9 @@ public class RenderState {
 	 *
 	 * @param cullFaceMode the new current cull face mode.
 	 *
-	 * @return this
      */
-	public RenderState setCullFaceMode(CullFaceMode cullFaceMode) {
+	public void setCullFaceMode(CullFaceMode cullFaceMode) {
 		this.cullFaceMode = cullFaceMode;
-		return this;
 	}
 
 	/**
@@ -216,45 +214,40 @@ public class RenderState {
 	 * @param faceWinding the face winding.
 	 * @return this instance
      */
-	public RenderState setFrontFaceWinding(FaceWinding faceWinding) {
+	public void setFrontFaceWinding(FaceWinding faceWinding) {
 		this.frontWinding = faceWinding;
-		return this;
 	}
 
 	public TestFunc getDepthTestMode() {
 		return depthTestMode;
 	}
 
-	public RenderState setDepthTestMode(TestFunc depthTestMode) {
+	public void setDepthTestMode(TestFunc depthTestMode) {
 		this.depthTestMode = depthTestMode;
-		return this;
 	}
 
 	public BlendFunc getBlendMode() {
 		return blendMode;
 	}
 
-	public RenderState setBlendMode(BlendFunc blendMode) {
+	public void setBlendMode(BlendFunc blendMode) {
 		this.blendMode = blendMode;
-		return this;
 	}
 
 	public float getLineWidth() {
 		return lineWidth;
 	}
 
-	public RenderState setLineWidth(float lineWidth) {
+	public void setLineWidth(float lineWidth) {
 		this.lineWidth = lineWidth;
-		return this;
 	}
 
 	public float getPointSize() {
 		return pointSize;
 	}
 
-	public RenderState setPointSize(float pointSize) {
+	public void setPointSize(float pointSize) {
 		this.pointSize = pointSize;
-		return this;
 	}
 
 
@@ -262,23 +255,20 @@ public class RenderState {
 		return wireframe;
 	}
 
-	public RenderState enableWireframe(boolean wireframe) {
+	public void setWireframe(boolean wireframe) {
 		this.wireframe = wireframe;
-		return this;
 	}
 
-	public RenderState toggleWireframe() {
+	public void toggleWireframe() {
 		this.wireframe = !this.wireframe;
-		return this;
 	}
 
 	public boolean isFPSCounterEnabled() {
 		return enableFPSCounter;
 	}
 
-	public RenderState enableFPSCounter(boolean enable) {
+	public void enableFPSCounter(boolean enable) {
 		this.enableFPSCounter = enable;
-		return this;
 	}
 
 	/**
@@ -287,7 +277,7 @@ public class RenderState {
 	 *
 	 * @return true if smooth line rendering should be enabled.
      */
-	public boolean isSmoothLinesEnabled() {
+	public boolean isSmoothLines() {
 		return this.lineSmooth;
 	}
 
@@ -297,7 +287,7 @@ public class RenderState {
 	 * @param enable
 	 * @return this instance
      */
-	public RenderState enableSmoothLines(boolean enable) {
+	public RenderState setSmoothLines(boolean enable) {
 		this.lineSmooth = enable;
 		return this;
 	}

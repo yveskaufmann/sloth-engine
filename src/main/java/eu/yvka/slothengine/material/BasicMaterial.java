@@ -106,6 +106,7 @@ public class BasicMaterial implements Material {
 	 */
 	public BasicMaterial(Shader shader) {
 		this.shader = shader;
+		fallbackShader = Engine.getShader("Fallback");
 		name = shader.getShaderName();
 		renderPasses.add(this);
 	}

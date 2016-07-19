@@ -50,7 +50,8 @@ public class ShaderSloth extends EngineApp implements InputListener {
         mat.setShininess(20.0f);
 
         Pass pass = mat.createPass();
-        pass.getRenderState().enableWireframe(true).setBlendMode(RenderState.BlendFunc.Alpha);
+        pass.getRenderState().setWireframe(true);
+		pass.getRenderState().setBlendMode(RenderState.BlendFunc.Alpha);
         pass.setParameter("sl_material.diffuse", Color.White);
 
         pass.setEnableLightning(false);

@@ -26,7 +26,7 @@ public abstract class Light extends Node {
 			setMaterial(new BasicMaterial());
 			setMesh(new Sphere(0.5f, 4, 4));
 			getMaterial().setEnableLightning(false);
-			getMaterial().getRenderState().enableWireframe(false);
+			getMaterial().getRenderState().setWireframe(false);
 			getMaterial().getRenderState().setCullFaceMode(RenderState.CullFaceMode.Off);
 
 		}
