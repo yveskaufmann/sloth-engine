@@ -15,7 +15,6 @@ uniform struct Light {
 	int type;
 } sl_lights[MAX_COLORS];
 
-
 uniform struct Material {
     vec4 ambient;
     vec4 diffuse;

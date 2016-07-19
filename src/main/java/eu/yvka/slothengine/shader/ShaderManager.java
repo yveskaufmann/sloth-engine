@@ -111,11 +111,11 @@ public class ShaderManager implements EngineComponent {
 			shader.addSource(new StringShaderSource(id + ".vert",ShaderType.VERTEX, vertexSource));
 
 			String fragmentSource = IOUtils.toString(new InputStreamReader(fragmentIn));
-			shader.addSource(new StringShaderSource(id + ".frag",ShaderType.FRAGMENT, vertexSource));
+			shader.addSource(new StringShaderSource(id + ".frag",ShaderType.FRAGMENT, fragmentSource));
 
 			if (geometryIn != null) {
 				String geometrySource = IOUtils.toString(new InputStreamReader(geometryIn));
-				shader.addSource(new StringShaderSource(id + ".geom",ShaderType.GEOMETRY, vertexSource));
+				shader.addSource(new StringShaderSource(id + ".geom",ShaderType.GEOMETRY, geometrySource));
 			}
 
 			shaderMap.put(id, shader);
