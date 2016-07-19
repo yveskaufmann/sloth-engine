@@ -129,13 +129,16 @@ public class Lwjgl3Renderer implements Renderer {
 	@Override
 	public void setShader(Shader shader) {
 		assert shader != null;
-
+		boolean isValid = true;
 		if (shader.isUpdateRequired()) {
-			updateShaderData(shader);
+			isValid = updateShaderData(shader);
+			shader.setValid(isValid);
 		}
 
-		bindShaderProgram(shader);
-		updateShaderUniforms(shader);
+		if (isValid) {
+			bindShaderProgram(shader);
+			updateShaderUniforms(shader);
+		}
 	}
 
 	private boolean updateShaderData(Shader shader) {

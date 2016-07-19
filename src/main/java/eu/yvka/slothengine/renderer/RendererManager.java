@@ -198,7 +198,7 @@ public class RendererManager implements EngineComponent {
 	private void useShader(Shader shader) {
 		try {
             renderer.setShader(shader);
-        } catch (Exception ex) {
+		} catch (Exception ex) {
             Log.error("Failed to setup shader", ex);
         }
 	}
