@@ -1,6 +1,6 @@
 #version 330
 
-// Interpolated values from the vertex shaders
+// Interpolated values from the vertex eu.yvka.slothengine.shader
 in vec2 UV;
 in vec3 Position_worldspace;
 in vec3 Normal_cameraspace;
