@@ -287,9 +287,8 @@ public class RenderState {
 	 * @param enable
 	 * @return this instance
      */
-	public RenderState setSmoothLines(boolean enable) {
+	public void setSmoothLines(boolean enable) {
 		this.lineSmooth = enable;
-		return this;
 	}
 
 	/**

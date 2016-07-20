@@ -22,11 +22,10 @@ public abstract class Light extends Node {
 			super(id);
 
 			Shader shader = Engine.shaderManager().getShader("Icon", "Icon", "Icon");
-
-			setMaterial(new BasicMaterial());
-			setMesh(new Sphere(0.5f, 4, 4));
+			setMaterial(new BasicMaterial(shader));
+			setMesh(new Sphere(0.2f, 4, 4));
 			getMaterial().setEnableLightning(false);
-			getMaterial().getRenderState().setWireframe(false);
+			getMaterial().getRenderState().setWireframe(true);
 			getMaterial().getRenderState().setCullFaceMode(RenderState.CullFaceMode.Off);
 
 		}
