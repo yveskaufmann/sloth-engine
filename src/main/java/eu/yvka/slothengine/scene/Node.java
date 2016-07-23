@@ -13,10 +13,6 @@ public class Node extends Spatial {
 		super(id);
 	}
 
-	public void setId(String newId) {
-		this.id = newId;
-		//TODO: handle newId
-	}
 
 	public Node getChild(String id) {
 		for (Node child : children) {

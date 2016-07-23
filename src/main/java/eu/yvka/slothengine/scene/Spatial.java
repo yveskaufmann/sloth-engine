@@ -63,8 +63,18 @@ public class Spatial {
 			throw new IllegalArgumentException("The UNSET_ID is used reserved for internal use only");
 		}
 
+		this.id = id;
 		localTransformation.resetTransform();
 		wordTransformation.resetTransform();
+	}
+
+	/**
+	 * Specifies the id of spatial object.
+	 *
+	 * @param newId the new id of this spatial object
+     */
+	public void setId(String newId) {
+		this.id = newId;
 	}
 
 	/**
