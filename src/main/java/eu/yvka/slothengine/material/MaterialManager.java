@@ -23,11 +23,7 @@ public class MaterialManager implements EngineComponent {
 	@Override
 	public void initialize() {
 		Log.info("Initialize MaterialManager");
-		Log.info("Prepare Material Repository");
 		materialRepository = FXCollections.observableHashMap();
-		try {
-			registerMaterial(new BasicMaterial());
-		} catch (NameAlreadyInUseException e) {} // Will never happen
 		initialized = true;
 	}
 
@@ -116,19 +112,20 @@ public class MaterialManager implements EngineComponent {
 
 		Engine.runWhenReady(() -> {
 			Shader shader = material.getShader();
-			for (ShaderSource source : shader.getShaderSources()) {
-				if (source instanceof FileShaderSource) {
-					FileShaderSource fileShaderSource = (FileShaderSource) source;
-					File file = fileShaderSource.getFile();
-					File newFileName = new File(file.getParent(), newMame + "." + source.getType().getExtension());
+			if (shader != null) {
+				for (ShaderSource source : shader.getShaderSources()) {
+					if (source instanceof FileShaderSource) {
+						FileShaderSource fileShaderSource = (FileShaderSource) source;
+						File file = fileShaderSource.getFile();
+						File newFileName = new File(file.getParent(), newMame + "." + source.getType().getExtension());
 						file.renameTo(newFileName);
 						fileShaderSource.setFile(file);
 
+					}
 				}
+				shader.enableUpdateRequired();
 			}
-			shader.enableUpdateRequired();
 		});
-
 
 		Log.info("rename material '{}' => '{}'", oldName, newMame);
 	}
