@@ -87,4 +87,9 @@ public class FileShaderSource extends ShaderSource {
 	public File getFile() {
 		return file;
 	}
+
+	public void setFile(File file) {
+		this.file = file;
+		enableUpdateRequired();
+	}
 }

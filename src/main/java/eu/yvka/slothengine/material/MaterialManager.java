@@ -1,12 +1,17 @@
 package eu.yvka.slothengine.material;
 
+import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.engine.EngineComponent;
+import eu.yvka.slothengine.shader.Shader;
+import eu.yvka.slothengine.shader.source.FileShaderSource;
+import eu.yvka.slothengine.shader.source.ShaderSource;
 import eu.yvka.slothengine.utils.NameAlreadyInUseException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Optional;
 
 public class MaterialManager implements EngineComponent {
@@ -108,6 +113,23 @@ public class MaterialManager implements EngineComponent {
 		material.setMaterialName(newMame);
 		materialRepository.remove(oldName);
 		materialRepository.put(newMame, material);
+
+		Engine.runWhenReady(() -> {
+			Shader shader = material.getShader();
+			for (ShaderSource source : shader.getShaderSources()) {
+				if (source instanceof FileShaderSource) {
+					FileShaderSource fileShaderSource = (FileShaderSource) source;
+					File file = fileShaderSource.getFile();
+					File newFileName = new File(file.getParent(), newMame + "." + source.getType().getExtension());
+						file.renameTo(newFileName);
+						fileShaderSource.setFile(file);
+
+				}
+			}
+			shader.enableUpdateRequired();
+		});
+
+
 		Log.info("rename material '{}' => '{}'", oldName, newMame);
 	}
 
