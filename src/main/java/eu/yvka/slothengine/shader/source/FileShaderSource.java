@@ -83,4 +83,8 @@ public class FileShaderSource extends ShaderSource {
 	public void resetObject() {
 		enableUpdateRequired();
 	}
+
+	public File getFile() {
+		return file;
+	}
 }

@@ -1,6 +1,5 @@
 package eu.yvka.slothengine.shader;
 
-import eu.yvka.slothengine.engine.Engine;
 import eu.yvka.slothengine.engine.EngineComponent;
 import eu.yvka.slothengine.shader.source.FileShaderSource;
 import eu.yvka.slothengine.shader.source.ShaderSource;
@@ -8,6 +7,7 @@ import eu.yvka.slothengine.shader.source.StringShaderSource;
 import eu.yvka.slothengine.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.ch.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,11 +61,11 @@ public class ShaderManager implements EngineComponent {
 		Shader shader = shaderMap.get(id);
 		if (shader == null) {
 
-			File vertexSrc = new File(ASSET_PATH + vertexShader + "." + ShaderType.VERTEX.getExtension());
-			File fragmentSrc = new File(ASSET_PATH + fragmentShader + "." + ShaderType.FRAGMENT.getExtension());
+			File vertexSrc = new File(ASSET_PATH + toShaderFileName(vertexShader, ShaderType.VERTEX));
+			File fragmentSrc = new File(ASSET_PATH + toShaderFileName(fragmentShader, ShaderType.FRAGMENT));
 			File geometrySrc = null;
 			if (geometryShader != null ) {
-				geometrySrc = new File(ASSET_PATH + geometryShader + "." + ShaderType.GEOMETRY.getExtension());
+				geometrySrc = new File(ASSET_PATH + toShaderFileName(geometryShader, ShaderType.GEOMETRY));
 			}
 
 			shader = registerFileShader(vertexSrc, fragmentSrc, geometrySrc, id);
@@ -108,14 +108,14 @@ public class ShaderManager implements EngineComponent {
 		try {
 			final Shader shader = new Shader(id);
 			String vertexSource = IOUtils.toString(new InputStreamReader(vertexIn));
-			shader.addSource(new StringShaderSource(id + ".vert",ShaderType.VERTEX, vertexSource));
+			shader.addSource(new StringShaderSource(toShaderFileName(id, ShaderType.VERTEX),ShaderType.VERTEX, vertexSource));
 
 			String fragmentSource = IOUtils.toString(new InputStreamReader(fragmentIn));
-			shader.addSource(new StringShaderSource(id + ".frag",ShaderType.FRAGMENT, fragmentSource));
+			shader.addSource(new StringShaderSource(toShaderFileName(id, ShaderType.FRAGMENT),ShaderType.FRAGMENT, fragmentSource));
 
 			if (geometryIn != null) {
 				String geometrySource = IOUtils.toString(new InputStreamReader(geometryIn));
-				shader.addSource(new StringShaderSource(id + ".geom",ShaderType.GEOMETRY, geometrySource));
+				shader.addSource(new StringShaderSource(toShaderFileName(id, ShaderType.GEOMETRY), ShaderType.GEOMETRY, geometrySource));
 			}
 
 			shaderMap.put(id, shader);
@@ -134,6 +134,39 @@ public class ShaderManager implements EngineComponent {
 			new File(ASSET_PATH + name + "." + type.getExtension()));
 
 		return fileShaderSource;
+	}
+
+
+	/**
+	 * Creates {@line File} instance which points to a shader file
+	 * of the specified shader type and with the specified name.
+	 * <p>
+	 * The resulting file instance points to a file with
+	 * the following path:
+	 * <p>
+ *
+ *     <pre>
+	 *	ShaderFile = [baseFolder]/[name].[typeExtension]
+	 * </pre>
+	 *
+	 * @param baseFolder the base folder of the shader file
+	 * @param name the name of the shader file
+	 * @param type the type of the shader file
+     * @return the file instance which points to a shader file
+     */
+	public File toShaderFile(File baseFolder, String name, ShaderType type) {
+		return new File(baseFolder, toShaderFileName(name, type));
+	}
+
+	/**
+	 * Build a shader file name by a specified  shader name and type.
+	 *
+	 * @param name the name of the shader
+	 * @param type the type of the shader
+     * @return the shader file name of the specified shader file
+     */
+	public String toShaderFileName(String name, ShaderType type) {
+		return String.join(".", name, type.getExtension());
 	}
 
 	/******************************************************************************
