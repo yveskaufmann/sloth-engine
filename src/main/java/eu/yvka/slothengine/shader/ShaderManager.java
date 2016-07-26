@@ -26,7 +26,7 @@ public class ShaderManager implements EngineComponent {
 	 ******************************************************************************/
 
 	private static final Logger Log = LoggerFactory.getLogger(ShaderManager.class);
-	public final String ASSET_PATH = "assets/shaders/";
+	public static final String ASSET_PATH = "assets/shaders/";
 	private Map<String, Shader> shaderMap;
 	private boolean initialized;
 
