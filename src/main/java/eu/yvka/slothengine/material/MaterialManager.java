@@ -91,23 +91,20 @@ public class MaterialManager implements EngineComponent {
 		return materialRepository.containsKey(name);
 	}
 
-	public void renameMaterial(String oldName, String newMame) throws NameAlreadyInUseException {
+	public void renameMaterial(final Material material, String newMame) throws NameAlreadyInUseException {
 
-		Material material;
+		final String oldName = material.getMaterialName();
 
 		if (newMame.equals(oldName)) return; // Can be Ignored
-
-		material = materialRepository.get(oldName);
-
-		if (material == null) {
-			throw new IllegalArgumentException("The specified Material '" + oldName + "' don't exists.");
-		}
 
 		if (isMaterialNameInUse(newMame)) {
 			throw new NameAlreadyInUseException(newMame);
 		}
+
 		material.setMaterialName(newMame);
-		materialRepository.remove(oldName);
+		if (materialRepository.containsKey(oldName)) {
+			materialRepository.remove(oldName);
+		}
 		materialRepository.put(newMame, material);
 
 		Engine.runWhenReady(() -> {
@@ -119,10 +116,10 @@ public class MaterialManager implements EngineComponent {
 						File file = fileShaderSource.getFile();
 						File newFileName = new File(file.getParent(), newMame + "." + source.getType().getExtension());
 						file.renameTo(newFileName);
-						fileShaderSource.setFile(file);
-
+						fileShaderSource.setFile(newFileName);
 					}
 				}
+				shader.setShaderName(newMame);
 				shader.enableUpdateRequired();
 			}
 		});

@@ -81,6 +81,10 @@ public class Shader extends HardwareObject {
 		return this.shaderName;
 	}
 
+	public void setShaderName(String shaderName) {
+		this.shaderName = shaderName;
+	}
+
 	@Override
 	public boolean isUpdateRequired() {
 		return shaderSources.stream().anyMatch(HardwareObject::isUpdateRequired);
@@ -109,5 +113,7 @@ public class Shader extends HardwareObject {
 	public void setValid(boolean valid) {
 		this.valid = valid;
 	}
+
+
 }
 

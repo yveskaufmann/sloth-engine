@@ -209,15 +209,13 @@ public class Lwjgl3Renderer implements Renderer {
 			String infoLog = glGetShaderInfoLog(id);
 			Log.error("Failed to compile shader {}\n{}", source.toString(), infoLog);
 			Engine.notifyShaderErrorListeners((notifier) -> {
-				notifier.onCompileError(shader, infoLog);
+				notifier.onCompileError(shader, source, infoLog);
 			});
 		} else {
 			Log.info("Success to compile shader {}", source.toString());
-			if (! source.isUpdateRequired()) {
-				Engine.notifyShaderErrorListeners((notifier) -> {
-					notifier.onResolved();
-				});
-			}
+			Engine.notifyShaderErrorListeners((notifier) -> {
+				notifier.onResolved(shader, source);
+			});
 		}
 		source.disableUpdateRequired();
 

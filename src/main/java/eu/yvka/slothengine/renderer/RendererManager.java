@@ -117,13 +117,13 @@ public class RendererManager implements EngineComponent {
 			if (node instanceof Geometry) {
 				Geometry geometry = (Geometry) node;
 				if (geometry.isVisible()) {
-					renderGeometry((Geometry) node);
+					renderGeometry((Geometry) node, elapsedTime);
 				}
 			}
 		});
 	}
 
-	private void renderGeometry(Geometry geometry) {
+	private void renderGeometry(Geometry geometry, float elapsedTime) {
 		Camera camera = currentScene.getCamera();
 		Matrix4f projectionMatrix = camera.getProjectionMatrix();
 		Matrix4f viewMatrix = camera.getViewMatrix();
@@ -153,6 +153,7 @@ public class RendererManager implements EngineComponent {
 			shader.getUniform("sl_modelMatrix").setValue(modelMatrix);
 			shader.getUniform("sl_normalMatrix").setValue(normalMatrix);
 			shader.getUniform("sl_mvp").setValue(modelViewProjectionMatrix);
+			shader.getUniform("sl_time").setValue(elapsedTime);
 
 			pass.preparePass(prevPass);
 			if (currentScene.getLightList() != null && pass.isLightningEnabled()) {
